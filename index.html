@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Top Produkte – DE</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Top Produkte für Deutschland</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
     body {
@@ -20,45 +20,37 @@
     }
 
     h1 {
-      font-size: 24px;
-      margin-bottom: 16px;
+      font-size: 26px;
+      margin-bottom: 20px;
       font-weight: 600;
     }
 
-    /* 产品区域 */
-    .products-section {
-      margin-bottom: 32px;
-    }
-
+    /* 让网格居中对齐 + 统一卡片宽度 */
     .product-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 16px;
+      justify-content: center;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
     }
 
     .product-card {
+      width: 280px;              /* 卡片宽度固定成你之前的效果 */
       background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-      overflow: hidden;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      padding: 12px;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .product-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.09);
     }
 
     .product-image-wrapper {
       width: 100%;
-      aspect-ratio: 4 / 5;
+      aspect-ratio: 1 / 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       overflow: hidden;
     }
 
@@ -66,264 +58,104 @@
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
-      display: block;
     }
 
     .product-title {
-      font-size: 14px;
-      font-weight: 500;
+      font-size: 15px;
       line-height: 1.4;
+      min-height: 42px;
       margin-bottom: 6px;
-      /* 保证高度统一，防止某些标题过长把卡片拉高太多 */
-      max-height: 3.8em;
-      overflow: hidden;
-    }
-
-    .product-meta {
-      font-size: 13px;
-      color: #555;
-      margin-bottom: 8px;
+      font-weight: 500;
     }
 
     .product-price {
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 20px;
+      font-weight: 700;
       color: #d3001b;
-      margin-bottom: 10px;
-    }
-
-    .product-footer {
-      margin-top: auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
+      margin-bottom: 6px;
     }
 
     .product-asin {
       font-size: 11px;
-      color: #777;
-      word-break: break-all;
+      margin-bottom: 10px;
+      color: #555;
     }
 
     .btn-buy {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
+      width: 100%;
+      padding: 8px 0;
       background: #ffd814;
-      border: 1px solid #fcd200;
-      font-size: 12px;
+      border-radius: 999px;
+      text-align: center;
       font-weight: 600;
+      font-size: 14px;
       text-decoration: none;
       color: #111;
-      white-space: nowrap;
-      flex-shrink: 0;
+      border: 1px solid #fcd200;
+      margin-top: auto;
     }
 
-    .btn-buy:hover {
-      filter: brightness(0.96);
-    }
-
-    .loading,
-    .empty,
-    .error {
-      font-size: 14px;
-      color: #666;
-      padding: 12px 4px;
-    }
-
-    /* Support / Info 区域 – 固定在下方，保持 DE 模板顺序 */
+    /* Support 信息区 */
     .support-section {
-      margin-top: 32px;
+      margin-top: 30px;
     }
 
     .support-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
     }
 
     .support-card {
       background: #fff;
-      border-radius: 12px;
-      padding: 14px 16px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.04);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
     }
 
     .support-card-title {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 600;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .support-card-text {
-      font-size: 13px;
+      font-size: 14px;
       color: #555;
       line-height: 1.5;
     }
-
-    @media (max-width: 600px) {
-      .page {
-        padding-inline: 12px;
-      }
-    }
   </style>
 </head>
+
 <body>
   <div class="page">
+
     <h1>Top Produkte für Deutschland</h1>
 
-    <!-- 产品列表区域（只往这个 grid 里插入卡片） -->
-    <section class="products-section">
-      <div id="product-grid" class="product-grid">
-        <!-- JS 会在这里自动插入产品卡片 -->
-      </div>
-      <p id="product-status" class="loading">Produkte werden geladen…</p>
-    </section>
+    <!-- 产品列表 -->
+    <div id="product-grid" class="product-grid">
+      <!-- JS 会生成产品卡片 -->
+    </div>
 
-    <!-- Support / Info Cards：固定在页面底部，布局仿 DE 模板 -->
-    <section class="support-section">
+    <p id="product-status" style="color:#777; font-size:14px;">Produkte werden geladen…</p>
+
+    <!-- Support 区域固定底部 -->
+    <div class="support-section">
       <div class="support-grid">
         <div class="support-card">
           <div class="support-card-title">Versand & Rückgabe</div>
-          <div class="support-card-text">
-            Informationen zu Versandoptionen, Rückgaberecht und Lieferzeiten direkt auf der jeweiligen Amazon-Produktseite.
-          </div>
+          <div class="support-card-text">Informationen zu Versandoptionen und Rückgaberecht direkt auf der Amazon-Produktseite.</div>
         </div>
+
         <div class="support-card">
           <div class="support-card-title">Hinweis zu Affiliate-Links</div>
-          <div class="support-card-text">
-            Als Amazon-Partner verdienen wir an qualifizierten Verkäufen. Für Sie entstehen dadurch keine zusätzlichen Kosten.
-          </div>
+          <div class="support-card-text">Als Amazon-Partner verdienen wir an qualifizierten Verkäufen – ohne zusätzliche Kosten für Sie.</div>
         </div>
+
         <div class="support-card">
           <div class="support-card-title">Fragen zum Produkt</div>
-          <div class="support-card-text">
-            Bei konkreten Fragen zu einem Artikel nutzen Sie bitte die Q&amp;A- oder Kontaktfunktionen des jeweiligen Amazon-Angebots.
-          </div>
+          <div class="support-card-text">Bei Fragen nutzen Sie bitte die Q&amp;A- oder Kontaktfunktionen des jeweiligen Angebots.</div>
         </div>
       </div>
-    </section>
+    </div>
   </div>
-
-  <script>
-    // 当前页面国家（复制这份到 FR/IT/ES/CA 时，只改这一个常量）
-    const CURRENT_COUNTRY = 'DE';
-
-    // 你的 Google Sheet CSV 地址
-    const SHEET_CSV_URL =
-      'https://docs.google.com/spreadsheets/d/1XJ28joTagiKG-Td3oVWk0pWmWZycpHG0BNbokQkY3zQ/export?format=csv';
-
-    // 各国家域名
-    const DOMAIN_MAP = {
-      US: 'www.amazon.com',
-      UK: 'www.amazon.co.uk',
-      DE: 'www.amazon.de',
-      FR: 'www.amazon.fr',
-      IT: 'www.amazon.it',
-      ES: 'www.amazon.es',
-      CA: 'www.amazon.ca',
-      JP: 'www.amazon.co.jp'
-    };
-
-    // 各国家 Tracking ID（你给我的）
-    const TRACKING_IDS = {
-      US: 'us1987-20',
-      UK: 'uk0e42-21',
-      DE: 'de0831-21',
-      FR: 'alliance1980d-21',
-      IT: 'alliance19805-21',
-      ES: 'es072-21',
-      CA: 'alliance0dd-20',
-      JP: 'alliance1987-22'
-    };
-
-    function buildAffiliateUrl(asin, countryCode) {
-      const cc = (countryCode || '').toUpperCase();
-      const domain = DOMAIN_MAP[cc];
-      const tag = TRACKING_IDS[cc];
-      if (!domain || !tag || !asin) return '#';
-      return `https://${domain}/dp/${encodeURIComponent(asin)}?tag=${encodeURIComponent(tag)}`;
-    }
-
-    function parseCsv(text) {
-      const lines = text.trim().split(/\r?\n/);
-      if (!lines.length) return [];
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      const rows = [];
-
-      for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        const cols = lines[i].split(',');
-        const obj = {};
-        headers.forEach((h, idx) => {
-          obj[h] = (cols[idx] || '').trim();
-        });
-        rows.push(obj);
-      }
-      return rows;
-    }
-
-    async function loadProducts() {
-      const grid = document.getElementById('product-grid');
-      const status = document.getElementById('product-status');
-
-      status.textContent = 'Produkte werden geladen…';
-
-      try {
-        const res = await fetch(SHEET_CSV_URL);
-        const text = await res.text();
-        const allProducts = parseCsv(text);
-
-        // 只显示当前国家的产品
-        const products = allProducts.filter(p => {
-          return (p.country || '').toUpperCase() === CURRENT_COUNTRY;
-        });
-
-        grid.innerHTML = '';
-
-        if (!products.length) {
-          status.textContent = 'Für dieses Land sind aktuell keine Produkte gepflegt. Bitte Google Sheet prüfen.';
-          return;
-        }
-
-        status.textContent = '';
-
-        products.forEach(p => {
-          const asin = p.asin || '';
-          const img = p.image || '';
-          const title = p.title || `(ASIN: ${asin})`;
-          const price = p.price || '';
-          const url = buildAffiliateUrl(asin, CURRENT_COUNTRY);
-
-          const card = document.createElement('article');
-          card.className = 'product-card';
-
-          card.innerHTML = `
-            <div class="product-image-wrapper">
-              ${img ? `<img src="${img}" alt="${title}">` : ''}
-            </div>
-            <div class="product-title">${title}</div>
-            <div class="product-meta">
-              ${price ? `<span class="product-price">${price}</span>` : ''}
-            </div>
-            <div class="product-footer">
-              <span class="product-asin">ASIN: ${asin}</span>
-              <a class="btn-buy" href="${url}" target="_blank" rel="nofollow noopener">
-                查看详情
-              </a>
-            </div>
-          `;
-
-          grid.appendChild(card);
-        });
-      } catch (err) {
-        console.error(err);
-        status.textContent = 'Produkte konnten nicht geladen werden. Bitte später erneut versuchen.';
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', loadProducts);
-  </script>
-</body>
-</html>
