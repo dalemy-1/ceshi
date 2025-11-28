@@ -1,646 +1,749 @@
-<!DOCTYPE html>
-<html lang="de">
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>DE Deep Review • Smart Picks DE</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta
-    name="description"
-    content="Editorial-style Amazon.de picks and buying advice with safe, static example links for Kindle, Echo and Fire TV categories."
-  />
+  <meta charset="utf-8" />
+  <title>Deep Review · Smart Picks – Amazon Affiliate Hub</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description"
+        content="Deep Review · Smart Picks is a multi-country Amazon affiliate hub with editorial-style product shortlists, clear Amazon Associates disclosures and links to eight local marketplaces." />
   <style>
-    :root {
-      --bg-page: #eef1f7;
-      --bg-card: #ffffff;
-      --bg-card-soft: #f6f7fb;
-      --bg-dark: #0f172a;
-      --text-main: #111827;
-      --text-soft: #6b7280;
-      --accent: #2563eb;
-      --accent-soft: #dbeafe;
-      --accent-strong: #1d4ed8;
-      --border-subtle: #e5e7eb;
-      --shadow-soft: 0 18px 40px rgba(15,23,42,0.14);
-      --radius-lg: 18px;
-      --radius-xl: 22px;
-      --max-width: 1200px;
+    :root{
+      --bg:#f5f5f7;
+      --bg-soft:#f9fafb;
+      --ink:#111827;
+      --muted:#6b7280;
+      --accent:#111827;
+      --border:#e5e7eb;
+      --card:#ffffff;
+      --radius:16px;
+      --maxw:1120px;
+      --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #e0edff 0, #eef1f7 45%, #e5e7eb 100%);
-      color: var(--text-main);
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{scroll-behavior:smooth}
+    body{
+      font-family:var(--font);
+      background:var(--bg);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      line-height:1.7;
     }
-    a { color: var(--accent-strong); text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    a{text-decoration:none;color:inherit}
 
-    header {
-      background: rgba(255,255,255,0.92);
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid rgba(148,163,184,0.3);
-      position: sticky;
-      top: 0;
-      z-index: 40;
-    }
-    .header-inner {
-      max-width: var(--max-width);
-      margin: 0 auto;
-      padding: 10px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .brand-block { display: flex; flex-direction: column; gap: 2px; }
-    .site-title {
-      font-size: 1.05rem;
-      font-weight: 750;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-    .site-subtitle {
-      font-size: 0.78rem;
-      color: var(--text-soft);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      align-items: center;
-    }
-    .dot { width: 3px; height: 3px; border-radius: 999px; background: #9ca3af; }
-
-    .top-nav {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-    .nav-btn {
-      border-radius: 999px;
-      border: 1px solid transparent;
-      padding: 6px 10px;
-      font-size: 0.78rem;
-      background: transparent;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--text-soft);
-      transition: 0.18s ease-out;
-    }
-    .nav-btn.primary {
-      border-color: rgba(148,163,184,0.7);
-      background: rgba(15,23,42,0.92);
-      color: #e5e7eb;
-      box-shadow: 0 8px 18px rgba(15,23,42,0.45);
-    }
-    .nav-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 16px rgba(148,163,184,0.5);
-      border-color: rgba(148,163,184,0.9);
-      background: #ffffff;
-      color: #0f172a;
-    }
-    .nav-btn.primary:hover {
-      background: #020617;
-      box-shadow: 0 10px 20px rgba(15,23,42,0.5);
-      color: #e5e7eb;
+    .wrap{
+      max-width:var(--maxw);
+      margin:0 auto;
+      padding:0 20px;
     }
 
-    main {
-      max-width: var(--max-width);
-      margin: 12px auto 32px;
-      padding: 0 16px 32px;
+    /* HEADER */
+    header{
+      position:sticky;
+      top:0;
+      z-index:20;
+      backdrop-filter:blur(18px);
+      background:rgba(245,245,247,.95);
+      border-bottom:1px solid rgba(209,213,219,.8);
     }
-
-    .intro-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
-      gap: 18px;
-      align-items: stretch;
-      margin-top: 10px;
-      margin-bottom: 18px;
+    .header-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 0;
+      gap:20px;
     }
-    .card {
-      background: rgba(255,255,255,0.95);
-      border-radius: var(--radius-xl);
-      box-shadow: 0 18px 40px rgba(15,23,42,0.12);
-      padding: 18px 20px;
-      border: 1px solid rgba(148,163,184,0.22);
+    .logo{
+      font-size:1.1rem;
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      color:#111827;
     }
-    .card-soft {
-      background: radial-gradient(circle at top left,#0b1120 0,#020617 40%,#020617 100%);
-      color: #e5e7eb;
+    .tagline{
+      font-size:.8rem;
+      color:var(--muted);
+      margin-top:2px;
     }
-    .card h1 { margin: 0 0 6px; font-size: 1.3rem; }
-    .card p { margin: 4px 0; font-size: 0.85rem; color: var(--text-soft); }
-    .card-soft h2 { margin: 0 0 6px; font-size: 1.1rem; }
-    .card-soft p { color: #cbd5f5; font-size: 0.8rem; }
-    .card-soft ul {
-      padding-left: 16px;
-      margin: 4px 0 0;
-      font-size: 0.8rem;
+    .brand-stack{
+      display:flex;
+      flex-direction:column;
     }
-    .card-soft li + li { margin-top: 4px; }
-
-    .meta-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-      align-items: center;
+    nav{
+      font-size:.82rem;
+      display:flex;
+      align-items:center;
+      gap:16px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
     }
-    .badge-market {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 9px;
-      border-radius: 999px;
-      background: #111827;
-      color: #f9fafb;
-      font-size: 0.78rem;
-      box-shadow: 0 10px 20px rgba(15,23,42,0.6);
+    nav a{
+      color:var(--muted);
+      padding:4px 0;
+      border-bottom:1px solid transparent;
+      transition:border-color .12s ease,color .12s ease;
     }
-    .badge-market span.flag {
-      width: 18px;
-      height: 18px;
-      border-radius: 999px;
-      background: linear-gradient(90deg,#000 0 33%,#dd0000 33% 66%,#ffce00 66% 100%);
-      box-shadow: 0 0 0 1px rgba(15,23,42,0.6);
+    nav a:hover{
+      color:var(--ink);
+      border-bottom-color:#d1d5db;
     }
-    .badge-soft { font-size: 0.78rem; color: #6b7280; }
-    .key-points {
-      margin-top: 4px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: 0.76rem;
-      color: #6b7280;
-    }
-    .key-points span {
-      background: #e5e7eb;
-      padding: 2px 8px;
-      border-radius: 999px;
-    }
-
-    /* 产品网格 */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 12px;
-      align-items: stretch;
-      margin-top: 8px;
-    }
-    .product-card {
-      background: rgba(255,255,255,0.96);
-      border-radius: var(--radius-lg);
-      box-shadow: 0 14px 32px rgba(15,23,42,0.14);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      border: 1px solid rgba(148,163,184,0.24);
-      transition: 0.18s ease-out;
-    }
-    .product-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 36px rgba(15,23,42,0.18);
-      border-color: rgba(37,99,235,0.5);
-    }
-    .product-card_media {
-      position: relative;
-      aspect-ratio: 4 / 3;
-      background: radial-gradient(circle at top,#e5edff 0,#c7d2fe 45%,#94a3b8 100%);
-      overflow: hidden;
-    }
-    .product-card_media img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-      mix-blend-mode: multiply;
-    }
-    .product-card_body {
-      padding: 10px 12px 9px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      flex: 1;
-    }
-    .product-card_meta {
-      font-size: 0.76rem;
-      color: #6b7280;
-      display: flex;
-      justify-content: space-between;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .meta-cat {
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-weight: 600;
-      color: #4b5563;
-    }
-    .product-card_title { font-size: 0.95rem; margin: 0; }
-    .product-card_hook {
-      font-size: 0.8rem;
-      color: #4b5563;
-      margin: 0;
-    }
-    .product-card_desc {
-      font-size: 0.78rem;
-      color: #6b7280;
-      margin: 0;
-    }
-    .product-card_footer {
-      padding: 6px 12px 11px;
-      border-top: 1px dashed rgba(148,163,184,0.7);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .product-card_price { font-size: 0.8rem; color: #4b5563; }
-    .product-card_actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-    .btn {
-      border-radius: 999px;
-      padding: 5px 11px;
-      font-size: 0.78rem;
-      border: 1px solid transparent;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: var(--bg-card-soft);
-      color: #111827;
-      transition: 0.18s ease-out;
-      text-decoration: none;
-    }
-    .btn:hover {
-      background: #e5e7eb;
-      transform: translateY(-1px);
-      box-shadow: 0 8px 12px rgba(148,163,184,0.5);
-    }
-    .btn-primary {
-      background: var(--accent-strong);
-      color: #f9fafb;
-      box-shadow: 0 10px 18px rgba(37,99,235,0.65);
-    }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 12px;
-      margin-top: 18px;
-    }
-    .info-card h3 { margin: 0 0 6px; font-size: 0.95rem; }
-    .info-card p, .info-card li {
-      font-size: 0.8rem;
-      color: #4b5563;
-    }
-    .info-card ul { padding-left: 18px; margin: 4px 0 0; }
-
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(15,23,42,0.68);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 50;
-    }
-    .modal-backdrop.visible { display: flex; }
-    .modal {
-      background: #020617;
-      color: #e5e7eb;
-      max-width: 520px;
-      width: calc(100% - 32px);
-      border-radius: 22px;
-      padding: 18px 18px 14px;
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148,163,184,0.7);
-      position: relative;
-    }
-    .modal h2 { margin: 0 0 8px; font-size: 1.02rem; }
-    .modal p {
-      font-size: 0.82rem;
-      color: #e5e7eb;
-      line-height: 1.55;
-      white-space: pre-line;
-    }
-    .modal-close {
-      position: absolute;
-      right: 12px;
-      top: 10px;
-      border-radius: 999px;
-      border: none;
-      width: 26px;
-      height: 26px;
-      background: rgba(15,23,42,0.9);
-      color: #9ca3af;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-    }
-    .modal-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .modal-footer .btn { font-size: 0.8rem; padding-inline: 12px; }
-
-    @media (max-width: 860px) {
-      .intro-layout { grid-template-columns: minmax(0, 1fr); }
-    }
-    @media (max-width: 640px) {
-      .header-inner {
-        flex-direction: column;
-        align-items: flex-start;
+    @media(max-width:720px){
+      .header-inner{
+        flex-direction:column;
+        align-items:flex-start;
       }
-      .top-nav { justify-content: flex-start; }
+      nav{
+        flex-wrap:wrap;
+        gap:10px;
+      }
+    }
+
+    main{
+      padding:26px 0 32px;
+    }
+
+    /* HERO – Apple style center layout */
+    .hero{
+      margin-bottom:28px;
+    }
+    .hero-card{
+      background:var(--card);
+      border-radius:32px;
+      border:1px solid var(--border);
+      padding:34px 26px 30px;
+      box-shadow:0 18px 40px rgba(148,163,184,.25);
+    }
+    .hero-inner{
+      max-width:720px;
+      margin:0 auto;
+      text-align:center;
+    }
+    .hero-kicker{
+      font-size:.78rem;
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      color:var(--muted);
+      margin-bottom:10px;
+    }
+    .hero-inner h1{
+      font-size:2rem;
+      letter-spacing:.02em;
+      margin-bottom:10px;
+    }
+    .hero-sub{
+      font-size:.95rem;
+      color:#374151;
+      max-width:580px;
+      margin:0 auto 16px;
+    }
+    .hero-meta{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:8px 14px;
+      font-size:.8rem;
+      color:var(--muted);
+      margin-bottom:18px;
+    }
+    .hero-pill{
+      padding:5px 11px;
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+    }
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:10px;
+      margin-bottom:18px;
+    }
+    .btn-primary{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px 18px;
+      border-radius:999px;
+      border:1px solid #111827;
+      background:#111827;
+      color:#f9fafb;
+      font-size:.84rem;
+      font-weight:600;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      cursor:pointer;
+      transition:background .15s ease,color .15s ease,transform .12s ease,box-shadow .12s ease;
+    }
+    .btn-primary:hover{
+      background:#000;
+      box-shadow:0 10px 25px rgba(15,23,42,.35);
+      transform:translateY(-1px);
+    }
+    .btn-ghost{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px 16px;
+      border-radius:999px;
+      border:1px solid #d1d5db;
+      background:#ffffff;
+      font-size:.84rem;
+      font-weight:500;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      cursor:pointer;
+      transition:background .15s ease,border-color .15s ease,transform .12s ease;
+    }
+    .btn-ghost:hover{
+      background:#f3f4f6;
+      border-color:#111827;
+      transform:translateY(-1px);
+    }
+
+    .hero-disclosure{
+      margin-top:4px;
+      font-size:.8rem;
+      color:#92400e;
+      background:#fffbeb;
+      border-radius:999px;
+      padding:7px 14px;
+      border:1px solid #facc15;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+    }
+    .hero-disclosure strong{
+      font-weight:600;
+    }
+
+    /* Mini HOW-TO strip */
+    .howto-strip{
+      margin-top:20px;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      font-size:.82rem;
+      color:#4b5563;
+    }
+    .howto-item{
+      padding:10px 12px;
+      border-radius:14px;
+      background:var(--bg-soft);
+    }
+    .howto-label{
+      font-size:.76rem;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:#9ca3af;
+      margin-bottom:4px;
+    }
+    @media(max-width:780px){
+      .hero-card{padding:26px 20px 24px}
+      .hero-inner h1{font-size:1.7rem}
+      .howto-strip{grid-template-columns:1fr}
+    }
+
+    /* SECTION HEADINGS */
+    .section-heading{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      margin:26px 0 12px;
+    }
+    .section-heading h2{
+      font-size:1.15rem;
+      letter-spacing:.02em;
+    }
+    .section-heading small{
+      font-size:.82rem;
+      color:var(--muted);
+    }
+    @media(max-width:640px){
+      .section-heading{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:4px;
+      }
+    }
+
+    /* COUNTRY GRID – Minimal cards */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:18px;
+      margin-bottom:28px;
+    }
+    @media(max-width:1080px){
+      .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    }
+    @media(max-width:840px){
+      .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media(max-width:560px){
+      .grid{grid-template-columns:1fr}
+    }
+
+    .country-card{
+      position:relative;
+      background:var(--card);
+      border-radius:20px;
+      border:1px solid var(--border);
+      padding:14px 14px 12px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      cursor:pointer;
+      box-shadow:0 10px 22px rgba(148,163,184,.18);
+      transition:box-shadow .16s ease,transform .14s ease,border-color .14s ease;
+    }
+    .country-card:hover{
+      border-color:#111827;
+      box-shadow:0 18px 40px rgba(15,23,42,.26);
+      transform:translateY(-2px);
+    }
+    .country-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .country-main{
+      display:flex;
+      align-items:center;
+      gap:9px;
+      min-width:0;
+    }
+    .country-flag{
+      width:30px;
+      height:30px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.1rem;
+      background:#f9fafb;
+      border:1px solid #e5e7eb;
+      flex-shrink:0;
+    }
+    .country-text{
+      min-width:0;
+    }
+    .country-name{
+      font-size:.92rem;
+      font-weight:600;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .country-sub{
+      font-size:.78rem;
+      color:#6b7280;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .country-tag{
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:#6b7280;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+      flex-shrink:0;
+    }
+
+    .country-body{
+      font-size:.84rem;
+      color:#374151;
+      min-height:3.1em;
+    }
+    .country-footer{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      font-size:.78rem;
+      color:#6b7280;
+      margin-top:2px;
+    }
+    .country-footer span{
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .btn-open{
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid #d1d5db;
+      background:#ffffff;
+      font-size:.76rem;
+      font-weight:500;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      flex-shrink:0;
+    }
+
+    /* CONTENT SECTIONS – Minimal white blocks */
+    .section-block{
+      background:var(--card);
+      border-radius:20px;
+      border:1px solid var(--border);
+      padding:18px 16px 16px;
+      margin-bottom:18px;
+      box-shadow:0 12px 28px rgba(148,163,184,.2);
+      font-size:.9rem;
+    }
+    .section-block h2{
+      font-size:1.05rem;
+      margin-bottom:6px;
+    }
+    .section-block p{
+      margin-bottom:6px;
+      color:#374151;
+    }
+    .section-block ul{
+      margin-left:18px;
+      margin-bottom:6px;
+      color:#374151;
+    }
+    .section-block li{
+      margin-bottom:4px;
+    }
+    .disclosure-strong{
+      font-size:.85rem;
+      color:#374151;
+      margin-top:2px;
+    }
+
+    /* FOOTER */
+    footer{
+      border-top:1px solid #e5e7eb;
+      background:#f9fafb;
+      font-size:.8rem;
+      color:var(--muted);
+    }
+    footer .wrap{
+      padding:12px 20px 16px;
+      text-align:center;
     }
   </style>
 </head>
 <body>
-  <header>
+<header>
+  <div class="wrap">
     <div class="header-inner">
-      <div class="brand-block">
-        <div class="site-title">DE Deep Review • Smart Picks DE</div>
-        <div class="site-subtitle">
-          <span>Editorial-style picks for Amazon.de shoppers</span>
-          <span class="dot"></span>
-          <span>Static example links, no constant updates.</span>
-        </div>
+      <div class="brand-stack">
+        <div class="logo">Deep Review · Smart Picks</div>
+        <div class="tagline">Multi-country Amazon affiliate hub with curated product shortlists.</div>
       </div>
-      <div class="top-nav">
-        <button class="nav-btn" onclick="window.location.href='https://dalemy-1.github.io/'">Home</button>
-        <button class="nav-btn">Buying Guide</button>
-        <button class="nav-btn">About</button>
-        <button class="nav-btn">Privacy</button>
-        <button class="nav-btn primary">
-          <span>Affiliate Disclosure</span>
-          <span style="font-size:0.7rem;">DE</span>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <section class="intro-layout">
-      <article class="card">
-        <h1>Static, low-maintenance shortlist for Amazon.de.</h1>
-        <p>
-          This page uses a small set of stable, category-style example links
-          (Kindle, Echo, Fire TV) pointing to Amazon.de search results with
-          the DE Associates tag applied.
-        </p>
-        <p>
-          It is designed as a safe, low-maintenance page for Amazon Associates:
-          no dynamic feeds, no per-ASIN maintenance, and no need to update
-          prices or stock. You can still send traffic here as a quick overview.
-        </p>
-        <div class="meta-row">
-          <span class="badge-market">
-            <span class="flag" aria-hidden="true"></span>
-            <span>DE market</span>
-            <span>Tag: de0831-21</span>
-          </span>
-          <span class="badge-soft">
-            Static editorial picks &bull; Search-based links &bull; Long-term safe
-          </span>
-        </div>
-        <div class="key-points">
-          <span>Zero maintenance</span>
-          <span>Safe Amazon.de links</span>
-          <span>Category-based cards</span>
-        </div>
-      </article>
-
-      <aside class="card card-soft">
-        <h2>How to read this page</h2>
-        <p>
-          Each card below represents a product category rather than a single
-          model. The “Go to Amazon” button takes you to a filtered search
-          result on Amazon.de for that category, with the DE Associates tag
-          already attached.
-        </p>
-        <ul>
-          <li>Use this page as a neutral, editorial-style starting point.</li>
-          <li>Click “Read review” for a short usage-focused explanation.</li>
-          <li>Click “Go to Amazon” to see real products, prices and reviews.</li>
-        </ul>
-        <p>
-          Prices, availability and ratings are always determined on Amazon.de
-          itself at the time you visit.
-        </p>
-      </aside>
-    </section>
-
-    <!-- 产品网格：3 个静态示例卡片 -->
-    <section class="grid" id="productGrid"></section>
-
-    <section class="info-grid">
-      <article class="card info-card">
-        <h3>Buying guide: quick questions</h3>
-        <p>
-          Before jumping into details on Amazon, think about how often you’ll use
-          the product, who in the household will use it, and whether your budget
-          is closer to entry-level, mid-range or premium.
-        </p>
-      </article>
-      <article class="card info-card">
-        <h3>About this DE page</h3>
-        <p>
-          This page is intentionally kept small, static and low-maintenance.
-          The goal is to demonstrate a compliant Amazon Associates use case
-          with a handful of German-market categories that are unlikely to disappear.
-        </p>
-      </article>
-      <article class="card info-card">
-        <h3>Affiliate disclosure</h3>
-        <p>
-          As an Amazon Associate we earn from qualifying purchases. Links marked
-          as “Go to Amazon” lead to Amazon.de and may generate a small commission
-          for this site at no extra cost to you.
-        </p>
-      </article>
-      <article class="card info-card">
-        <h3>Data &amp; privacy</h3>
-        <p>
-          This page does not process payments or store your Amazon account data.
-          All orders, pricing and personal data handling happen on Amazon.de
-          once you click through to their site.
-        </p>
-      </article>
-    </section>
-  </main>
-
-  <!-- Review Modal 保留 -->
-  <div class="modal-backdrop" id="reviewModalBackdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle">
-      <button class="modal-close" id="reviewModalClose" aria-label="Close review window">×</button>
-      <h2 id="reviewModalTitle">Category review</h2>
-      <p id="reviewModalBody"></p>
-      <div class="modal-footer">
-        <button class="btn" id="reviewModalDismiss">Close</button>
-        <a
-          href="#"
-          target="_blank"
-          rel="nofollow noopener sponsored"
-          class="btn btn-primary"
-          id="reviewModalAmazonLink"
-        >
-          Go to Amazon
-        </a>
-      </div>
+      <nav>
+        <a href="#sites">Sites</a>
+        <a href="#about">About</a>
+        <a href="#disclosure">Disclosure</a>
+        <a href="#privacy">Privacy</a>
+        <a href="#contact">Contact</a>
+      </nav>
     </div>
   </div>
+</header>
 
-  <script>
-    // 当前国家 & 站点信息（DE 专用）
-    const CURRENT_COUNTRY = "DE";
-    const MARKET_DOMAIN = "www.amazon.de";
-    const TRACKING_ID = "de0831-21";
+<main>
+  <div class="wrap">
+    <!-- HERO – Minimal center layout -->
+    <section class="hero" aria-label="Overview">
+      <div class="hero-card">
+        <div class="hero-inner">
+          <div class="hero-kicker">Amazon Affiliate Hub</div>
+          <h1>Deep Review · Smart Picks</h1>
+          <p class="hero-sub">
+            A simple, content-first hub linking to eight country-specific Amazon product shortlists.
+            Each page uses real ASINs, official images and a consistent, editorial-style layout.
+          </p>
 
-    // 3 个“零维护”示例分类（只改 url 里的关键词就行）
-    const PRODUCTS = [
-      {
-        id: "kindle",
-        categoryLabel: "KINDLE & E-READERS",
-        title: "Kindle & E-Reader picks for everyday reading",
-        hook: "Simple, distraction-free reading devices on Amazon.de for commutes and home use.",
-        desc: "Use this category when you want a basic e-reader that feels comfortable to hold, with a glare-free screen for reading in German trains, cafés or at home. The search results on Amazon.de will show multiple Kindle and e-reader options at different price levels.",
-        // 搜索 Kindle 相关产品
-        url: `https://${MARKET_DOMAIN}/s?k=kindle&tag=${TRACKING_ID}`,
-        reviewText:
-          "Kindle & e-readers (DE market)\n\n" +
-          "Highlights:\n" +
-          "• Distraction-free devices designed purely for reading.\n" +
-          "• Good for commuters, students and anyone who prefers a paper-like screen.\n" +
-          "• Multiple price levels and storage options are available on Amazon.de.\n\n" +
-          "Use this category as a starting point, then refine by screen size, storage and budget once you are on Amazon.de. Prices, availability and review scores are always determined by Amazon.de itself."
-      },
-      {
-        id: "echo",
-        categoryLabel: "ECHO & SMART SPEAKERS",
-        title: "Echo & smart speaker options with Alexa",
-        hook: "Entry-level and mid-range Echo speakers for music, radio and smart-home voice control.",
-        desc: "This category is for people who want a compact smart speaker with Alexa for music, timers, basic routines and smart-home control. The Amazon.de search page will show different Echo models so you can compare size, sound quality and design.",
-        url: `https://${MARKET_DOMAIN}/s?k=echo+dot&tag=${TRACKING_ID}`,
-        reviewText:
-          "Echo & smart speakers (DE market)\n\n" +
-          "Highlights:\n" +
-          "• Voice-controlled speakers for music, radio, news and smart-home control.\n" +
-          "• Compact form factor fits easily on desks, shelves or bedside tables.\n" +
-          "• Multiple generations and designs are available on Amazon.de.\n\n" +
-          "Open the Amazon.de search results to compare sound quality, colour options and current bundle deals. Final prices, availability and any promotions are always shown on Amazon.de."
-      },
-      {
-        id: "firetv",
-        categoryLabel: "FIRE TV & STREAMING",
-        title: "Fire TV sticks & streaming devices",
-        hook: "Streaming sticks for turning an ordinary TV into a simple streaming hub.",
-        desc: "Choose this category if you want to stream series, films and sports via your TV without buying a brand-new television. Fire TV sticks are usually small, plug into HDMI and come with a remote, which you can compare directly on Amazon.de.",
-        url: `https://${MARKET_DOMAIN}/s?k=fire+tv+stick&tag=${TRACKING_ID}`,
-        reviewText:
-          "Fire TV & streaming (DE market)\n\n" +
-          "Highlights:\n" +
-          "• HDMI streaming sticks that plug into your existing TV.\n" +
-          "• Handy for Netflix, Prime Video and other streaming apps.\n" +
-          "• Usually come with an Alexa remote and simple setup.\n\n" +
-          "Use the Amazon.de search results to compare performance, supported formats (such as 4K) and remote-control features. All prices, delivery options and reviews are shown on Amazon.de."
-      }
-    ];
-
-    const gridEl = document.getElementById("productGrid");
-    const modalBackdrop = document.getElementById("reviewModalBackdrop");
-    const modalTitle = document.getElementById("reviewModalTitle");
-    const modalBody = document.getElementById("reviewModalBody");
-    const modalAmazonLink = document.getElementById("reviewModalAmazonLink");
-    const modalClose = document.getElementById("reviewModalClose");
-    const modalDismiss = document.getElementById("reviewModalDismiss");
-
-    function renderProducts() {
-      if (!gridEl) return;
-      gridEl.innerHTML = "";
-      PRODUCTS.forEach((p) => {
-        const card = document.createElement("article");
-        card.className = "product-card";
-        card.innerHTML = `
-          <div class="product-card_media">
-            <!-- 不放具体图片，保持完全零维护；你以后想加也可以 -->
-            <div style="width:100%;height:100%;background:linear-gradient(135deg,#dce3f9,#c7d2fe);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#334155;">
-  KINDLE
-</div>
+          <div class="hero-meta">
+            <span class="hero-pill">8 Amazon marketplaces</span>
+            <span class="hero-pill">Real /dp/ product links</span>
+            <span class="hero-pill">Static GitHub Pages</span>
           </div>
-          <div class="product-card_body">
-            <div class="product-card_meta">
-              <span class="meta-cat">${p.categoryLabel}</span>
-              <span class="meta-cat">${CURRENT_COUNTRY} • static example</span>
+
+          <div class="hero-actions">
+            <a href="#sites" class="btn-primary">Explore marketplaces</a>
+            <a href="#disclosure" class="btn-ghost">Affiliate disclosure</a>
+          </div>
+
+          <div class="hero-disclosure">
+            <strong>Disclosure:</strong>
+            <span>As an Amazon Associate we earn from qualifying purchases.</span>
+          </div>
+
+          <div class="howto-strip" aria-label="How to use this site">
+            <div class="howto-item">
+              <div class="howto-label">Step 1</div>
+              Choose a marketplace card below (US, UK, DE, FR, IT, ES, CA or JP).
             </div>
-            <h3 class="product-card_title">${p.title}</h3>
-            <p class="product-card_hook">${p.hook}</p>
-            <p class="product-card_desc">${p.desc}</p>
-          </div>
-          <div class="product-card_footer">
-            <div class="product-card_price">Search-based link on Amazon.de</div>
-            <div class="product-card_actions">
-              <button class="btn" data-action="review" data-id="${p.id}">
-                Read review
-              </button>
-              <a class="btn btn-primary" href="${p.url}" target="_blank" rel="nofollow noopener sponsored">
-                Go to Amazon
-              </a>
+            <div class="howto-item">
+              <div class="howto-label">Step 2</div>
+              Browse the editorial-style product cards for that specific marketplace.
+            </div>
+            <div class="howto-item">
+              <div class="howto-label">Step 3</div>
+              Use “Go to Amazon” links to check live price and availability on Amazon.
             </div>
           </div>
-        `;
-        gridEl.appendChild(card);
-      });
-    }
+        </div>
+      </div>
+    </section>
 
-    function openReviewModal(product) {
-      if (!product) return;
-      modalTitle.textContent = product.title;
-      modalBody.textContent = product.reviewText;
-      modalAmazonLink.href = product.url;
-      modalBackdrop.classList.add("visible");
-      modalBackdrop.setAttribute("aria-hidden", "false");
-    }
+    <!-- COUNTRY GRID -->
+    <section id="sites" aria-label="Country sites">
+      <div class="section-heading">
+        <h2>Choose your Amazon marketplace</h2>
+        <small>Each card opens a dedicated static affiliate page for that marketplace.</small>
+      </div>
 
-    function closeReviewModal() {
-      modalBackdrop.classList.remove("visible");
-      modalBackdrop.setAttribute("aria-hidden", "true");
-    }
+      <div class="grid">
+        <!-- US -->
+        <a class="country-card" href="/us/" target="_self">
+          <div class="country-top">
+            <div class="country-main">
+              <div class="country-flag">🇺🇸</div>
+              <div class="country-text">
+                <div class="country-name">United States · Amazon.com</div>
+                <div class="country-sub">Associates ID: us1987-20 · English</div>
+              </div>
+            </div>
+            <div class="country-tag">US picks</div>
+          </div>
+          <div class="country-body">
+            Editorial-style shortlist for the US market with real Amazon.com ASINs, images and direct /dp/ links for everyday categories.
+          </div>
+          <div class="country-footer">
+            <span>Electronics · Home · More</span>
+            <div class="btn-open">Open /us/</div>
+          </div>
+        </a>
 
-    document.addEventListener("DOMContentLoaded", () => {
-      renderProducts();
-    });
+        <!-- UK -->
+        <a class="country-card" href="/uk/" target="_self">
+          <div class="country-top">
+            <div class="country-main">
+              <div class="country-flag">🇬🇧</div>
+              <div class="country-text">
+                <div class="country-name">United Kingdom · Amazon.co.uk</div>
+                <div class="country-sub">Associates ID: uk0e42-21 · English</div>
+              </div>
+            </div>
+            <div class="country-tag">UK market</div>
+          </div>
+          <div class="country-body">
+            UK-focused product cards for electronics, home and lifestyle, using a clear grid layout and compliant affiliate links to Amazon.co.uk.
+          </div>
+          <div class="country-footer">
+            <span>UK &amp; EU audience</span>
+            <div class="btn-open">Open /uk/</div>
+          </div>
+        </a>
 
-    gridEl.addEventListener("click", (e) => {
-      const btn = e.target.closest("button[data-action='review']");
-      if (!btn) return;
-      const id = btn.getAttribute("data-id");
-      const product = PRODUCTS.find((p) => p.id === id);
-      openReviewModal(product);
-    });
+        <!-- DE -->
+        <a class="country-card" href="/de/" target="_self">
+          <div class="country-top">
+            <div class="country-main">
+              <div class="country-flag">🇩🇪</div>
+              <div class="country-text">
+                <div class="country-name">Germany · Amazon.de</div>
+                <div class="country-sub">Associates ID: de0831-21 · English layout</div>
+              </div>
+            </div>
+            <div class="country-tag">DE market</div>
+          </div>
+          <div class="country-body">
+            A compact Amazon.de shortlist emphasising practical, everyday products, with editorial notes and direct /dp/ links for each item.
+          </div>
+          <div class="country-footer">
+            <span>Everyday picks</span>
+            <div class="btn-open">Open /de/</div>
+          </div>
+        </a>
 
-    modalClose.addEventListener("click", closeReviewModal);
-    modalDismiss.addEventListener("click", closeReviewModal);
-    modalBackdrop.addEventListener("click", (e) => {
-      if (e.target === modalBackdrop) closeReviewModal();
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeReviewModal();
-    });
-  </script>
+        <!-- FR -->
+        <a class="country-card" href="/fr/" target="_self">
+          <div class="country-top">
+            <div class="country-main">
+              <div class="country-flag">🇫🇷</div>
+              <div class="country-text">
+                <div class="country-name">France · Amazon.fr</div>
+                <div class="country-sub">Associates ID: fr0e28-21 · English layout</div>
+              </div>
+            </div>
+            <div class="country-tag">FR market</div>
+          </div>
+          <div class="country-body">
+            French marketplace shortlist with English-language summaries and compliant affiliate links for Amazon.fr product pages.
+          </div>
+          <div class="country-footer">
+            <span>Home · Lifestyle</span>
+            <div class="btn-open">Open /fr/</div>
+          </div>
+        </a>
+
+        <!-- IT -->
+        <a class="country-card" href="/it/" target="_self">
+          <div class="country-top">
+            <div class="country-main">
+              <div class="country-flag">🇮🇹</div>
+              <div class="country-text">
+                <div class="country-name">Italy · Amazon.it</div>
+                <div class="country-sub">Associates ID: alliance19805-21</div>
+              </div>
+            </div>
+            <div class="country-tag">IT market</div>
+          </div>
+          <div class="country-body">
+            A curated selection of Amazon.it products across electronics, home and kitchen, structured as consistent cards with images and links.
+          </div>
+          <div class="country-footer">
+            <span>Electronics · Home</span>
+            <div class="btn-open">Open /it/</div>
+          </div>
+        </a>
+
+        <!-- ES -->
+        <a class="country-card" href="/es/" target="_self">
+          <div class="country-top">
+            <div class="country-main">
+              <div class="country-flag">🇪🇸</div>
+              <div class="country-text">
+                <div class="country-name">Spain · Amazon.es</div>
+                <div class="country-sub">Associates ID: es072-21</div>
+              </div>
+            </div>
+            <div class="country-tag">ES market</div>
+          </div>
+          <div class="country-body">
+            Spanish marketplace hub with real ASINs, official imagery and brief buying notes for common everyday categories.
+          </div>
+          <div class="country-footer">
+            <span>ES shoppers</span>
+            <div class="btn-open">Open /es/</div>
+          </div>
+        </a>
+
+        <!-- CA -->
+        <a class="country-card" href="/ca/" target="_self">
+          <div class="country-top">
+            <div class="country-main">
+              <div class="country-flag">🇨🇦</div>
+              <div class="country-text">
+                <div class="country-name">Canada · Amazon.ca</div>
+                <div class="country-sub">Associates ID: alliance0dd-20</div>
+              </div>
+            </div>
+            <div class="country-tag">CA market</div>
+          </div>
+          <div class="country-body">
+            Amazon.ca shortlist aimed at Canadian households, with real ASINs, images and direct /dp/ links for each product.
+          </div>
+          <div class="country-footer">
+            <span>CA shoppers</span>
+            <div class="btn-open">Open /ca/</div>
+          </div>
+        </a>
+
+        <!-- JP -->
+        <a class="country-card" href="/jp/" target="_self">
+          <div class="country-top">
+            <div class="country-main">
+              <div class="country-flag">🇯🇵</div>
+              <div class="country-text">
+                <div class="country-name">Japan · Amazon.co.jp</div>
+                <div class="country-sub">Associates ID: alliance1987-22</div>
+              </div>
+            </div>
+            <div class="country-tag">JP market</div>
+          </div>
+          <div class="country-body">
+            Japan-focused Amazon.co.jp shortlist presented in English, using real ASINs, official product images and consistent card design.
+          </div>
+          <div class="country-footer">
+            <span>JP shoppers</span>
+            <div class="btn-open">Open /jp/</div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="section-block">
+      <h2>About Deep Review · Smart Picks</h2>
+      <p>
+        Deep Review · Smart Picks is an independently operated content project. Each country page is a static,
+        editorial-style example of how Amazon affiliate sites can present curated product selections with clear
+        disclosures and helpful summaries.
+      </p>
+      <p>
+        We are not affiliated with Amazon, Inc. or any specific brand. All product information is sourced from publicly
+        available Amazon listings and is provided for informational purposes only. Always check the live product pages
+        on Amazon for the most accurate, up-to-date details, prices and delivery options.
+      </p>
+    </section>
+
+    <!-- DISCLOSURE -->
+    <section id="disclosure" class="section-block">
+      <h2>Affiliate disclosure</h2>
+      <p>
+        This website participates in the Amazon Associates Program and related international affiliate programmes.
+        The country-specific pages linked from this hub may contain affiliate links to: Amazon.com, Amazon.co.uk,
+        Amazon.de, Amazon.fr, Amazon.it, Amazon.es, Amazon.ca and Amazon.co.jp.
+      </p>
+      <p>
+        When you click an affiliate link and make a qualifying purchase on Amazon, we may earn a commission.
+        This does not affect your purchase price and does not influence the basic editorial structure of the site
+        or which general product categories are included.
+      </p>
+      <p class="disclosure-strong">
+        As an Amazon Associate we earn from qualifying purchases.
+      </p>
+    </section>
+
+    <!-- PRIVACY -->
+    <section id="privacy" class="section-block">
+      <h2>Privacy &amp; cookies (short version)</h2>
+      <p>
+        This hub and the country-specific pages are static sites. They may use privacy-friendly analytics
+        (for example, anonymised traffic statistics) to understand how visitors use the pages and to improve
+        layout and content.
+      </p>
+      <p>
+        We do not sell or rent personally identifiable visitor data. If additional features such as forms or
+        newsletters are added in the future, the relevant sections will clearly explain what is collected,
+        why it is collected and how you can opt out.
+      </p>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="section-block">
+      <h2>Contact</h2>
+      <p>
+        For questions about the structure or content of this site, you can reach the editor by email:
+        <a href="mailto:dalemy888@sina.com">dalemy888@sina.com</a>.
+        Please do not send order or delivery questions; those must be handled directly by Amazon via your local account.
+      </p>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    © <span id="year"></span> Deep Review · Smart Picks · Multi-country Amazon affiliate hub.<br/>
+    This site is an independent editorial project and is not endorsed by Amazon or any brand.
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
 </body>
 </html>
