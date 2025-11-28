@@ -18,7 +18,6 @@
       --maxw:1160px;
       --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;
 
-      /* 高奢黑金 */
       --gold1:#d4af37;
       --gold2:#f5d68f;
       --gold3:#b99741;
@@ -40,7 +39,7 @@
       padding:0 20px;
     }
 
-    /* HEADER 黑金杂志风 */
+    /* HEADER 黑金 */
     header{
       position:sticky;
       top:0;
@@ -54,14 +53,6 @@
       justify-content:space-between;
       align-items:center;
       padding:18px 0;
-    }
-    .logo{
-      font-size:1.4rem;
-      font-weight:800;
-      background:linear-gradient(to right,var(--gold1),var(--gold2));
-      -webkit-background-clip:text;
-      color:transparent;
-      letter-spacing:.04em;
     }
     nav{
       display:flex;
@@ -77,77 +68,7 @@
     nav a:hover{
       color:var(--gold2);
     }
-  </style>
-</head>
 
-<body>
-<header>
-  <div class="wrap header-inner">
-    <div class="logo">Deep Review · Smart Picks</div>
-    <nav>
-      <a href="#sites">Sites</a>
-      <a href="#about">About</a>
-      <a href="#disclosure">Disclosure</a>
-      <a href="#privacy">Privacy</a>
-      <a href="#contact">Contact</a>
-    </nav>
-  </div>
-</header>
-<main class="wrap">
-
-  <!-- HERO · Black & Gold Magazine Cover -->
-  <section style="padding:70px 0 60px;text-align:center;">
-    <h1 style="
-      font-size:2.8rem;
-      font-weight:900;
-      background:linear-gradient(to right,var(--gold1),var(--gold2),var(--gold3));
-      -webkit-background-clip:text;
-      color:transparent;
-      margin-bottom:18px;
-    ">
-      Editorial Picks Across 8 Marketplaces
-    </h1>
-
-    <p style="
-      max-width:720px;
-      margin:0 auto;
-      color:var(--muted);
-      font-size:1.05rem;
-      line-height:1.75;
-    ">
-      A luxury-inspired editorial hub highlighting curated product selections for
-      US, UK, DE, FR, IT, ES, CA, and JP.
-    </p>
-
-    <!-- HERO META -->
-    <div style="
-      margin-top:26px;
-      display:flex;
-      justify-content:center;
-      flex-wrap:wrap;
-      gap:12px;
-    ">
-      <span class="hero-pill">8 Marketplaces</span>
-      <span class="hero-pill">Real ASINs</span>
-      <span class="hero-pill">Static Pages</span>
-    </div>
-
-    <!-- DISCLOSURE PILL -->
-    <div style="
-      margin-top:28px;
-      display:inline-block;
-      padding:10px 18px;
-      border:1px solid var(--gold2);
-      border-radius:14px;
-      background:rgba(212,175,55,0.12);
-      color:var(--gold2);
-      font-size:.87rem;
-    ">
-      As an Amazon Associate we earn from qualifying purchases.
-    </div>
-  </section>
-
-  <style>
     /* HERO PILLS */
     .hero-pill{
       padding:7px 14px;
@@ -175,7 +96,7 @@
       .country-grid{grid-template-columns:1fr;}
     }
 
-    /* CARD – Black & Gold Premium */
+    /* CARD – Black & Gold */
     .country-card-mag{
       background:var(--card);
       border-radius:20px;
@@ -216,7 +137,6 @@
       background:#1a1a1a;
       border:1px solid rgba(212,175,55,0.45);
     }
-
     .c-text{min-width:0;}
     .c-name{
       font-size:1.05rem;
@@ -233,7 +153,6 @@
       overflow:hidden;
       text-overflow:ellipsis;
     }
-
     .c-tag{
       font-size:.7rem;
       text-transform:uppercase;
@@ -244,14 +163,12 @@
       color:var(--gold2);
       background:rgba(212,175,55,0.11);
     }
-
     .c-body{
       color:var(--ink);
       font-size:.9rem;
       line-height:1.5;
       min-height:3.1em;
     }
-
     .c-footer{
       display:flex;
       justify-content:space-between;
@@ -259,7 +176,6 @@
       color:var(--muted);
       font-size:.82rem;
     }
-
     .btn-open-mag{
       padding:6px 12px;
       border-radius:999px;
@@ -275,14 +191,132 @@
     .btn-open-mag:hover{
       background:rgba(212,175,55,0.2);
     }
-  </style>
 
-  <!-- MARKETPLACE SECTION -->
+    /* SECTION BLOCKS */
+    .section-mag{
+      background:var(--bg-alt);
+      border-radius:22px;
+      border:1px solid rgba(212,175,55,0.35);
+      padding:26px 28px 22px;
+      margin-top:38px;
+      box-shadow:0 18px 40px rgba(0,0,0,.45);
+    }
+    .section-mag h2{
+      font-size:1.55rem;
+      font-weight:800;
+      background:linear-gradient(to right,var(--gold1),var(--gold2));
+      -webkit-background-clip:text;
+      color:transparent;
+      margin-bottom:12px;
+    }
+    .section-mag p,
+    .section-mag li{
+      color:#d8d8d8;
+      font-size:1rem;
+      margin-bottom:10px;
+      line-height:1.7;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="wrap header-inner">
+
+    <!-- 黑金 SVG LOGO -->
+    <div class="logo" style="display:flex;align-items:center;gap:8px;">
+      <svg width="210" height="32" viewBox="0 0 210 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="grad-gold" x1="0" y1="0" x2="210" y2="0">
+            <stop offset="0" stop-color="#d4af37"/>
+            <stop offset="0.5" stop-color="#f5d68f"/>
+            <stop offset="1" stop-color="#b99741"/>
+          </linearGradient>
+        </defs>
+
+        <circle cx="12" cy="16" r="10.5" fill="#0a0a0a" stroke="url(#grad-gold)" stroke-width="1.4"/>
+        <circle cx="12" cy="16" r="4" fill="url(#grad-gold)"/>
+
+        <text x="28" y="15" fill="url(#grad-gold)"
+              font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif"
+              font-weight="700" font-size="13" letter-spacing="0.18em">
+          DEEP REVIEW
+        </text>
+        <text x="28" y="27" fill="#b7b7b7"
+              font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif"
+              font-weight="500" font-size="9" letter-spacing="0.26em">
+          SMART PICKS
+        </text>
+      </svg>
+    </div>
+
+    <nav>
+      <a href="#sites">Sites</a>
+      <a href="#about">About</a>
+      <a href="#disclosure">Disclosure</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- HERO -->
+  <section style="padding:70px 0 60px;text-align:center;">
+    <h1 style="
+      font-size:2.8rem;
+      font-weight:900;
+      background:linear-gradient(to right,var(--gold1),var(--gold2),var(--gold3));
+      -webkit-background-clip:text;
+      color:transparent;
+      margin-bottom:18px;
+    ">
+      Editorial Picks Across 8 Marketplaces
+    </h1>
+
+    <p style="
+      max-width:720px;
+      margin:0 auto;
+      color:var(--muted);
+      font-size:1.05rem;
+      line-height:1.75;
+    ">
+      A luxury-inspired editorial hub for US, UK, DE, FR, IT, ES, CA and JP.
+    </p>
+
+    <div style="
+      margin-top:26px;
+      display:flex;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:12px;
+    ">
+      <span class="hero-pill">8 Marketplaces</span>
+      <span class="hero-pill">Real ASINs</span>
+      <span class="hero-pill">Static Pages</span>
+    </div>
+
+    <div style="
+      margin-top:28px;
+      display:inline-block;
+      padding:10px 18px;
+      border:1px solid var(--gold2);
+      border-radius:14px;
+      background:rgba(212,175,55,0.12);
+      color:var(--gold2);
+      font-size:.87rem;
+    ">
+      As an Amazon Associate we earn from qualifying purchases.
+    </div>
+  </section>
+
+  <!-- COUNTRY GRID -->
   <section id="sites" style="margin-top:40px;">
     <h2 style="
       font-size:1.7rem;
       font-weight:800;
-      letter-spacing:.01em;
       margin-bottom:18px;
       background:linear-gradient(to right,var(--gold1),var(--gold2));
       -webkit-background-clip:text;
@@ -327,7 +361,7 @@
           <div class="c-tag">UK MARKET</div>
         </div>
         <div class="c-body">
-          UK-focused editorial shortlist with lifestyle, home and tech picks.
+          UK-focused editorial products across lifestyle, home and tech.
         </div>
         <div class="c-footer">
           <span>UK & EU audience</span>
@@ -351,7 +385,7 @@
           Germany's curated shortlist with everyday practical picks.
         </div>
         <div class="c-footer">
-          <span>Everyday picks</span>
+          <span>Everyday Picks</span>
           <div class="btn-open-mag">Open</div>
         </div>
       </a>
@@ -369,7 +403,7 @@
           <div class="c-tag">FR MARKET</div>
         </div>
         <div class="c-body">
-          French-market shortlist with clean editorial summaries.
+          French marketplace shortlist with clean editorial summaries.
         </div>
         <div class="c-footer">
           <span>Home · Lifestyle</span>
@@ -390,7 +424,7 @@
           <div class="c-tag">IT MARKET</div>
         </div>
         <div class="c-body">
-          Curated Amazon.it product selections with a consistent layout.
+          Curated Amazon.it product selections with a consistent design.
         </div>
         <div class="c-footer">
           <span>Electronics · Home</span>
@@ -453,7 +487,7 @@
           <div class="c-tag">JP MARKET</div>
         </div>
         <div class="c-body">
-          Curated Japan picks with clean, consistent editorial design.
+          Curated Japan picks with a consistent editorial design.
         </div>
         <div class="c-footer">
           <span>JP shoppers</span>
@@ -461,39 +495,8 @@
         </div>
       </a>
 
-    </div><!-- country-grid -->
+    </div>
   </section>
-  <!-- CONTENT SECTIONS — Black & Gold Editorial Blocks -->
-  <style>
-    .section-mag{
-      background:var(--bg-alt);
-      border-radius:22px;
-      border:1px solid rgba(212,175,55,0.35);
-      padding:26px 28px 22px;
-      margin-top:38px;
-      box-shadow:0 18px 40px rgba(0,0,0,.45);
-    }
-    .section-mag h2{
-      font-size:1.55rem;
-      font-weight:800;
-      background:linear-gradient(to right,var(--gold1),var(--gold2));
-      -webkit-background-clip:text;
-      color:transparent;
-      margin-bottom:12px;
-    }
-    .section-mag p{
-      color:#d8d8d8;
-      margin-bottom:10px;
-      font-size:1rem;
-      line-height:1.7;
-    }
-    .section-mag ul{margin-left:20px;margin-bottom:10px;}
-    .section-mag li{
-      color:#d8d8d8;
-      margin-bottom:6px;
-      font-size:1rem;
-    }
-  </style>
 
   <!-- ABOUT -->
   <section id="about" class="section-mag">
@@ -504,9 +507,8 @@
       disclosures and helpful summaries.
     </p>
     <p>
-      We are not affiliated with Amazon, Inc. or any specific brand. All product information is sourced from publicly
-      available Amazon listings and is provided for informational purposes only. Always check the live product pages
-      on Amazon for the most accurate, up-to-date details, prices and delivery options.
+      We are not affiliated with Amazon or any specific brand. Always check Amazon for the most accurate,
+      up-to-date details and prices.
     </p>
   </section>
 
@@ -515,31 +517,23 @@
     <h2>Affiliate Disclosure</h2>
     <p>
       This website participates in the Amazon Associates Program and related international affiliate programmes.
-      The country-specific pages linked from this hub may contain affiliate links to: Amazon.com, Amazon.co.uk,
-      Amazon.de, Amazon.fr, Amazon.it, Amazon.es, Amazon.ca and Amazon.co.jp.
+      The country-specific pages may contain affiliate links to Amazon.com, Amazon.co.uk, Amazon.de, Amazon.fr,
+      Amazon.it, Amazon.es, Amazon.ca and Amazon.co.jp.
     </p>
     <p>
-      When you click an affiliate link and make a qualifying purchase on Amazon, we may earn a commission.
-      This does not affect your purchase price and does not influence the basic editorial structure of the site
-      or which general product categories are included.
+      When you click an affiliate link and make a qualifying purchase, we may earn a commission.
     </p>
-    <p style="color:#f0e9d0;font-weight:600;">
+    <p style="color:var(--gold2);font-weight:600;">
       As an Amazon Associate we earn from qualifying purchases.
     </p>
   </section>
 
   <!-- PRIVACY -->
   <section id="privacy" class="section-mag">
-    <h2>Privacy &amp; Cookies (short version)</h2>
+    <h2>Privacy & Cookies (Short Version)</h2>
     <p>
-      This hub and the country-specific pages are static sites. They may use privacy-friendly analytics
-      (for example, anonymised traffic statistics) to understand how visitors use the pages and to improve
-      layout and content.
-    </p>
-    <p>
-      We do not sell or rent personally identifiable visitor data. If additional features such as forms or
-      newsletters are added in the future, the relevant sections will clearly explain what is collected,
-      why it is collected and how you can opt out.
+      These pages are static and may use privacy-friendly analytics to understand general traffic patterns.
+      We do not sell or rent personal data.
     </p>
   </section>
 
@@ -547,14 +541,14 @@
   <section id="contact" class="section-mag">
     <h2>Contact</h2>
     <p>
-      For questions about the structure or content of this site, you can reach the editor by email:
+      For questions about the structure or content of this site, email:
       <a href="mailto:dalemy888@sina.com" style="color:var(--gold2);text-decoration:underline;">dalemy888@sina.com</a>.
-      Please do not send order or delivery questions; those must be handled directly by Amazon via your local account.
     </p>
   </section>
+
 </main>
 
-<!-- FOOTER · Black & Gold -->
+<!-- FOOTER -->
 <footer style="
   margin-top:50px;
   border-top:1px solid rgba(212,175,55,0.35);
@@ -563,10 +557,9 @@
   color:#bcbcbc;
   padding:20px 0;
   text-align:center;
-  line-height:1.6;
 ">
   © <span id="year"></span> Deep Review · Smart Picks — Black & Gold Edition<br>
-  This site is an independent editorial project and is not endorsed by Amazon or any brand.
+  Independent editorial project. Not endorsed by Amazon.
 </footer>
 
 <script>
