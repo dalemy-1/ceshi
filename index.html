@@ -170,59 +170,76 @@
 <main class="wrap">
 
   <!-- HERO 杂志风 -->
-  <section class="hero">
-    <h1 class="hero-title">Editorial Picks · Across 8 Amazon Marketplaces</h1>
+  <section class="hero" style="padding:70px 0 60px;text-align:center;">
+  <h1 style="
+    font-size:2.8rem;
+    font-weight:800;
+    background:linear-gradient(to right,var(--gold1),var(--gold2),var(--gold3));
+    -webkit-background-clip:text;
+    color:transparent;
+    margin-bottom:18px;
+  ">
+    Editorial Picks Across 8 Marketplaces
+  </h1>
 
-    <p class="hero-sub">
-      A magazine-style affiliate hub highlighting curated product selections for US, UK, DE, FR, IT, ES, CA, and JP.
-      Built with real ASINs, editorial summaries and a clean, distraction-free layout optimized for clarity.
-    </p>
+  <p style="
+    max-width:720px;
+    margin:0 auto;
+    font-size:1.05rem;
+    color:var(--muted);
+    line-height:1.75;
+  ">
+    A luxury-inspired editorial hub highlighting curated product selections for US, UK, DE, FR, IT, ES, CA, and JP.
+  </p>
 
-    <div class="hero-meta">
-      <span class="hero-pill">8 Amazon Marketplaces</span>
-      <span class="hero-pill">Real /dp/ Product Links</span>
-      <span class="hero-pill">Static GitHub Pages</span>
-      <span class="hero-pill">Editorial-Style Layout</span>
-    </div>
+  <div style="
+    margin-top:26px;
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:12px;
+  ">
+    <span style="
+      padding:7px 14px;
+      border-radius:999px;
+      border:1px solid var(--gold1);
+      background:rgba(212,175,55,0.08);
+      color:var(--gold2);
+      font-size:.85rem;
+    ">8 Marketplaces</span>
 
-    <div class="hero-disclosure">
-      As an Amazon Associate we earn from qualifying purchases.
-    </div>
+    <span style="
+      padding:7px 14px;
+      border-radius:999px;
+      border:1px solid var(--gold1);
+      background:rgba(212,175,55,0.08);
+      color:var(--gold2);
+      font-size:.85rem;
+    ">Real ASINs</span>
 
-    <div class="hero-steps">
-      <div class="hero-step">
-        <h4>Step 1</h4>
-        Choose a marketplace below (US, UK, DE, FR, IT, ES, CA, JP).
-      </div>
-      <div class="hero-step">
-        <h4>Step 2</h4>
-        Browse editorial-style product shortlists for that marketplace.
-      </div>
-      <div class="hero-step">
-        <h4>Step 3</h4>
-        Click “Go to Amazon” to check live pricing & availability.
-      </div>
-    </div>
-  </section>
-  <!-- COUNTRY GRID 杂志卡片 -->
-  <section id="sites" style="margin-top:50px;">
-    <div style="
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-end;
-      margin-bottom:16px;
-      flex-wrap:wrap;
-      gap:10px;
-    ">
-      <h2 style="font-size:1.55rem;font-weight:800;letter-spacing:.01em;">
-        Choose Your Marketplace
-      </h2>
-      <small style="color:#6b7280;font-size:.9rem;">
-        Each card opens a fully-static curated affiliate page.
-      </small>
-    </div>
+    <span style="
+      padding:7px 14px;
+      border-radius:999px;
+      border:1px solid var(--gold1);
+      background:rgba(212,175,55,0.08);
+      color:var(--gold2);
+      font-size:.85rem;
+    ">Static Pages</span>
+  </div>
 
-    <style>
+  <div style="
+    margin-top:26px;
+    display:inline-block;
+    padding:10px 18px;
+    border-radius:14px;
+    background:rgba(212,175,55,0.15);
+    border:1px solid var(--gold2);
+    color:var(--gold2);
+    font-size:.85rem;
+  ">
+    As an Amazon Associate we earn from qualifying purchases.
+  </div>
+</section>
       /* Magazine Pro 国家卡片（高端编辑风） */
       .country-grid{
         display:grid;
@@ -240,94 +257,59 @@
       }
 
       .country-card-mag{
-        background:white;
-        border-radius:20px;
-        border:1px solid #e5e7eb;
-        padding:18px 18px 16px;
-        display:flex;
-        flex-direction:column;
-        gap:12px;
-        box-shadow:0 10px 26px rgba(0,0,0,.08);
-        transition:all .18s ease;
-      }
-      .country-card-mag:hover{
-        box-shadow:0 18px 40px rgba(0,0,0,.14);
-        transform:translateY(-3px);
-        border-color:#d1d5db;
-      }
-      .c-top{
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap:12px;
-      }
-      .c-main{
-        display:flex;
-        align-items:center;
-        gap:10px;
-        flex:1;
-        min-width:0;
-      }
-      .c-flag{
-        width:36px;height:36px;
-        border-radius:50%;
-        display:flex;align-items:center;justify-content:center;
-        font-size:1.25rem;
-        background:#fafafa;
-        border:1px solid #e5e7eb;
-      }
-      .c-text{
-        min-width:0;
-      }
-      .c-name{
-        font-size:1rem;
-        font-weight:700;
-        white-space:nowrap;
-        overflow:hidden;
-        text-overflow:ellipsis;
-      }
-      .c-sub{
-        font-size:.83rem;
-        color:#6b7280;
-        white-space:nowrap;
-        overflow:hidden;
-        text-overflow:ellipsis;
-      }
-      .c-tag{
-        font-size:.72rem;
-        text-transform:uppercase;
-        letter-spacing:.11em;
-        color:#6b7280;
-        padding:5px 10px;
-        border-radius:999px;
-        border:1px solid #e5e7eb;
-        background:#f9fafb;
-        flex-shrink:0;
-      }
+  background:var(--card);
+  border-radius:20px;
+  border:1px solid rgba(212,175,55,0.35);
+  padding:18px 18px 16px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  box-shadow:0 10px 26px rgba(0,0,0,.45);
+  transition:all .18s ease;
+}
+.country-card-mag:hover{
+  border-color:var(--gold2);
+  box-shadow:0 20px 40px rgba(212,175,55,0.18);
+  transform:translateY(-4px);
+}
+.c-flag{
+  width:38px;height:38px;
+  border-radius:50%;
+  background:#1c1c1c;
+  border:1px solid rgba(212,175,55,0.4);
+  font-size:1.3rem;
+}
+.c-name{
+  font-size:1.05rem;
+  font-weight:700;
+  color:var(--gold2);
+}
+.c-sub{
+  font-size:.82rem;
+  color:var(--muted);
+}
+.c-tag{
+  font-size:.7rem;
+  padding:5px 10px;
+  border-radius:999px;
+  border:1px solid rgba(212,175,55,0.35);
+  color:var(--gold2);
+  background:rgba(212,175,55,0.1);
+}
+.c-body{
+  color:var(--ink);
+}
+.btn-open-mag{
+  padding:6px 12px;
+  border-radius:999px;
+  border:1px solid rgba(212,175,55,0.3);
+  background:rgba(212,175,55,0.08);
+  color:var(--gold2);
+}
+.btn-open-mag:hover{
+  background:rgba(212,175,55,0.14);
+}
 
-      .c-body{
-        font-size:.9rem;
-        color:#374151;
-        min-height:3.2em;
-        line-height:1.55;
-      }
-      .c-footer{
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap:10px;
-        font-size:.82rem;
-        color:#6b7280;
-      }
-      .btn-open-mag{
-        padding:6px 12px;
-        border-radius:999px;
-        border:1px solid #d1d5db;
-        font-size:.78rem;
-        font-weight:600;
-        text-transform:uppercase;
-        letter-spacing:.06em;
-      }
     </style>
 
     <div class="country-grid">
@@ -521,34 +503,24 @@
   <!-- ABOUT / DISCLOSURE / PRIVACY / CONTACT — 杂志内容区 -->
   <style>
     .section-mag{
-      background:white;
-      border-radius:22px;
-      border:1px solid #e5e7eb;
-      padding:24px 26px 20px;
-      margin-top:32px;
-      box-shadow:0 14px 32px rgba(0,0,0,.08);
-    }
-    .section-mag h2{
-      font-size:1.45rem;
-      font-weight:800;
-      letter-spacing:.01em;
-      margin-bottom:12px;
-    }
-    .section-mag p{
-      font-size:1rem;
-      color:#374151;
-      margin-bottom:10px;
-      line-height:1.7;
-    }
-    .section-mag ul{
-      margin-left:20px;
-      margin-bottom:12px;
-    }
-    .section-mag li{
-      margin-bottom:6px;
-      color:#374151;
-      font-size:1rem;
-    }
+  background:#111;
+  border-radius:20px;
+  border:1px solid rgba(212,175,55,0.35);
+  padding:24px 26px 20px;
+  margin-top:32px;
+  box-shadow:0 18px 40px rgba(0,0,0,.4);
+}
+.section-mag h2{
+  font-size:1.45rem;
+  font-weight:800;
+  background:linear-gradient(to right,var(--gold1),var(--gold3));
+  -webkit-background-clip:text;
+  color:transparent;
+}
+.section-mag p, .section-mag li{
+  color:#d6d6d6;
+}
+
   </style>
 
   <!-- ABOUT -->
@@ -612,17 +584,18 @@
 
 <!-- FOOTER 杂志底部 -->
 <footer style="
-  margin-top:40px;
-  border-top:1px solid #e5e7eb;
-  background:#f9fafb;
+  margin-top:50px;
+  border-top:1px solid rgba(212,175,55,0.35);
+  background:#0d0d0d;
   font-size:.9rem;
-  color:#6b7280;
+  color:#bcbcbc;
+  padding:20px 0;
+  text-align:center;
 ">
-  <div class="wrap" style="padding:16px 0;text-align:center;line-height:1.6;">
-    © <span id="year"></span> Deep Review · Smart Picks · Multi-country Amazon affiliate hub.<br/>
-    This site is an independent editorial project and is not endorsed by Amazon or any brand.
-  </div>
+  © <span id="year"></span> Deep Review · Smart Picks  
+  <br>· Premium Black & Gold Edition ·  
 </footer>
+
 
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
