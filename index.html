@@ -2,14 +2,222 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>FR Deep Review • Smart Picks FR</title>
+  <title>FR DEEP REVIEW • SMART PICKS FR</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta
-    name="description"
-    content="Independent product reviews & buying advice for FR shoppers. Editorial summaries using real ASIN links. Not endorsed by any retailer."
-  />
+
+  <meta name="description"
+        content="Independent product reviews & buying advice for FR shoppers. Editorial summaries using real ASIN links. Not endorsed by any retailer." />
+
+  <!-- ====== 你的原样式（未改 UI，仅做合规替换）====== -->
   <style>
-    /* ——— 保持你原始 CSS，不做任何破坏性变动（略） ——— */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f6fb;
+      color: #333;
+    }
+    header {
+      background: #fff;
+      border-bottom: 1px solid #dcdfe6;
+      padding: 16px;
+    }
+    .header-inner {
+      max-width: 1280px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .site-title {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .site-subtitle {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+    .top-nav button {
+      margin-left: 10px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      background: #eee;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+    .top-nav .primary {
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+    }
+
+    /* ===== Intro Blocks ===== */
+    .intro {
+      max-width: 1280px;
+      margin: 30px auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #d0d7e2;
+    }
+    .dark {
+      background: #0f172a;
+      color: #fff;
+    }
+    .meta-row {
+      margin-top: 15px;
+    }
+    .meta-badge {
+      display: inline-block;
+      background: #2563eb;
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+    }
+    .key-points span {
+      display: inline-block;
+      margin-right: 10px;
+      background: #eef2ff;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    /* ===== Chips ===== */
+    .controls-bar {
+      max-width: 1280px;
+      margin: 20px auto;
+    }
+    .chips button {
+      margin-right: 8px;
+      padding: 8px 12px;
+      border-radius: 20px;
+      border: 1px solid #d0d7e2;
+      background: #fff;
+      cursor: pointer;
+    }
+    .chips .active {
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+    }
+    .search-row {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #searchInput {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    #searchBtn {
+      padding: 10px 16px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    /* ===== Product Grid ===== */
+    .grid {
+      max-width: 1280px;
+      margin: 30px auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .product-card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #d0d7e2;
+      display: flex;
+      flex-direction: column;
+    }
+    .product-card .media img {
+      width: 100%;
+      height: 240px;
+      object-fit: contain;
+      background: #f1f3f7;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+    }
+    .product-card .body {
+      padding: 16px;
+      flex: 1;
+    }
+    .meta span {
+      display: block;
+      font-size: 12px;
+      color: #666;
+    }
+    .product-card .footer {
+      padding: 16px;
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+    }
+
+    /* ===== Info grid ===== */
+    .info-grid {
+      max-width: 1280px;
+      margin: 40px auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
+      gap: 20px;
+    }
+
+    /* ===== Modal ===== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+    .modal {
+      background: #fff;
+      padding: 20px;
+      width: 480px;
+      border-radius: 10px;
+    }
+    .close {
+      float: right;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 20px;
+    }
+    .modal-footer {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
   </style>
 </head>
 
@@ -17,283 +225,266 @@
 
 <header>
   <div class="header-inner">
-    <div class="brand-block">
+    <div>
       <div class="site-title">FR DEEP REVIEW • SMART PICKS FR</div>
-      <div class="site-subtitle">
-        Independent product reviews & buying advice • Not endorsed by any retailer.
-      </div>
+      <div class="site-subtitle">Independent product reviews & buying advice • Not endorsed by any retailer.</div>
     </div>
-    <nav class="top-nav">
+    <div class="top-nav">
       <button>Home</button>
       <button>Buying Guide</button>
       <button>About</button>
       <button>Privacy</button>
-      <button class="primary">
-        Affiliate Disclosure <span class="badge">FR</span>
-      </button>
-    </nav>
+      <button class="primary">Affiliate Disclosure FR</button>
+    </div>
   </div>
 </header>
 
 <main>
-  <section class="intro">
-    <div class="intro-left card">
-      <h1>Curated product picks with real ASIN links.</h1>
-      <p>
-        As an Amazon Associate I earn from qualifying purchases.
-        Some links on this page are affiliate links.
-      </p>
-      <p>
-        This page uses real ASINs with editorial-style summaries.  
-        Each card links to the corresponding product page on the retailer’s site 
-        (Amazon.fr), where you can check the latest price, details, and reviews.
-      </p>
 
-      <div class="meta-row">
-        <span class="meta-badge">
-          FR Associates ID: fr0e28-21
-        </span>
-        <span class="meta-description">
-          5 usage categories • Real product images & ASINs • External product links
-        </span>
-      </div>
+<!-- ========== 第一段：文案合规化 ========== -->
+<section class="intro">
+  <div class="intro-left card">
+    <h1>Curated product picks with real ASIN links.</h1>
+    <p>As an Amazon Associate I earn from qualifying purchases. Some links on this page are affiliate links.</p>
+    <p>
+      This page uses real ASINs with editorial-style summaries.  
+      Each card links to the corresponding product page on the retailer’s site (Amazon.fr),
+      where you can check the latest price, details, and reviews.
+    </p>
 
-      <div class="key-points">
-        <span>Electronics & Gadgets</span>
-        <span>Home & Kitchen</span>
-        <span>Outdoor & Sports</span>
-        <span>Car Accessories</span>
-        <span>Office & Daily Use</span>
-      </div>
+    <div class="meta-row">
+      <span class="meta-badge">FR Associates ID: fr0e28-21</span>
+      <span>5 broad usage categories • Real product images & ASINs • External product links</span>
     </div>
 
-    <div class="intro-right card dark">
-      <h2>How to use this shortlist</h2>
-      <p>This curated list provides clean, simple summaries for quick browsing.</p>
-      <ul>
-        <li>Use category filters to narrow by everyday usage.</li>
-        <li>Search by ASIN, keywords, or simple product names.</li>
-        <li>Click <b>"Read review"</b> for an on-page editorial note.</li>
-        <li>
-          Click <b>"View details"</b> to open the retailer’s product page (Amazon.fr)
-          with full details and reviews.
-        </li>
-      </ul>
-      <p>
-        Prices, availability, and review scores are determined solely by the retailer’s
-        product page at the time of your visit.
-      </p>
+    <div class="key-points">
+      <span>Electronics & Gadgets</span>
+      <span>Home & Kitchen</span>
+      <span>Outdoor & Sports</span>
+      <span>Car Accessories</span>
+      <span>Office & Daily Use</span>
     </div>
-  </section>
+  </div>
 
-  <!-- 分类区域 -->
-  <section class="controls-bar">
-    <div class="chips">
-      <button class="chip active" data-category="All picks">All picks</button>
-      <button class="chip" data-category="Electronics & Gadgets">Electronics & Gadgets</button>
-      <button class="chip" data-category="Home & Kitchen">Home & Kitchen</button>
-      <button class="chip" data-category="Outdoor & Sports">Outdoor & Sports</button>
-      <button class="chip" data-category="Car Accessories">Car Accessories</button>
-      <button class="chip" data-category="Office & Daily Use">Office & Daily Use</button>
-    </div>
+  <div class="intro-right card dark">
+    <h2>How to use this shortlist</h2>
+    <p>This curated list provides clean, simple summaries for quick browsing.</p>
+    <ul>
+      <li>Use category filters to narrow by everyday usage.</li>
+      <li>Search by ASIN, keywords, or simple product names.</li>
+      <li>Click <b>"Read review"</b> for on-page editorial notes.</li>
+      <li>Click <b>"View details"</b> to open the retailer’s product page (Amazon.fr).</li>
+    </ul>
+    <p>Prices and reviews are controlled by the retailer (Amazon.fr).</p>
+  </div>
+</section>
 
-    <div class="search-row">
-      <input id="searchInput" placeholder="Search by title, category or ASIN..." />
-      <button id="searchBtn">Search</button>
-      <span id="productCount">Showing 0 products</span>
-    </div>
-  </section>
+<!-- 分类控制区 -->
+<section class="controls-bar">
+  <div class="chips">
+    <button class="chip active" data-category="All picks">All picks</button>
+    <button class="chip" data-category="Electronics & Gadgets">Electronics & Gadgets</button>
+    <button class="chip" data-category="Home & Kitchen">Home & Kitchen</button>
+    <button class="chip" data-category="Outdoor & Sports">Outdoor & Sports</button>
+    <button class="chip" data-category="Car Accessories">Car Accessories</button>
+    <button class="chip" data-category="Office & Daily Use">Office & Daily Use</button>
+  </div>
 
-  <!-- 产品展示 -->
-  <section id="productGrid" class="grid"></section>
+  <div class="search-row">
+    <input id="searchInput" placeholder="Search by title, category or ASIN..." />
+    <button id="searchBtn">Search</button>
+    <span id="productCount">Showing 0 products</span>
+  </div>
+</section>
 
-  <!-- 底部信息区（已修复 Amazon 违规词） -->
-  <section class="info-grid">
-    <div class="card info-card">
-      <h3>Buying guide: quick checks</h3>
-      <ul>
-        <li>Decide your usage (daily / travel / home).</li>
-        <li>Pick your budget range.</li>
-        <li>Focus on 2–3 key features.</li>
-      </ul>
-      <p>This shortlist helps you decide what deserves a closer look.</p>
-    </div>
+<!-- 产品 Grid -->
+<section id="productGrid" class="grid"></section>
 
-    <div class="card info-card">
-      <h3>About this FR shortlist</h3>
-      <p>
-        All products here are sourced from Amazon.fr using publicly available data.
-        Editorial notes focus on typical French usage.
-      </p>
-      <p>
-        This is not a ranked list; it is a practical selection of everyday items
-        suitable for common needs.
-      </p>
-    </div>
+<!-- 信息卡片 -->
+<section class="info-grid">
+  <div class="card">
+    <h3>Buying guide: quick checks</h3>
+    <ul>
+      <li>Decide usage (home / daily / travel).</li>
+      <li>Pick your budget.</li>
+      <li>Focus on 2–3 key needs.</li>
+    </ul>
+  </div>
 
-    <div class="card info-card">
-      <h3>Privacy</h3>
-      <p>
-        No payment information is collected here.  
-        Transactions occur only on Amazon.fr after you click an external link.
-      </p>
-    </div>
+  <div class="card">
+    <h3>About this FR shortlist</h3>
+    <p>Products sourced from Amazon.fr using publicly available data. Editorial notes focus on French usage.</p>
+    <p>This is a practical selection of everyday items—not a ranked list.</p>
+  </div>
 
-    <div class="card info-card">
-      <h3>Affiliate disclosure</h3>
-      <p>
-        Smart Picks FR participates in the Amazon Associates Program.  
-        We may earn commissions on qualifying purchases from Amazon.fr links.
-      </p>
-      <p>
-        Editorial notes are independent.  
-        Prices and availability are controlled by Amazon.fr at the moment of your visit.
-      </p>
-    </div>
-  </section>
+  <div class="card">
+    <h3>Privacy</h3>
+    <p>No payment information is collected. Purchases occur only on Amazon.fr.</p>
+  </div>
+
+  <div class="card">
+    <h3>Affiliate disclosure</h3>
+    <p>Smart Picks FR participates in the Amazon Associates Program. We may earn from qualifying purchases.</p>
+    <p>Prices & availability are controlled by Amazon.fr.</p>
+  </div>
+</section>
+
 </main>
 
-<!-- 弹窗 -->
+<!-- Modal -->
 <div id="reviewModal" class="modal-backdrop">
   <div class="modal">
-    <button id="modalClose" class="close">×</button>
-    <h2 id="modalTitle">Product review</h2>
+    <button class="close" id="modalClose">×</button>
+    <h2 id="modalTitle"></h2>
     <p id="modalContent"></p>
     <div class="modal-footer">
-      <button id="modalDismiss" class="btn">Close</button>
-      <a id="modalLink" class="btn btn-primary" href="#" target="_blank">View details</a>
+      <button class="btn" id="modalDismiss">Close</button>
+      <a id="modalLink" target="_blank" class="btn btn-primary">View details</a>
     </div>
   </div>
 </div>
 
+<!-- ================= JS ================= -->
 <script>
-  /* 🔥 你的 JS 逻辑完全保留，只修复文案合规 + 修复 amazon.fr 域名 + 不改结构 */
+const AMAZON_DOMAIN = "www.amazon.fr";
+const TAG = "fr0e28-21";
 
-  const AMAZON_DOMAIN = "www.amazon.fr";
-  const TAG = "fr0e28-21";
+/* ====== 你的原始产品数组（已从你上传的原件提取） ====== */
+const rawProductsBase = [
+  {"asin":"B0CFYLMT5J","image":"https://m.media-amazon.com/images/I/51l5Aun9O6L._AC_SY450_.jpg"},
+  {"asin":"B099QPCGVZ","image":"https://m.media-amazon.com/images/I/61NK5i8rknL._AC_SY355_.jpg"},
+  {"asin":"B0CGLVQ73F","image":"https://m.media-amazon.com/images/I/51klqeiVq1L._AC_SY450_.jpg"},
+  {"asin":"B0CGSL87HD","image":"https://m.media-amazon.com/images/I/61-BsQOdE-L._AC_SY450_.jpg"},
+  {"asin":"B0CF59ZZ1N","image":"https://m.media-amazon.com/images/I/51a+W8n6eBL._AC_SY355_.jpg"},
+  {"asin":"B0CBFFB9F9","image":"https://m.media-amazon.com/images/I/518bqVbU8iL._AC_SY355_.jpg"},
+  {"asin":"B0BPF7D6QV","image":"https://m.media-amazon.com/images/I/51lIA6FwE4L._AC_SY355_.jpg"},
+  {"asin":"B0B8BHVKVX","image":"https://m.media-amazon.com/images/I/41rGjp-JuCL._AC_SY355_.jpg"},
+  {"asin":"B0CGLY9KXF","image":"https://m.media-amazon.com/images/I/61fnJYG1xDL._AC_SY355_.jpg"},
+  {"asin":"B0CGLXHGVL","image":"https://m.media-amazon.com/images/I/61NwA+xrM5L._AC_SY355_.jpg"}
+];
 
-  const baseCategories = ["Electronics", "Home", "Outdoor", "Car", "Office"];
+/* ===== 分类映射 ===== */
+const CATEGORY_MAP = {
+  "Electronics": "Electronics & Gadgets",
+  "Home": "Home & Kitchen",
+  "Outdoor": "Outdoor & Sports",
+  "Car": "Car Accessories",
+  "Office": "Office & Daily Use"
+};
 
-  /* 保留原始 rawProductsBase（你的 ASIN 顺序全部保持） */
-  const rawProductsBase = [
-    /* ……这里保持你原件中的 ASIN + 图片（略） …… */
-  ];
+const baseCategories = ["Electronics", "Home", "Outdoor", "Car", "Office"];
 
-  const CATEGORY_MAP = {
-    Electronics: "Electronics & Gadgets",
-    Home: "Home & Kitchen",
-    Outdoor: "Outdoor & Sports",
-    Car: "Car Accessories",
-    Office: "Office & Daily Use"
+/* ===== 构建产品对象 ===== */
+const products = rawProductsBase.map((p, i) => {
+  const cat = baseCategories[i % baseCategories.length];
+  return {
+    asin: p.asin,
+    img: p.image,
+    category: cat,
+    broadCategory: CATEGORY_MAP[cat],
+    title: `Product #${i + 1} – ${CATEGORY_MAP[cat]} Pick`,
+    desc: `An everyday ${CATEGORY_MAP[cat].toLowerCase()} item suitable for FR shoppers.`,
+    link: `https://${AMAZON_DOMAIN}/dp/${p.asin}/?tag=${TAG}`,
+    reviewText:
+      `Product #${i + 1} – ${CATEGORY_MAP[cat]}\n\n` +
+      `Designed for common FR usage.\n\n` +
+      `• Practical fit\n` +
+      `• Good ratio of price/performance\n` +
+      `• Check full details on Amazon.fr\n`
   };
+});
 
-  const products = rawProductsBase.map((p, i) => {
-    const cat = baseCategories[i % baseCategories.length];
-    return {
-      asin: p.asin,
-      img: p.image,
-      category: cat,
-      broadCategory: CATEGORY_MAP[cat],
-      title: `Product #${i + 1} – ${CATEGORY_MAP[cat]} Pick`,
-      desc: `This is an everyday ${CATEGORY_MAP[cat].toLowerCase()} item suitable for typical FR use.`,
-      link: `https://${AMAZON_DOMAIN}/dp/${p.asin}/?tag=${TAG}`,
-      reviewText:
-        `Product #${i + 1} – ${CATEGORY_MAP[cat]}\n\n` +
-        `This editorial note highlights typical FR usage:\n\n` +
-        `• Practical everyday fit\n` +
-        `• Balanced features and performance\n` +
-        `• Good match for common French needs\n\n` +
-        `Always check full details, compatibility and reviews on Amazon.fr before purchasing.`
-    };
-  });
+/* ===== DOM ===== */
+const grid = document.getElementById("productGrid");
+const countEl = document.getElementById("productCount");
 
-  const grid = document.getElementById("productGrid");
-  const count = document.getElementById("productCount");
-
-  function renderProducts(list) {
-    grid.innerHTML = "";
-    list.forEach((p) => {
-      grid.innerHTML += `
-        <article class="product-card">
-          <div class="media"><img src="${p.img}" alt="${p.title}" /></div>
-          <div class="body">
-            <div class="meta">
-              <span>${p.broadCategory}</span>
-              <span>ASIN: ${p.asin}</span>
-            </div>
-            <h3>${p.title}</h3>
-            <p>${p.desc}</p>
+/* ===== 渲染函数 ===== */
+function renderProducts(list) {
+  grid.innerHTML = "";
+  list.forEach((p) => {
+    grid.innerHTML += `
+      <article class="product-card">
+        <div class="media"><img src="${p.img}" alt="${p.title}"/></div>
+        <div class="body">
+          <div class="meta">
+            <span>${p.broadCategory}</span>
+            <span>ASIN: ${p.asin}</span>
           </div>
-          <div class="footer">
-            <button class="btn review-btn" data-asin="${p.asin}">Read review</button>
-            <a class="btn btn-primary" href="${p.link}" target="_blank">View details</a>
-          </div>
-        </article>`;
-    });
-    count.textContent = `Showing ${list.length} products`;
-  }
-
-  /* 分类过滤 */
-  const chips = document.querySelectorAll(".chip");
-  let activeCategory = "All picks";
-  chips.forEach((chip) => {
-    chip.addEventListener("click", () => {
-      chips.forEach((c) => c.classList.remove("active"));
-      chip.classList.add("active");
-      activeCategory = chip.dataset.category;
-      applyFilters();
-    });
+          <h3>${p.title}</h3>
+          <p>${p.desc}</p>
+        </div>
+        <div class="footer">
+          <button class="btn review-btn" data-asin="${p.asin}">Read review</button>
+          <a class="btn btn-primary" href="${p.link}" target="_blank">View details</a>
+        </div>
+      </article>
+    `;
   });
+  countEl.textContent = `Showing ${list.length} products`;
+}
 
-  /* 搜索 */
-  let searchTerm = "";
-  document.getElementById("searchInput").addEventListener("input", (e) => {
-    searchTerm = e.target.value.toLowerCase();
+/* ===== 分类筛选 ===== */
+let activeCategory = "All picks";
+document.querySelectorAll(".chip").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    document.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
+    chip.classList.add("active");
+    activeCategory = chip.dataset.category;
     applyFilters();
   });
-  document.getElementById("searchBtn").addEventListener("click", applyFilters);
+});
 
-  function applyFilters() {
-    const filtered = products.filter((p) => {
-      const categoryMatch =
-        activeCategory === "All picks" || p.broadCategory === activeCategory;
+/* ===== 搜索 ===== */
+let searchTerm = "";
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  searchTerm = e.target.value.toLowerCase();
+  applyFilters();
+});
+document.getElementById("searchBtn").addEventListener("click", applyFilters);
 
-      const searchMatch =
-        !searchTerm ||
-        p.title.toLowerCase().includes(searchTerm) ||
-        p.asin.toLowerCase().includes(searchTerm) ||
-        p.broadCategory.toLowerCase().includes(searchTerm);
+/* ===== 综合筛选 ===== */
+function applyFilters() {
+  const list = products.filter((p) => {
+    const categoryMatch =
+      activeCategory === "All picks" || p.broadCategory === activeCategory;
 
-      return categoryMatch && searchMatch;
-    });
-    renderProducts(filtered);
-  }
+    const searchMatch =
+      !searchTerm ||
+      p.title.toLowerCase().includes(searchTerm) ||
+      p.asin.toLowerCase().includes(searchTerm) ||
+      p.broadCategory.toLowerCase().includes(searchTerm);
 
-  /* 弹窗逻辑 */
-  const modal = document.getElementById("reviewModal");
-  const modalTitle = document.getElementById("modalTitle");
-  const modalContent = document.getElementById("modalContent");
-  const modalLink = document.getElementById("modalLink");
-
-  grid.addEventListener("click", (e) => {
-    const btn = e.target.closest(".review-btn");
-    if (!btn) return;
-    const asin = btn.dataset.asin;
-    const product = products.find((p) => p.asin === asin);
-    modalTitle.textContent = product.title;
-    modalContent.textContent = product.reviewText;
-    modalLink.href = product.link;
-    modal.classList.add("open");
+    return categoryMatch && searchMatch;
   });
+  renderProducts(list);
+}
 
-  document.getElementById("modalClose").addEventListener("click", () => {
-    modal.classList.remove("open");
-  });
-  document.getElementById("modalDismiss").addEventListener("click", () => {
-    modal.classList.remove("open");
-  });
+/* ===== Modal ===== */
+const modal = document.getElementById("reviewModal");
+const modalTitle = document.getElementById("modalTitle");
+const modalContent = document.getElementById("modalContent");
+const modalLink = document.getElementById("modalLink");
 
-  renderProducts(products);
+grid.addEventListener("click", (e) => {
+  const btn = e.target.closest(".review-btn");
+  if (!btn) return;
+
+  const asin = btn.dataset.asin;
+  const product = products.find((p) => p.asin === asin);
+
+  modalTitle.textContent = product.title;
+  modalContent.textContent = product.reviewText;
+  modalLink.href = product.link;
+
+  modal.classList.add("open");
+});
+
+document.getElementById("modalClose").onclick =
+document.getElementById("modalDismiss").onclick =
+  () => modal.classList.remove("open");
+
+/* 初次渲染 */
+renderProducts(products);
 </script>
 
 </body>
