@@ -5,83 +5,153 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product List</title>
   <style>
-    /* Same styling as previous, optimized for mobile */
+    body {
+      font-family: Arial, sans-serif;
+    }
+    header {
+      text-align: center;
+      padding: 10px;
+      background-color: #333;
+      color: white;
+    }
+    .country-select {
+      margin-top: 10px;
+      padding: 5px;
+      border-radius: 5px;
+    }
+    .product-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .product-table th, .product-table td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+    .product-table td img {
+      width: 100px;
+      height: auto;
+      cursor: pointer;
+    }
+    .product-table th {
+      background-color: #f4f4f4;
+    }
+    .product-row {
+      display: none;
+    }
+    .product-row.show {
+      display: table-row;
+    }
   </style>
 </head>
 <body>
+
   <header>
     <h1>Product List</h1>
-    <select class="country-select" id="countrySelect" onchange="filterProductsByCountry()">
-      <option value="UK">UK</option>
-      <option value="US">US</option>
-      <option value="DE">Germany</option>
-      <option value="FR">France</option>
-      <option value="IT">Italy</option>
-      <option value="ES">Spain</option>
-      <option value="CA">Canada</option>
-      <option value="JP">Japan</option>
-    </select>
-    <div class="contact-text">
-      <p>For inquiries, you can contact us via WhatsApp, Telegram, or Email:</p>
+    <p>For inquiries, you can contact us via WhatsApp, Telegram, or Email:</p>
+    <div>
+      <a href="https://wa.me/8615377923383" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1024px-WhatsApp.svg.png" alt="WhatsApp" width="30"></a>
+      <a href="https://t.me/dalemyrong" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Telegram_icon.svg/1024px-Telegram_icon.svg.png" alt="Telegram" width="30"></a>
+    </div>
+    <div>
+      <label for="countrySelect">Select Country:</label>
+      <select class="country-select" id="countrySelect" onchange="filterProductsByCountry()">
+        <option value="UK">UK</option>
+        <option value="US">US</option>
+        <option value="DE">Germany</option>
+        <option value="FR">France</option>
+        <option value="IT">Italy</option>
+        <option value="ES">Spain</option>
+        <option value="CA">Canada</option>
+        <option value="JP">Japan</option>
+      </select>
     </div>
   </header>
 
   <section id="product-list">
     <h2>Products</h2>
-    <div class="product-table-container">
-      <table class="product-table">
-        <thead>
-          <tr>
-            <th>Action</th>
-            <th>Market</th>
-            <th>Image</th>
-            <th>Title</th>
-            <th>Keyword</th>
-            <th>Store</th>
-            <th>Remark</th>
-            <th>Price</th>
-            <th>Commission</th>
-          </tr>
-        </thead>
-        <tbody id="product-table-body">
-          <tr class="product-row" data-market="UK" id="product1">
-            <td><button onclick="forwardProduct('product1')">Forward</button></td>
-            <td>UK</td>
-            <td>
-              <a href="https://amzn.to/4aV7Tli" target="_blank">
-                <img src="https://m.media-amazon.com/images/I/61Njd-RC0BL._AC_SX679_.jpg" alt="Product 1" class="product-image">
-              </a>
-            </td>
-            <td class="product-title">英国充电宝</td>
-            <td onclick="copyToClipboard('Xiaocodou Power Bank')">Xiaocodou Power Bank</td>
-            <td>Guangzhou Lintang Trading Co., Ltd.</td>
-            <td>Need Text Review<br>Sold by Guangzhou Lintang Trading Co.</td>
-            <td>£0</td>
-            <td>£0</td>
-          </tr>
-          <tr class="product-row" data-market="US" id="product2">
-            <td><button onclick="forwardProduct('product2')">Forward</button></td>
-            <td>US</td>
-            <td>
-              <a href="https://amzn.to/4pQ5Fb4" target="_blank">
-                <img src="https://m.media-amazon.com/images/I/71R+UqSeagL._AC_SL1500_.jpg" alt="Product 2" class="product-image">
-              </a>
-            </td>
-            <td class="product-title">美国眼部按摩仪</td>
-            <td onclick="copyToClipboard('eye massager')">eye massager</td>
-            <td>Alljoy Official Store</td>
-            <td>Need Text Review</td>
-            <td>$0</td>
-            <td>$0</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <table class="product-table">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Market</th>
+          <th>Image</th>
+          <th>Title</th>
+          <th>Keyword</th>
+          <th>Store</th>
+          <th>Remark</th>
+          <th>Price</th>
+          <th>Commission</th>
+        </tr>
+      </thead>
+      <tbody id="product-table-body">
+        <tr class="product-row" data-market="UK">
+          <td><button onclick="forwardProduct('product1')">Forward</button></td>
+          <td>UK</td>
+          <td>
+            <a href="https://amzn.to/4aV7Tli" target="_blank">
+              <img src="https://m.media-amazon.com/images/I/61Njd-RC0BL._AC_SX679_.jpg" alt="Xiaocodou Power Bank" class="product-image">
+            </a>
+          </td>
+          <td class="product-title">英国充电宝</td>
+          <td>Xiaocodou Power Bank</td>
+          <td>Guangzhou Lintang Trading Co., Ltd.</td>
+          <td>Need Text Review</td>
+          <td>£0</td>
+          <td>£0</td>
+        </tr>
+        <tr class="product-row" data-market="US">
+          <td><button onclick="forwardProduct('product2')">Forward</button></td>
+          <td>US</td>
+          <td>
+            <a href="https://amzn.to/4pQ5Fb4" target="_blank">
+              <img src="https://m.media-amazon.com/images/I/71R+UqSeagL._AC_SL1500_.jpg" alt="eye massager" class="product-image">
+            </a>
+          </td>
+          <td class="product-title">美国眼部按摩仪</td>
+          <td>eye massager</td>
+          <td>Alljoy Official Store</td>
+          <td>Need Text Review</td>
+          <td>$0</td>
+          <td>$0</td>
+        </tr>
+      </tbody>
+    </table>
   </section>
 
   <script>
-    // Same JavaScript functionality as explained above
-  </script>
+    function forwardProduct(productId) {
+      const product = document.getElementById(productId);
+      const market = product.querySelector('td:nth-child(2)').textContent;
+      alert('Product forwarded to ' + market);
+    }
 
+    function filterProductsByCountry() {
+      const selectedCountry = document.getElementById('countrySelect').value;
+      const rows = document.querySelectorAll('.product-row');
+      rows.forEach(row => {
+        const market = row.getAttribute('data-market');
+        if (market === selectedCountry) {
+          row.classList.add('show');
+        } else {
+          row.classList.remove('show');
+        }
+      });
+
+      localStorage.setItem('selectedCountry', selectedCountry);
+    }
+
+    window.onload = function() {
+      const savedCountry = localStorage.getItem('selectedCountry');
+      if (savedCountry) {
+        document.getElementById('countrySelect').value = savedCountry;
+        filterProductsByCountry();
+      } else {
+        document.getElementById('countrySelect').value = 'UK';
+        filterProductsByCountry();
+      }
+    };
+  </script>
 </body>
 </html>
