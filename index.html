@@ -10,6 +10,7 @@
       margin: 0;
       padding: 0;
       background-color: #f4f4f9;
+      color: #111827;
     }
     header {
       background-color: #111827;
@@ -21,87 +22,157 @@
     header h1 {
       font-size: 2em;
       font-weight: bold;
+      margin: 0 0 10px 0;
     }
     .country-select {
       margin: 10px;
-      font-size: 1.1em;
-      padding: 5px;
+      font-size: 1.05em;
+      padding: 6px 10px;
       background-color: #fff;
       color: #111827;
       border: 1px solid #ddd;
-      border-radius: 5px;
+      border-radius: 6px;
+      outline: none;
     }
+    .contact-text {
+      font-size: 1.05em;
+      margin-top: 10px;
+      color: #fff;
+      line-height: 1.5;
+    }
+    .contact-actions{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      flex-wrap:wrap;
+      margin-top:10px;
+      padding: 0 12px;
+    }
+    .contact-btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:10px;
+      background:#ffffff;
+      color:#111827;
+      text-decoration:none;
+      border:1px solid rgba(255,255,255,.35);
+      font-weight:600;
+      font-size:14px;
+    }
+    .contact-btn:hover{ opacity:.92; }
+
+    section#product-list{
+      max-width: 1200px;
+      margin: 18px auto 30px;
+      padding: 0 12px;
+    }
+    section#product-list h2{
+      margin: 0 0 10px 0;
+      font-size: 20px;
+    }
+
+    .status-bar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:10px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+    .status-left{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .badge{
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+      font-size:12px;
+      color:#374151;
+    }
+    .muted{ color:#6b7280; font-size:12px; }
+
     .product-table-container {
       width: 100%;
       overflow-x: auto;
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:12px;
     }
     .product-table {
       width: 100%;
       border-collapse: collapse;
       table-layout: auto;
+      min-width: 980px;
     }
     .product-table th, .product-table td {
       padding: 12px;
       text-align: left;
-      border: 1px solid #ddd;
-      word-wrap: break-word;
+      border-bottom: 1px solid #eee;
+      vertical-align: top;
       font-size: 0.9em;
+      word-break: break-word;
     }
     .product-table th {
       background-color: #f4f4f4;
+      position: sticky;
+      top: 0;
+      z-index: 1;
     }
+
     .product-image {
       width: 60px;
       height: 60px;
       object-fit: contain;
       cursor: pointer;
+      border-radius: 6px;
+      border:1px solid #e5e7eb;
+      background:#fff;
     }
     .product-title {
       font-weight: bold;
-      font-size: 1em;
+      font-size: 0.95em;
+      line-height: 1.35;
     }
     .product-link {
       color: #1a73e8;
       text-decoration: none;
+      font-weight: 600;
     }
-    .product-link:hover {
-      text-decoration: underline;
+    .product-link:hover { text-decoration: underline; }
+
+    .btn{
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid #e5e7eb;
+      background:#111827;
+      color:#fff;
+      cursor:pointer;
+      font-weight:600;
+      font-size:13px;
+      white-space:nowrap;
     }
-    .contact-text {
-      font-size: 1.2em;
-      margin-top: 10px;
-      color: #fff;
-    }
+    .btn:hover{ opacity:.92; }
 
     /* Mobile optimization */
     @media (max-width: 768px) {
-      header h1 {
-        font-size: 1.5em;
-      }
-      .product-table th, .product-table td {
-        padding: 8px;
-        font-size: 0.8em;
-      }
-      .product-image {
-        width: 50px;
-        height: 50px;
-      }
-      .product-table {
-        font-size: 0.85em;
-      }
-      .product-title {
-        font-size: 0.95em;
-      }
-      .contact-text {
-        font-size: 1em;
-      }
+      header h1 { font-size: 1.5em; }
+      .product-table th, .product-table td { padding: 8px; font-size: 0.8em; }
+      .product-image { width: 50px; height: 50px; }
+      .product-title { font-size: 0.9em; }
+      .contact-text { font-size: 0.95em; }
+      .product-table { min-width: 920px; }
     }
 
-    /* Styles for the modal (image pop-up) */
+    /* Modal (image pop-up) */
     .modal {
       display: none;
       position: fixed;
-      z-index: 1;
+      z-index: 1000;
       left: 0;
       top: 0;
       width: 100%;
@@ -109,55 +180,48 @@
       background-color: rgba(0, 0, 0, 0.7);
       padding-top: 60px;
     }
+    .modal-inner{
+      width: 90%;
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      background:#fff;
+      border-radius:14px;
+      padding:14px;
+    }
     .modal-content {
-      margin: auto;
       display: block;
-      width: 80%;
-      max-width: 700px;
+      width: 100%;
+      height: auto;
+      max-height: 78vh;
+      object-fit: contain;
+      border-radius: 10px;
     }
     .close {
       position: absolute;
-      top: 15px;
-      right: 35px;
-      color: #f1f1f1;
-      font-size: 40px;
+      top: 10px;
+      right: 14px;
+      color: #111827;
+      font-size: 26px;
       font-weight: bold;
-      transition: 0.3s;
-    }
-    .close:hover,
-    .close:focus {
-      color: #bbb;
-      text-decoration: none;
       cursor: pointer;
+      user-select:none;
+      line-height: 1;
     }
+    .close:hover { opacity:.7; }
 
-    /* Contact Modal */
-    #contact-modal {
-      display: none;
-      position: fixed;
-      z-index: 1;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
-      padding-top: 60px;
-      text-align: center;
-    }
-    .modal-content {
-      background: #fff;
-      padding: 20px;
-      width: 300px;
-      margin: 0 auto;
-    }
-    .modal-content button {
-      margin: 10px;
+    .empty{
+      padding:16px 12px;
+      color:#6b7280;
+      font-size:14px;
     }
   </style>
 </head>
+
 <body>
   <header>
     <h1>Product List</h1>
+
     <select class="country-select" id="countrySelect" onchange="filterProductsByCountry()">
       <option value="UK">UK</option>
       <option value="US">US</option>
@@ -168,13 +232,35 @@
       <option value="CA">Canada</option>
       <option value="JP">Japan</option>
     </select>
+
     <div class="contact-text">
-      <p>For inquiries, you can contact us via WhatsApp, Telegram, or Email:</p>
+      For inquiries, you can contact us via WhatsApp, Telegram, or Email:
+    </div>
+
+    <div class="contact-actions">
+      <a class="contact-btn" href="https://wa.me/message/DFLXQVO45JMMB1" target="_blank" rel="noopener">
+        WhatsApp
+      </a>
+      <a class="contact-btn" href="https://t.me/dalemyrong" target="_blank" rel="noopener">
+        Telegram
+      </a>
+      <a class="contact-btn" href="mailto:info@dalemy.top">
+        Email
+      </a>
     </div>
   </header>
 
   <section id="product-list">
     <h2>Products</h2>
+
+    <div class="status-bar">
+      <div class="status-left">
+        <span class="badge" id="statusBadge">Loading…</span>
+        <span class="muted" id="statusMeta"></span>
+      </div>
+      <button class="btn" onclick="fetchProductData(true)">Refresh</button>
+    </div>
+
     <div class="product-table-container">
       <table class="product-table">
         <thead>
@@ -194,124 +280,202 @@
           <!-- Products will be populated here -->
         </tbody>
       </table>
+      <div class="empty" id="emptyHint" style="display:none;">
+        No products loaded. If this is your first time, run GitHub Actions once to generate products.json.
+      </div>
     </div>
   </section>
 
+  <!-- Image Modal -->
+  <div id="imgModal" class="modal" onclick="closeModal(event)">
+    <div class="modal-inner" onclick="event.stopPropagation()">
+      <span class="close" onclick="closeModal(event)">&times;</span>
+      <img class="modal-content" id="modalImg" alt="Product image">
+    </div>
+  </div>
+
   <script>
-    // Product data fetch and update every 15 minutes
-    function fetchProductData() {
-      fetch('http://localhost:3000/api/products')  // 使用代理服务器
-        .then(response => response.text())
-        .then(csvData => {
-          const products = parseCSV(csvData);
-          displayProducts(products);
+    // ========= Config =========
+    // products.json 必须放在“与此页面同目录”下（同域同目录）
+    // 如果你的 products.json 放在站点根目录，而本页面在 /it/ 目录，则把下面改成："/products.json"
+    const PRODUCTS_JSON_PATH = "./products.json";
+
+    // ========= State =========
+    let ALL_PRODUCTS = [];
+    let LAST_LOADED_AT = null;
+
+    function setStatus(text, meta = "") {
+      document.getElementById("statusBadge").textContent = text;
+      document.getElementById("statusMeta").textContent = meta;
+    }
+
+    function showEmptyHint(show) {
+      document.getElementById("emptyHint").style.display = show ? "block" : "none";
+    }
+
+    // ========= Fetch JSON (same-origin) =========
+    function fetchProductData(manual = false) {
+      const url = PRODUCTS_JSON_PATH + (PRODUCTS_JSON_PATH.includes("?") ? "&" : "?") + "ts=" + Date.now();
+
+      if (manual) setStatus("Refreshing…", "Fetching products.json");
+      else setStatus("Loading…", "Fetching products.json");
+
+      fetch(url, { cache: "no-store" })
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+          return res.json();
         })
-        .catch(error => {
-          console.error("Error fetching product data:", error);
-          alert("Failed to fetch product data.");
+        .then(products => {
+          if (!Array.isArray(products)) throw new Error("products.json is not an array");
+
+          ALL_PRODUCTS = products;
+          LAST_LOADED_AT = new Date();
+
+          const selectedCountry = document.getElementById("countrySelect").value;
+          displayProducts(ALL_PRODUCTS);
+          filterProductsByCountry();
+
+          setStatus("Loaded", `${products.length} items · ${LAST_LOADED_AT.toLocaleString()}`);
+          showEmptyHint(products.length === 0);
+        })
+        .catch(err => {
+          console.error("Failed to load products.json:", err);
+          setStatus("Load failed", "Please ensure GitHub Actions generated products.json");
+          showEmptyHint(true);
+          // 不弹窗刷屏，手动刷新才提示
+          if (manual) alert("无法读取 products.json。\n\n常见原因：\n1) 还没生成 products.json（先在 GitHub Actions 手动 Run 一次）\n2) products.json 路径不对（页面在 /it/，但 products.json 在根目录）\n\n错误信息：\n" + err.message);
         });
     }
 
-    // Parse CSV data to JSON
-    function parseCSV(data) {
-      const rows = data.split('\n');
-      const products = rows.map(row => {
-        const cols = row.split(',');
-        return {
-          market: cols[0],
-          asin: cols[1],
-          title: cols[2],
-          keyword: cols[3],
-          store: cols[4],
-          remark: cols[5],
-          link: cols[6],
-          image_url: cols[7],
-          price: cols[8],
-          commission: cols[9],
-          status: cols[10]
-        };
-      });
-      return products;
-    }
-
-    // Display products in the table
+    // ========= Render =========
     function displayProducts(products) {
       const tbody = document.getElementById("product-table-body");
-      tbody.innerHTML = '';
+      tbody.innerHTML = "";
+
       products.forEach(product => {
         const row = document.createElement("tr");
         row.classList.add("product-row");
-        row.setAttribute("data-market", product.market);
+        row.setAttribute("data-market", (product.market || "").trim());
+
+        const safeTitle = escapeHtml(product.title || "");
+        const safeKeyword = escapeHtml(product.keyword || "");
+        const safeStore = escapeHtml(product.store || "");
+        const safeRemark = escapeHtml(product.remark || "");
+        const link = (product.link || "").trim();
+        const img = (product.image_url || "").trim();
 
         row.innerHTML = `
-          <td><button onclick="forwardProduct('${product.asin}')">Forward</button></td>
-          <td>${product.market}</td>
+          <td><button class="btn" onclick="forwardProduct('${escapeAttr(product.asin || "")}')">Forward</button></td>
+          <td>${escapeHtml(product.market || "")}</td>
           <td>
-            <a href="${product.link}" target="_blank">
-              <img src="${product.image_url}" alt="${product.title}" class="product-image">
-            </a>
+            ${img ? `
+              <img src="${escapeAttr(img)}" alt="${safeTitle}" class="product-image" onclick="openModal('${escapeAttr(img)}')" />
+            ` : ""}
+            ${link ? `<div style="margin-top:6px;"><a class="product-link" href="${escapeAttr(link)}" target="_blank" rel="noopener">Open</a></div>` : ""}
           </td>
-          <td class="product-title">${product.title}</td>
-          <td onclick="copyToClipboard('${product.keyword}')">${product.keyword}</td>
-          <td>${product.store}</td>
-          <td>${product.remark}</td>
-          <td>${product.price}</td>
-          <td>${product.commission}</td>
+          <td class="product-title">${safeTitle}</td>
+          <td style="cursor:pointer;" title="Click to copy" onclick="copyToClipboard('${escapeAttr(product.keyword || "")}')">${safeKeyword}</td>
+          <td>${safeStore}</td>
+          <td>${safeRemark}</td>
+          <td>${escapeHtml(product.price || "")}</td>
+          <td>${escapeHtml(product.commission || "")}</td>
         `;
         tbody.appendChild(row);
       });
+
+      showEmptyHint(products.length === 0);
     }
 
-    // Filter products by selected country
+    // ========= Filter =========
     function filterProductsByCountry() {
-      const selectedCountry = document.getElementById('countrySelect').value;
-      const rows = document.querySelectorAll('.product-row');
+      const selectedCountry = document.getElementById("countrySelect").value;
+      const rows = document.querySelectorAll(".product-row");
+
+      let visibleCount = 0;
       rows.forEach(row => {
-        const market = row.getAttribute('data-market');
+        const market = row.getAttribute("data-market");
         if (market === selectedCountry) {
-          row.style.display = '';
+          row.style.display = "";
+          visibleCount++;
         } else {
-          row.style.display = 'none';
+          row.style.display = "none";
         }
       });
 
-      // Save the selected country to localStorage for future use
-      localStorage.setItem('selectedCountry', selectedCountry);
+      localStorage.setItem("selectedCountry", selectedCountry);
+
+      // 状态栏补充显示
+      if (LAST_LOADED_AT) {
+        setStatus("Loaded", `${visibleCount}/${ALL_PRODUCTS.length} visible · ${LAST_LOADED_AT.toLocaleString()}`);
+      }
     }
 
-    // Function to copy text to clipboard
+    // ========= Utilities =========
     function copyToClipboard(text) {
-      const el = document.createElement('textarea');
+      if (!text) return;
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          alert("Keyword copied!");
+        }).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const el = document.createElement("textarea");
       el.value = text;
       document.body.appendChild(el);
       el.select();
-      document.execCommand('copy');
+      document.execCommand("copy");
       document.body.removeChild(el);
-      alert('Keyword copied to clipboard!');
+      alert("Keyword copied!");
     }
 
-    // Load selected country from localStorage on page load
-    window.onload = function() {
-      const savedCountry = localStorage.getItem('selectedCountry');
-      if (savedCountry) {
-        document.getElementById('countrySelect').value = savedCountry;
-        filterProductsByCountry();
-      } else {
-        document.getElementById('countrySelect').value = 'UK';
-        filterProductsByCountry();
-      }
-
-      // Fetch product data
-      fetchProductData();
-      // Set an interval to fetch product data every 15 minutes
-      setInterval(fetchProductData, 15 * 60 * 1000);
-    };
-
-    // Forward product action (optional)
     function forwardProduct(asin) {
       alert("Forwarding product: " + asin);
     }
-  </script>
 
+    // ========= Image Modal =========
+    function openModal(imgUrl) {
+      const modal = document.getElementById("imgModal");
+      const modalImg = document.getElementById("modalImg");
+      modalImg.src = imgUrl;
+      modal.style.display = "block";
+    }
+
+    function closeModal(e) {
+      const modal = document.getElementById("imgModal");
+      modal.style.display = "none";
+      const modalImg = document.getElementById("modalImg");
+      modalImg.src = "";
+    }
+
+    // ========= XSS safety =========
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+    function escapeAttr(str) {
+      // 属性中使用，基本同 escapeHtml
+      return escapeHtml(str);
+    }
+
+    // ========= Init =========
+    window.onload = function() {
+      const savedCountry = localStorage.getItem("selectedCountry");
+      document.getElementById("countrySelect").value = savedCountry || "UK";
+
+      // 第一次加载
+      fetchProductData(false);
+
+      // 每 15 分钟刷新一次（前端显示用；真正的更新靠 GitHub Actions）
+      setInterval(() => fetchProductData(false), 15 * 60 * 1000);
+    };
+  </script>
 </body>
 </html>
