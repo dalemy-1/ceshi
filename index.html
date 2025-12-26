@@ -5,216 +5,82 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Product List</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f9;
-      color: #111827;
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f9; color:#111827; }
+    header { background:#111827; color:#fff; text-align:center; padding:20px 0; border-bottom:5px solid #fff; }
+    header h1 { font-size:2em; font-weight:bold; margin:0 0 10px 0; }
+    .country-select{
+      margin:10px; font-size:1.05em; padding:6px 10px; background:#fff; color:#111827;
+      border:1px solid #ddd; border-radius:6px; outline:none;
     }
-    header {
-      background-color: #111827;
-      color: #fff;
-      text-align: center;
-      padding: 20px 0;
-      border-bottom: 5px solid #ffffff;
+    .contact-text{ font-size:1.05em; margin-top:10px; color:#fff; line-height:1.5; }
+    .contact-actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px; padding:0 12px; }
+    .contact-btn{
+      display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px;
+      background:#fff; color:#111827; text-decoration:none; border:1px solid rgba(255,255,255,.35);
+      font-weight:600; font-size:14px;
     }
-    header h1 {
-      font-size: 2em;
-      font-weight: bold;
-      margin: 0 0 10px 0;
-    }
-    .country-select {
-      margin: 10px;
-      font-size: 1.05em;
-      padding: 6px 10px;
-      background-color: #fff;
-      color: #111827;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      outline: none;
-    }
-    .contact-text {
-      font-size: 1.05em;
-      margin-top: 10px;
-      color: #fff;
-      line-height: 1.5;
-    }
-    .contact-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 10px;
-      padding: 0 12px;
-    }
-    .contact-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-radius: 10px;
-      background: #ffffff;
-      color: #111827;
-      text-decoration: none;
-      border: 1px solid rgba(255,255,255,.35);
-      font-weight: 600;
-      font-size: 14px;
-    }
-    .contact-btn:hover { opacity: .92; }
+    .contact-btn:hover{ opacity:.92; }
 
-    section#product-list {
-      max-width: 1200px;
-      margin: 18px auto 30px;
-      padding: 0 12px;
+    section#product-list{ max-width:1200px; margin:18px auto 30px; padding:0 12px; }
+    section#product-list h2{ margin:0 0 10px 0; font-size:20px; }
+
+    .status-bar{
+      display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+      padding:10px 12px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:10px;
     }
-    section#product-list h2 {
-      margin: 0 0 10px 0;
-      font-size: 20px;
+    .status-left{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .badge{ padding:4px 10px; border-radius:999px; border:1px solid #e5e7eb; background:#f9fafb; font-size:12px; color:#374151; }
+    .muted{ color:#6b7280; font-size:12px; }
+
+    .product-table-container{ width:100%; overflow-x:auto; background:#fff; border:1px solid #e5e7eb; border-radius:12px; }
+    .product-table{ width:100%; border-collapse:collapse; table-layout:auto; min-width:980px; }
+    .product-table th,.product-table td{
+      padding:12px; text-align:left; border-bottom:1px solid #eee; vertical-align:top;
+      font-size:.9em; word-break:break-word;
+    }
+    .product-table th{ background:#f4f4f4; position:sticky; top:0; z-index:1; }
+
+    .product-image{
+      width:60px; height:60px; object-fit:contain; cursor:pointer; border-radius:6px;
+      border:1px solid #e5e7eb; background:#fff;
+    }
+    .product-title{ font-weight:bold; font-size:.95em; line-height:1.35; }
+    .product-link{ color:#1a73e8; text-decoration:none; font-weight:600; }
+    .product-link:hover{ text-decoration:underline; }
+
+    .btn{
+      padding:8px 10px; border-radius:10px; border:1px solid #e5e7eb;
+      background:#111827; color:#fff; cursor:pointer; font-weight:600; font-size:13px; white-space:nowrap;
+    }
+    .btn:hover{ opacity:.92; }
+
+    @media (max-width:768px){
+      header h1{ font-size:1.5em; }
+      .product-table th,.product-table td{ padding:8px; font-size:.8em; }
+      .product-image{ width:50px; height:50px; }
+      .product-title{ font-size:.9em; }
+      .contact-text{ font-size:.95em; }
+      .product-table{ min-width:920px; }
     }
 
-    .status-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
+    .modal{
+      display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%;
+      background:rgba(0,0,0,.7); padding-top:60px;
     }
-    .status-left { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .badge {
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid #e5e7eb;
-      background: #f9fafb;
-      font-size: 12px;
-      color: #374151;
+    .modal-inner{
+      width:90%; max-width:900px; margin:0 auto; position:relative; background:#fff; border-radius:14px; padding:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,.15);
     }
-    .muted { color: #6b7280; font-size: 12px; }
+    .modal-content{
+      display:block; width:100%; height:auto; max-height:78vh; object-fit:contain; border-radius:10px;
+    }
+    .close{
+      position:absolute; top:10px; right:14px; color:#111827; font-size:26px; font-weight:bold;
+      cursor:pointer; user-select:none; line-height:1;
+    }
+    .close:hover{ opacity:.7; }
 
-    .product-table-container {
-      width: 100%;
-      overflow-x: auto;
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-    }
-    .product-table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: auto;
-      min-width: 980px;
-    }
-    .product-table th, .product-table td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-      vertical-align: top;
-      font-size: 0.9em;
-      word-break: break-word;
-    }
-    .product-table th {
-      background-color: #f4f4f4;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    .product-image {
-      width: 60px;
-      height: 60px;
-      object-fit: contain;
-      cursor: pointer;
-      border-radius: 6px;
-      border: 1px solid #e5e7eb;
-      background: #fff;
-    }
-    .product-title {
-      font-weight: bold;
-      font-size: 0.95em;
-      line-height: 1.35;
-    }
-    .product-link {
-      color: #1a73e8;
-      text-decoration: none;
-      font-weight: 600;
-    }
-    .product-link:hover { text-decoration: underline; }
-
-    .btn {
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid #e5e7eb;
-      background: #111827;
-      color: #fff;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 13px;
-      white-space: nowrap;
-    }
-    .btn:hover { opacity: .92; }
-
-    @media (max-width: 768px) {
-      header h1 { font-size: 1.5em; }
-      .product-table th, .product-table td { padding: 8px; font-size: 0.8em; }
-      .product-image { width: 50px; height: 50px; }
-      .product-title { font-size: 0.9em; }
-      .contact-text { font-size: 0.95em; }
-      .product-table { min-width: 920px; }
-    }
-
-    /* Modal shared base */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
-      padding-top: 60px;
-    }
-    .modal-inner {
-      width: 90%;
-      max-width: 900px;
-      margin: 0 auto;
-      position: relative;
-      background: #fff;
-      border-radius: 14px;
-      padding: 14px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.15);
-    }
-    .modal-content {
-      display: block;
-      width: 100%;
-      height: auto;
-      max-height: 78vh;
-      object-fit: contain;
-      border-radius: 10px;
-    }
-    .close {
-      position: absolute;
-      top: 10px;
-      right: 14px;
-      color: #111827;
-      font-size: 26px;
-      font-weight: bold;
-      cursor: pointer;
-      user-select: none;
-      line-height: 1;
-    }
-    .close:hover { opacity: .7; }
-
-    .empty {
-      padding: 16px 12px;
-      color: #6b7280;
-      font-size: 14px;
-    }
+    .empty{ padding:16px 12px; color:#6b7280; font-size:14px; }
   </style>
 </head>
 
@@ -233,12 +99,10 @@
       <option value="JP">Japan</option>
     </select>
 
-    <div class="contact-text">
-      For inquiries, you can contact us via WhatsApp, Telegram, or Email:
-    </div>
+    <div class="contact-text">For inquiries, you can contact us via WhatsApp, Telegram, or Email:</div>
 
     <div class="contact-actions">
-      <a class="contact-btn" href="https://wa.me/message/DFLXQVO45JMMB1" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="contact-btn" href="https://wa.me/8615778673666" target="_blank" rel="noopener">WhatsApp</a>
       <a class="contact-btn" href="https://t.me/dalemyrong" target="_blank" rel="noopener">Telegram</a>
       <a class="contact-btn" href="mailto:info@dalemy.top">Email</a>
     </div>
@@ -266,7 +130,7 @@
             <th>Keyword</th>
             <th>Store</th>
             <th>Remark</th>
-            <th>Price</th>
+            <th>Discount Price</th>
             <th>Commission</th>
           </tr>
         </thead>
@@ -288,13 +152,12 @@
 
   <!-- Forward Modal -->
   <div id="forwardModal" class="modal" onclick="closeForwardModal(event)">
-    <div class="modal-inner" style="max-width:520px;" onclick="event.stopPropagation()">
+    <div class="modal-inner" style="max-width:560px;" onclick="event.stopPropagation()">
       <span class="close" onclick="closeForwardModal(event)">&times;</span>
 
       <h3 style="margin:0 0 10px 0;">Forward Product</h3>
-
       <div style="font-size:13px;color:#6b7280;margin-bottom:8px;">
-        Choose a channel, or copy the message first.
+        WhatsApp will open with the message pre-filled. You only need to press Send.
       </div>
 
       <div id="forwardPreview"
@@ -312,12 +175,11 @@
 
   <script>
     // ===== Config =====
-    // 你的站点是 https://dalemy-1.github.io/product-list/
-    // products.json 放在仓库根目录，则页面读取应使用绝对路径：
+    // 站点: https://dalemy-1.github.io/product-list/
     const PRODUCTS_JSON_PATH = "/product-list/products.json";
 
-    // 联系方式
-    const WA_CONTACT = "https://wa.me/message/DFLXQVO45JMMB1";
+    // WhatsApp 接收号码（你提供的）
+    const WA_PHONE = "8615778673666";
     const TG_USERNAME = "dalemyrong";
     const EMAIL_CONTACT = "info@dalemy.top";
 
@@ -330,9 +192,40 @@
       document.getElementById("statusBadge").textContent = text;
       document.getElementById("statusMeta").textContent = meta;
     }
-
     function showEmptyHint(show) {
       document.getElementById("emptyHint").style.display = show ? "block" : "none";
+    }
+
+    // ===== Currency formatting =====
+    const MARKET_CURRENCY = {
+      US: "USD",
+      UK: "GBP",
+      DE: "EUR",
+      FR: "EUR",
+      IT: "EUR",
+      ES: "EUR",
+      CA: "CAD",
+      JP: "JPY",
+    };
+
+    function formatMoneyByMarket(value, market) {
+      const currency = MARKET_CURRENCY[market] || "USD";
+      const num = Number(String(value || "").replace(/[^\d.-]/g, ""));
+      if (!Number.isFinite(num)) return String(value || "");
+
+      // 小数位规则：JPY 通常 0 位；其他货币若为整数则不显示 .00
+      const isJPY = currency === "JPY";
+      const isInt = Math.abs(num - Math.round(num)) < 1e-9;
+
+      const opts = {
+        style: "currency",
+        currency,
+        minimumFractionDigits: isJPY ? 0 : (isInt ? 0 : 2),
+        maximumFractionDigits: isJPY ? 0 : 2,
+      };
+
+      // 选个通用 locale，让符号显示出来即可
+      return new Intl.NumberFormat("en", opts).format(num);
     }
 
     // ===== Fetch JSON =====
@@ -361,9 +254,7 @@
           console.error("Failed to load products.json:", err);
           setStatus("Load failed", err.message);
           showEmptyHint(true);
-          if (manual) {
-            alert("Failed to load products.json.\n\n" + err.message);
-          }
+          if (manual) alert("Failed to load products.json.\n\n" + err.message);
         });
     }
 
@@ -384,25 +275,31 @@
         const link = (product.link || "").trim();
         const img = (product.image_url || "").trim();
 
+        const market = (product.market || "").trim();
+        const priceFormatted = formatMoneyByMarket(product.price, market);
+        const commissionFormatted = formatMoneyByMarket(product.commission, market);
+
         row.innerHTML = `
           <td>
             <button class="btn" onclick='openForwardModal(${encodeProductForOnclick(product)})'>Forward</button>
           </td>
-          <td>${escapeHtml(product.market || "")}</td>
+          <td>${escapeHtml(market)}</td>
           <td>
             ${img ? `
-              <img src="${escapeAttr(img)}" alt="${safeTitle}" class="product-image" onclick="openImageModal('${escapeAttr(img)}')" />
+              <img src="${escapeAttr(img)}" alt="${safeTitle}" class="product-image"
+                   onclick="openImageModal('${escapeAttr(img)}')" />
             ` : ""}
-            ${link ? `<div style="margin-top:6px;"><a class="product-link" href="${escapeAttr(link)}" target="_blank" rel="noopener">Open</a></div>` : ""}
+            ${link ? `<div style="margin-top:6px;"><a class="product-link" href="${escapeAttr(link)}"
+                   target="_blank" rel="noopener">Open</a></div>` : ""}
           </td>
           <td class="product-title">${safeTitle}</td>
-          <td style="cursor:pointer;" title="Click to copy" onclick="copyToClipboard('${escapeAttr(product.keyword || "")}')">${safeKeyword}</td>
+          <td style="cursor:pointer;" title="Click to copy"
+              onclick="copyToClipboard('${escapeAttr(product.keyword || "")}')">${safeKeyword}</td>
           <td>${safeStore}</td>
           <td>${safeRemark}</td>
-          <td>${escapeHtml(product.price || "")}</td>
-          <td>${escapeHtml(product.commission || "")}</td>
+          <td>${escapeHtml(priceFormatted)}</td>
+          <td>${escapeHtml(commissionFormatted)}</td>
         `;
-
         tbody.appendChild(row);
       });
 
@@ -455,15 +352,11 @@
     // ===== Copy keyword =====
     function copyToClipboard(text) {
       if (!text) return;
-      copyText(text)
-        .then(() => alert("Keyword copied!"))
-        .catch(() => alert("Copy failed"));
+      copyText(text).then(() => alert("Keyword copied!")).catch(() => alert("Copy failed"));
     }
 
     function copyText(text) {
-      if (navigator.clipboard && window.isSecureContext) {
-        return navigator.clipboard.writeText(text);
-      }
+      if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
       return new Promise((resolve, reject) => {
         try {
           const ta = document.createElement("textarea");
@@ -473,23 +366,17 @@
           document.execCommand("copy");
           document.body.removeChild(ta);
           resolve();
-        } catch (e) {
-          reject(e);
-        }
+        } catch (e) { reject(e); }
       });
     }
 
     // ===== Image Modal =====
     function openImageModal(imgUrl) {
-      const modal = document.getElementById("imgModal");
-      const modalImg = document.getElementById("modalImg");
-      modalImg.src = imgUrl;
-      modal.style.display = "block";
+      document.getElementById("modalImg").src = imgUrl;
+      document.getElementById("imgModal").style.display = "block";
     }
-
     function closeImageModal(e) {
-      const modal = document.getElementById("imgModal");
-      modal.style.display = "none";
+      document.getElementById("imgModal").style.display = "none";
       document.getElementById("modalImg").src = "";
     }
 
@@ -500,27 +387,20 @@
       const text = buildForwardText(product);
       document.getElementById("forwardPreview").textContent = text;
 
-      // WhatsApp：wa.me/message 通常不支持预填 text 参数
-      // 做法：先复制文案，再打开你的 WhatsApp 联系入口
+      // WhatsApp：phone + text 预填（你要求的“自动粘贴到对话框”能做到的上限）
+      // 说明：会打开 WhatsApp 并把 text 放在输入框，用户只需点发送
+      const waUrl = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(text);
       const waBtn = document.getElementById("forwardWA");
-      waBtn.href = WA_CONTACT;
-      waBtn.onclick = (e) => {
-        e.preventDefault();
-        copyText(text)
-          .then(() => window.open(WA_CONTACT, "_blank"))
-          .catch(() => window.open(WA_CONTACT, "_blank"));
-      };
+      waBtn.href = waUrl;
 
-      // Telegram：用 share/url 预填 text + url
+      // Telegram：share/url 预填 text + url（官方方式）
       const shareUrl = product.link ? product.link : "";
       const tgShare = "https://t.me/share/url?url=" + encodeURIComponent(shareUrl) + "&text=" + encodeURIComponent(text);
-      const tgBtn = document.getElementById("forwardTG");
-      tgBtn.href = tgShare;
+      document.getElementById("forwardTG").href = tgShare;
 
       // Email：mailto 预填
       const subject = `[${product.market || ""}] ${product.title || "Product"}`.trim();
-      const mailBtn = document.getElementById("forwardMail");
-      mailBtn.href =
+      document.getElementById("forwardMail").href =
         "mailto:" + encodeURIComponent(EMAIL_CONTACT) +
         "?subject=" + encodeURIComponent(subject) +
         "&body=" + encodeURIComponent(text);
@@ -534,11 +414,15 @@
     }
 
     function buildForwardText(p) {
+      const market = (p.market || "").trim();
+      const price = formatMoneyByMarket(p.price, market);
+      const commission = formatMoneyByMarket(p.commission, market);
+
       const lines = [];
       if (p.title) lines.push(p.title);
-      lines.push(`Market: ${p.market || "-"}`);
-      if (p.price) lines.push(`Price: ${p.price}`);
-      if (p.commission) lines.push(`Commission: ${p.commission}`);
+      lines.push(`Market: ${market || "-"}`);
+      if (p.price) lines.push(`Discount Price: ${price}`);
+      if (p.commission) lines.push(`Commission: ${commission}`);
       if (p.asin) lines.push(`ASIN: ${p.asin}`);
       if (p.link) lines.push(`Link: ${p.link}`);
       if (p.remark) lines.push(`Remark: ${p.remark}`);
@@ -548,9 +432,7 @@
     function copyForwardText() {
       const text = document.getElementById("forwardPreview").textContent || "";
       if (!text) return;
-      copyText(text)
-        .then(() => alert("Forward text copied!"))
-        .catch(() => alert("Copy failed"));
+      copyText(text).then(() => alert("Forward text copied!")).catch(() => alert("Copy failed"));
     }
 
     // ===== XSS safety =====
@@ -562,9 +444,7 @@
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
     }
-    function escapeAttr(str) {
-      return escapeHtml(str);
-    }
+    function escapeAttr(str) { return escapeHtml(str); }
 
     // ===== Init =====
     window.onload = function () {
@@ -573,7 +453,7 @@
 
       fetchProductData(false);
 
-      // 前端每 15 分钟刷新一次展示；真正的数据更新由 GitHub Actions 每 15 分钟生成 products.json
+      // 每 15 分钟刷新显示；数据本体由 GitHub Actions 每 15 分钟生成 products.json
       setInterval(() => fetchProductData(false), 15 * 60 * 1000);
     };
   </script>
