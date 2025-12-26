@@ -1,6 +1,19 @@
 [
   {
     "market": "US",
+    "asin": "B0G4FWMY61",
+    "title": "美国加湿器",
+    "keyword": "dehumidifier",
+    "store": "U kitchen Store",
+    "remark": "Need Text Review",
+    "link": "https://amzn.to/4jcWz6m",
+    "image_url": "https://m.media-amazon.com/images/I/610Lr-9JIDL._AC_SL1500_.jpg",
+    "price": "0.00",
+    "commission": "0.00",
+    "status": "active"
+  },
+  {
+    "market": "US",
     "asin": "B0CZRD28S5",
     "title": "美国超声波清洗机",
     "keyword": "zima dental pod ultrasonic cleaner",
@@ -339,19 +352,6 @@
   },
   {
     "market": "US",
-    "asin": "B0FFMTLWHF",
-    "title": "美国LED发光电卷",
-    "keyword": "cigarette rolling machine",
-    "store": "Cyt1tone",
-    "remark": "Need Text Review",
-    "link": "https://amzn.to/492gXCC",
-    "image_url": "https://m.media-amazon.com/images/I/71XvK+754kL._AC_SY450_.jpg",
-    "price": "0.00",
-    "commission": "0.00",
-    "status": "active"
-  },
-  {
-    "market": "US",
     "asin": "B0FR2NJG8L",
     "title": "美国护膝图评",
     "keyword": "ZJMQJ Knee Brace Meniscus Tear Support",
@@ -673,19 +673,6 @@
     "image_url": "https://m.media-amazon.com/images/I/61NYFOUyKEL._AC_SX679_.jpg",
     "price": "0.00",
     "commission": "4.00",
-    "status": "active"
-  },
-  {
-    "market": "US",
-    "asin": "B0G4FWMY61",
-    "title": "美国加湿器",
-    "keyword": "dehumidifier",
-    "store": "U kitchen Store",
-    "remark": "Need Text Review",
-    "link": "https://amzn.to/4jcWz6m",
-    "image_url": "https://m.media-amazon.com/images/I/610Lr-9JIDL._AC_SL1500_.jpg",
-    "price": "0.00",
-    "commission": "0.00",
     "status": "active"
   },
   {
@@ -1529,19 +1516,6 @@
     "remark": "Need Rating",
     "link": "https://amzn.to/4pDjQkg",
     "image_url": "https://m.media-amazon.com/images/I/81IIf2eT3JL._AC_SL1500_.jpg",
-    "price": "0.00",
-    "commission": "0.00",
-    "status": "active"
-  },
-  {
-    "market": "US",
-    "asin": "B0D5MCBGFC",
-    "title": "美国灌装机免评点星",
-    "keyword": "cone loader",
-    "store": "Cyt1tone",
-    "remark": "Need Rating",
-    "link": "https://amzn.to/48J8vsP",
-    "image_url": "https://m.media-amazon.com/images/I/71DKIoNg36L._AC_SL1500_.jpg",
     "price": "0.00",
     "commission": "0.00",
     "status": "active"
