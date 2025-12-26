@@ -31,6 +31,7 @@
     .status-left{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .badge{ padding:4px 10px; border-radius:999px; border:1px solid #e5e7eb; background:#f9fafb; font-size:12px; color:#374151; }
     .muted{ color:#6b7280; font-size:12px; }
+    .hint-sub{ font-size:12px; color:#6b7280; margin-left:8px; }
 
     .product-table-container{ width:100%; overflow-x:auto; background:#fff; border:1px solid #e5e7eb; border-radius:12px; }
     .product-table{ width:100%; border-collapse:collapse; table-layout:auto; min-width:980px; }
@@ -53,8 +54,6 @@
       background:#111827; color:#fff; cursor:pointer; font-weight:600; font-size:13px; white-space:nowrap;
     }
     .btn:hover{ opacity:.92; }
-
-    .hint-sub{ font-size:12px; color:#6b7280; margin-left:8px; }
 
     @media (max-width:768px){
       header h1{ font-size:1.5em; }
@@ -84,15 +83,7 @@
 
     .empty{ padding:16px 12px; color:#6b7280; font-size:14px; }
 
-    .remark-cell{
-      position:relative;
-      min-width: 180px;
-    }
-    .remark-loading{
-      font-size:12px;
-      color:#6b7280;
-      margin-top:4px;
-    }
+    .remark-loading{ font-size:12px; color:#6b7280; margin-top:4px; }
   </style>
 </head>
 
@@ -200,23 +191,21 @@
     let LAST_LOADED_AT = null;
     let CURRENT_FORWARD_PRODUCT = null;
 
-    // ===== i18n (headers + small UI text) =====
+    // ===== Language mapping =====
     const LANG_BY_MARKET = { US:"en", UK:"en", CA:"en", DE:"de", FR:"fr", IT:"it", ES:"es", JP:"ja" };
 
+    // ===== i18n UI =====
     const UI_I18N = {
       en: {
         pageTitle: "Product List",
         productsTitle: "Products",
         contactText: "For inquiries, you can contact us via WhatsApp, Telegram, or Email:",
         refresh: "Refresh",
-        translatingHint: "Remark auto-translation is enabled (original kept).",
+        translatingHint: "Remark auto-translation is enabled (Chinese only). Original kept on hover.",
         forwardTitle: "Forward Product",
         forwardSub: "WhatsApp will open with the message pre-filled. You only need to press Send.",
         copy: "Copy Text",
-        th: {
-          action:"Action", market:"Market", image:"Image", title:"Title", keyword:"Keyword",
-          store:"Store", remark:"Remark", price:"Discount Price", commission:"Commission"
-        },
+        th: { action:"Action", market:"Market", image:"Image", title:"Title", keyword:"Keyword", store:"Store", remark:"Remark", price:"Discount Price", commission:"Commission" },
         labels: { market:"Market", price:"Discount Price", commission:"Commission", asin:"ASIN", link:"Link", remark:"Remark" }
       },
       de: {
@@ -224,14 +213,11 @@
         productsTitle: "Produkte",
         contactText: "Bei Fragen kontaktieren Sie uns über WhatsApp, Telegram oder E-Mail:",
         refresh: "Aktualisieren",
-        translatingHint: "Automatische Übersetzung von Remark aktiv (Original bleibt erhalten).",
+        translatingHint: "Remark wird automatisch übersetzt (nur Chinesisch). Original bleibt per Hover sichtbar.",
         forwardTitle: "Produkt weiterleiten",
         forwardSub: "WhatsApp öffnet sich mit vorbefüllter Nachricht. Sie müssen nur auf Senden tippen.",
         copy: "Text kopieren",
-        th: {
-          action:"Aktion", market:"Markt", image:"Bild", title:"Titel", keyword:"Keyword",
-          store:"Shop", remark:"Hinweis", price:"Rabattpreis", commission:"Provision"
-        },
+        th: { action:"Aktion", market:"Markt", image:"Bild", title:"Titel", keyword:"Keyword", store:"Shop", remark:"Hinweis", price:"Rabattpreis", commission:"Provision" },
         labels: { market:"Markt", price:"Rabattpreis", commission:"Provision", asin:"ASIN", link:"Link", remark:"Hinweis" }
       },
       fr: {
@@ -239,14 +225,11 @@
         productsTitle: "Produits",
         contactText: "Pour toute question, contactez-nous via WhatsApp, Telegram ou e-mail :",
         refresh: "Actualiser",
-        translatingHint: "Traduction automatique de Remark activée (original conservé).",
+        translatingHint: "Remark est traduit automatiquement (chinois uniquement). Original visible au survol.",
         forwardTitle: "Transférer le produit",
         forwardSub: "WhatsApp s’ouvrira avec le message prérempli. Il ne reste qu’à envoyer.",
         copy: "Copier le texte",
-        th: {
-          action:"Action", market:"Marché", image:"Image", title:"Titre", keyword:"Mot-clé",
-          store:"Boutique", remark:"Remarque", price:"Prix remisé", commission:"Commission"
-        },
+        th: { action:"Action", market:"Marché", image:"Image", title:"Titre", keyword:"Mot-clé", store:"Boutique", remark:"Remarque", price:"Prix remisé", commission:"Commission" },
         labels: { market:"Marché", price:"Prix remisé", commission:"Commission", asin:"ASIN", link:"Lien", remark:"Remarque" }
       },
       it: {
@@ -254,14 +237,11 @@
         productsTitle: "Prodotti",
         contactText: "Per informazioni, contattaci tramite WhatsApp, Telegram o Email:",
         refresh: "Aggiorna",
-        translatingHint: "Traduzione automatica di Remark attiva (originale conservato).",
+        translatingHint: "Remark tradotto automaticamente (solo cinese). Originale visibile al passaggio.",
         forwardTitle: "Inoltra prodotto",
         forwardSub: "WhatsApp si aprirà con il messaggio precompilato. Devi solo inviare.",
         copy: "Copia testo",
-        th: {
-          action:"Azione", market:"Mercato", image:"Immagine", title:"Titolo", keyword:"Keyword",
-          store:"Negozio", remark:"Nota", price:"Prezzo scontato", commission:"Commissione"
-        },
+        th: { action:"Azione", market:"Mercato", image:"Immagine", title:"Titolo", keyword:"Keyword", store:"Negozio", remark:"Nota", price:"Prezzo scontato", commission:"Commissione" },
         labels: { market:"Mercato", price:"Prezzo scontato", commission:"Commissione", asin:"ASIN", link:"Link", remark:"Nota" }
       },
       es: {
@@ -269,14 +249,11 @@
         productsTitle: "Productos",
         contactText: "Para consultas, contáctanos por WhatsApp, Telegram o Email:",
         refresh: "Actualizar",
-        translatingHint: "Traducción automática de Remark activada (se conserva el original).",
+        translatingHint: "Remark se traduce automáticamente (solo chino). Original visible al pasar el ratón.",
         forwardTitle: "Reenviar producto",
         forwardSub: "WhatsApp se abrirá con el mensaje prellenado. Solo debes enviarlo.",
         copy: "Copiar texto",
-        th: {
-          action:"Acción", market:"Mercado", image:"Imagen", title:"Título", keyword:"Keyword",
-          store:"Tienda", remark:"Nota", price:"Precio con descuento", commission:"Comisión"
-        },
+        th: { action:"Acción", market:"Mercado", image:"Imagen", title:"Título", keyword:"Keyword", store:"Tienda", remark:"Nota", price:"Precio con descuento", commission:"Comisión" },
         labels: { market:"Mercado", price:"Precio con descuento", commission:"Comisión", asin:"ASIN", link:"Enlace", remark:"Nota" }
       },
       ja: {
@@ -284,14 +261,11 @@
         productsTitle: "商品",
         contactText: "お問い合わせは WhatsApp / Telegram / Email からご連絡ください：",
         refresh: "更新",
-        translatingHint: "Remark は自動翻訳表示（原文は保持）。",
+        translatingHint: "Remark は自動翻訳（中国語のみ）。原文はホバーで確認できます。",
         forwardTitle: "商品を転送",
         forwardSub: "WhatsApp はメッセージが入力された状態で開きます。送信ボタンを押すだけです。",
         copy: "コピー",
-        th: {
-          action:"操作", market:"マーケット", image:"画像", title:"商品名", keyword:"キーワード",
-          store:"店舗", remark:"備考", price:"割引価格", commission:"コミッション"
-        },
+        th: { action:"操作", market:"マーケット", image:"画像", title:"商品名", keyword:"キーワード", store:"店舗", remark:"備考", price:"割引価格", commission:"コミッション" },
         labels: { market:"マーケット", price:"割引価格", commission:"コミッション", asin:"ASIN", link:"リンク", remark:"備考" }
       }
     };
@@ -317,7 +291,6 @@
     function showEmptyHint(show) {
       document.getElementById("emptyHint").style.display = show ? "block" : "none";
     }
-
     function currentMarket() {
       return (document.getElementById("countrySelect").value || "UK").toUpperCase();
     }
@@ -351,9 +324,8 @@
       document.getElementById("thCommission").textContent = T.th.commission;
     }
 
-    // ===== Translation (Remark only) =====
-    const TRANSLATE_ENDPOINT = "https://api.mymemory.translated.net/get";
-    const TRANSLATE_CACHE_KEY = "remark_translate_cache_v1";
+    // ===== Translation (Remark only, Chinese only) =====
+    const TRANSLATE_CACHE_KEY = "remark_translate_cache_v2";
     const translateCache = loadCache();
 
     function loadCache() {
@@ -367,59 +339,92 @@
       return lang + "||" + text;
     }
 
-    function detectSourceLang(text) {
-  // 只做“够用”的判断：包含中文字符 => zh，否则 => en
-  // MyMemory 支持 "zh" 但不建议用 "zh-CN"
-  return /[\u4e00-\u9fff]/.test(text) ? "zh" : "en";
-}
+    function hasChinese(text) {
+      return /[\u4e00-\u9fff]/.test(text || "");
+    }
 
-function isBadTranslation(out) {
-  const s = (out || "").toString().trim().toUpperCase();
-  if (!s) return true;
-  // MyMemory 常见报错/提示
-  if (s.includes("INVALID SOURCE LANGUAGE")) return true;
-  if (s.includes("LANGPAIR")) return true;
-  if (s.includes("PLEASE USE 2 LETTER ISO")) return true;
-  if (s.startsWith("'AUTO'")) return true;
-  return false;
-}
+    function isBadTranslation(out) {
+      const s = (out || "").toString().trim().toUpperCase();
+      if (!s) return true;
+      // 过滤明显报错
+      if (s.includes("INVALID")) return true;
+      if (s.includes("ERROR")) return true;
+      if (s.includes("LANGPAIR")) return true;
+      if (s.includes("PLEASE")) return true;
+      if (s.startsWith("'AUTO'")) return true;
+      return false;
+    }
 
-async function translateRemark(text, targetLang) {
-  const q = (text || "").trim();
-  if (!q) return "";
+    function purgeBadCacheEntries() {
+      let changed = false;
+      for (const k of Object.keys(translateCache)) {
+        if (isBadTranslation(translateCache[k])) {
+          delete translateCache[k];
+          changed = true;
+        }
+      }
+      if (changed) saveCache();
+    }
 
-  const key = cacheKey(targetLang, q);
-  if (translateCache[key]) return translateCache[key];
+    // LibreTranslate public instances (may change availability). We try them one by one.
+    const LIBRE_INSTANCES = [
+      "https://libretranslate.de/translate",
+      "https://translate.terraprint.co/translate",
+      "https://lt.vern.cc/translate"
+    ];
 
-  const src = detectSourceLang(q);
-  // 目标语言统一用 2 位：en/de/fr/it/es/ja
-  const langpair = `${src}|${targetLang}`;
+    async function libreTranslateOnce(endpoint, q, targetLang) {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          q,
+          source: "zh",
+          target: targetLang,
+          format: "text"
+        })
+      });
+      if (!res.ok) throw new Error("translate http " + res.status);
+      const data = await res.json();
+      // libretranslate returns {translatedText: "..."}
+      const out = (data && (data.translatedText || data.translation)) ? String(data.translatedText || data.translation).trim() : "";
+      return out;
+    }
 
-  const url =
-    TRANSLATE_ENDPOINT +
-    "?q=" + encodeURIComponent(q) +
-    "&langpair=" + encodeURIComponent(langpair) +
-    "&de=" + encodeURIComponent(EMAIL_CONTACT); // 可选：放你的邮箱，提高稳定性
+    async function translateRemark(text, targetLang) {
+      const q = (text || "").trim();
+      if (!q) return "";
+      // 只翻译中文 Remark
+      if (!hasChinese(q)) return q;
+      // 英文市场不翻译
+      if (targetLang === "en") return q;
 
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error("translate http " + res.status);
+      const key = cacheKey(targetLang, q);
 
-  const data = await res.json();
-  const translated =
-    (data && data.responseData && data.responseData.translatedText)
-      ? String(data.responseData.translatedText).trim()
-      : "";
+      // 缓存为坏数据 => 丢弃
+      if (translateCache[key] && isBadTranslation(translateCache[key])) {
+        delete translateCache[key];
+        saveCache();
+        return q;
+      }
+      if (translateCache[key]) return translateCache[key];
 
-  // 过滤错误输出，避免把报错显示到 Remark
-  const out = (!translated || isBadTranslation(translated)) ? q : translated;
+      // 轮询多个公共实例；失败就回退原文
+      for (const ep of LIBRE_INSTANCES) {
+        try {
+          const out = await libreTranslateOnce(ep, q, targetLang);
+          if (!out || isBadTranslation(out) || out === q) continue;
+          translateCache[key] = out;
+          saveCache();
+          return out;
+        } catch (e) {
+          // try next endpoint
+        }
+      }
+      return q;
+    }
 
-  translateCache[key] = out;
-  saveCache();
-  return out;
-}
-
-
-    // 限速队列：避免瞬间请求过多
+    // queue (avoid burst)
     let translateQueue = [];
     let translating = false;
 
@@ -427,61 +432,59 @@ async function translateRemark(text, targetLang) {
       translateQueue.push(task);
       if (!translating) runTranslateQueue();
     }
-
     async function runTranslateQueue() {
       translating = true;
       while (translateQueue.length) {
         const task = translateQueue.shift();
         try { await task(); } catch {}
-        await sleep(250); // 轻微限速
+        await sleep(220);
       }
       translating = false;
     }
-
     function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-    function translateVisibleRemarks() {
+    async function translateVisibleRemarks() {
       const lang = currentLang();
-      // 英文市场不翻译
-      if (lang === "en") {
-        // 直接显示原文
-        document.querySelectorAll(".remark-cell").forEach(td => {
-          const orig = td.dataset.remarkOriginal || "";
-          td.textContent = orig;
-          td.title = orig;
-        });
-        return;
-      }
 
+      // 仅翻译可见行、且 remark 含中文
       const visibleRows = Array.from(document.querySelectorAll(".product-row"))
         .filter(r => r.style.display !== "none");
 
       visibleRows.forEach(row => {
-        const td = row.querySelector(".remark-cell");
-        if (!td) return;
+        const remarkEl = row.querySelector(".remark-text");
+        const loadingEl = row.querySelector(".remark-loading");
+        if (!remarkEl) return;
 
-        const orig = (td.dataset.remarkOriginal || "").trim();
+        const orig = (remarkEl.dataset.remarkOriginal || "").trim();
         if (!orig) return;
 
-        const key = cacheKey(lang, orig);
-        if (translateCache[key]) {
-          td.textContent = translateCache[key];
-          td.title = orig; // 鼠标悬停显示原文，保证“文档为准”
+        // 不含中文 => 不翻译，直接原文
+        if (!hasChinese(orig) || lang === "en") {
+          remarkEl.textContent = orig;
+          remarkEl.title = orig;
+          if (loadingEl) loadingEl.textContent = "";
           return;
         }
 
-        // 显示“翻译中…”
-        td.textContent = orig;
-        td.title = orig;
+        const key = cacheKey(lang, orig);
+        if (translateCache[key] && !isBadTranslation(translateCache[key])) {
+          remarkEl.textContent = translateCache[key];
+          remarkEl.title = orig;
+          if (loadingEl) loadingEl.textContent = "";
+          return;
+        }
 
-        const loading = row.querySelector(".remark-loading");
-        if (loading) loading.textContent = "Translating…";
+        // 翻译中提示
+        if (loadingEl) loadingEl.textContent = "Translating…";
+        remarkEl.textContent = orig;
+        remarkEl.title = orig;
 
         enqueueTranslate(async () => {
-          const translated = await translateRemark(orig, lang);
-          td.textContent = translated;
-          td.title = orig;
-          if (loading) loading.textContent = "";
+          const out = await translateRemark(orig, lang);
+          // 翻译失败 => out 会是 orig
+          remarkEl.textContent = out || orig;
+          remarkEl.title = orig;
+          if (loadingEl) loadingEl.textContent = "";
         });
       });
     }
@@ -557,7 +560,7 @@ async function translateRemark(text, targetLang) {
               onclick="copyToClipboard('${escapeAttr(product.keyword || "")}')">${safeKeyword}</td>
           <td>${safeStore}</td>
           <td>
-            <div class="remark-cell" data-remark-original="${escapeAttr(origRemark)}" title="${escapeAttr(origRemark)}">${escapeHtml(origRemark)}</div>
+            <div class="remark-text" data-remark-original="${escapeAttr(origRemark)}" title="${escapeAttr(origRemark)}">${escapeHtml(origRemark)}</div>
             <div class="remark-loading"></div>
           </td>
           <td>${escapeHtml(priceFormatted)}</td>
@@ -618,7 +621,7 @@ async function translateRemark(text, targetLang) {
       translateVisibleRemarks();
     }
 
-    // ===== Copy keyword =====
+    // ===== Copy =====
     function copyToClipboard(text) {
       if (!text) return;
       copyText(text).then(() => alert("Copied!")).catch(() => alert("Copy failed"));
@@ -649,7 +652,7 @@ async function translateRemark(text, targetLang) {
       document.getElementById("modalImg").src = "";
     }
 
-    // ===== Forward Modal (uses translated remark for user, keeps original as tooltip) =====
+    // ===== Forward Modal =====
     async function openForwardModal(product) {
       CURRENT_FORWARD_PRODUCT = product;
 
@@ -657,18 +660,11 @@ async function translateRemark(text, targetLang) {
       const lang = LANG_BY_MARKET[market] || "en";
       const T = UI_I18N[lang] || UI_I18N.en;
 
-      // Remark：显示翻译，但原文保留在括号里（保证“文档为准”）
+      // Remark：若中文则翻译，否则原文；翻译失败默认原文
       const remarkOrig = String(product.remark || "").trim();
       let remarkDisplay = remarkOrig;
-      if (remarkOrig && lang !== "en") {
-        try {
-          const translated = await translateRemark(remarkOrig, lang);
-          if (translated && translated !== remarkOrig) {
-            remarkDisplay = `${translated} (orig: ${remarkOrig})`;
-          }
-        } catch {
-          remarkDisplay = remarkOrig;
-        }
+      if (remarkOrig && hasChinese(remarkOrig) && lang !== "en") {
+        remarkDisplay = await translateRemark(remarkOrig, lang);
       }
 
       const text = buildForwardTextLocalized(product, T.labels, market, remarkDisplay);
@@ -678,7 +674,7 @@ async function translateRemark(text, targetLang) {
       const waUrl = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(text);
       document.getElementById("forwardWA").href = waUrl;
 
-      // Telegram：直接进入你的私聊（不走联系人选择）
+      // Telegram：直达私聊；先复制文案
       const tgBtn = document.getElementById("forwardTG");
       tgBtn.href = "https://t.me/" + TG_USERNAME;
       tgBtn.onclick = (e) => {
@@ -742,6 +738,12 @@ async function translateRemark(text, targetLang) {
 
     // ===== Init =====
     window.onload = function () {
+      // 清理旧版本错误缓存（你之前那串 AUTO 报错不会再显示）
+      purgeBadCacheEntries();
+
+      // 如果你之前用了 v1/v2 混杂，也可以手动清一次：
+      // localStorage.removeItem("remark_translate_cache_v1");
+
       const savedCountry = localStorage.getItem("selectedCountry");
       document.getElementById("countrySelect").value = savedCountry || "UK";
 
@@ -753,4 +755,3 @@ async function translateRemark(text, targetLang) {
   </script>
 </body>
 </html>
-
