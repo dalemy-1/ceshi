@@ -414,20 +414,65 @@
     }
 
     function buildForwardText(p) {
-      const market = (p.market || "").trim();
-      const price = formatMoneyByMarket(p.price, market);
-      const commission = formatMoneyByMarket(p.commission, market);
+  const market = (p.market || "").trim().toUpperCase();
 
-      const lines = [];
-      if (p.title) lines.push(p.title);
-      lines.push(`Market: ${market || "-"}`);
-      if (p.price) lines.push(`Discount Price: ${price}`);
-      if (p.commission) lines.push(`Commission: ${commission}`);
-      if (p.asin) lines.push(`ASIN: ${p.asin}`);
-      if (p.link) lines.push(`Link: ${p.link}`);
-      if (p.remark) lines.push(`Remark: ${p.remark}`);
-      return lines.join("\n");
-    }
+  const price = formatMoneyByMarket(p.price, market);
+  const commission = formatMoneyByMarket(p.commission, market);
+
+  // 多语言字段名
+  const LABELS = {
+    EN: { market: "Market", price: "Discount Price", commission: "Commission", asin: "ASIN", link: "Link", remark: "Remark" },
+    DE: { market: "Markt",  price: "Rabattpreis",    commission: "Provision",  asin: "ASIN", link: "Link", remark: "Hinweis" },
+    FR: { market: "Marché", price: "Prix remisé",    commission: "Commission", asin: "ASIN", link: "Lien", remark: "Remarque" },
+    IT: { market: "Mercato",price: "Prezzo scontato",commission: "Commissione",asin: "ASIN", link: "Link", remark: "Nota" },
+    ES: { market: "Mercado",price: "Precio con descuento", commission: "Comisión", asin: "ASIN", link: "Enlace", remark: "Nota" },
+    JP: { market: "マーケット", price: "割引価格", commission: "コミッション", asin: "ASIN", link: "リンク", remark: "備考" },
+  };
+
+  // Market -> 语言
+  const LANG_BY_MARKET = {
+    US: "EN",
+    UK: "EN",
+    CA: "EN",
+    DE: "DE",
+    FR: "FR",
+    IT: "IT",
+    ES: "ES",
+    JP: "JP",
+  };
+
+  const langKey = LANG_BY_MARKET[market] || "EN";
+  const L = LABELS[langKey];
+
+  // 不同语言的引导语（可选）
+  const INTRO = {
+    EN: "Product details:",
+    DE: "Produktdetails:",
+    FR: "Détails du produit :",
+    IT: "Dettagli del prodotto:",
+    ES: "Detalles del producto:",
+    JP: "商品詳細：",
+  };
+
+  const lines = [];
+
+  // 标题（原样输出，避免误译）
+  if (p.title) lines.push(p.title);
+
+  // 可选：加一句引导语（你如果不想要，就删掉下一行）
+  // lines.push(INTRO[langKey]);
+
+  lines.push(`${L.market}: ${market || "-"}`);
+
+  if (p.price) lines.push(`${L.price}: ${price}`);
+  if (p.commission) lines.push(`${L.commission}: ${commission}`);
+  if (p.asin) lines.push(`${L.asin}: ${p.asin}`);
+  if (p.link) lines.push(`${L.link}: ${p.link}`);
+  if (p.remark) lines.push(`${L.remark}: ${p.remark}`);
+
+  return lines.join("\n");
+}
+
 
     function copyForwardText() {
       const text = document.getElementById("forwardPreview").textContent || "";
@@ -459,3 +504,4 @@
   </script>
 </body>
 </html>
+
