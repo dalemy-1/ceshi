@@ -198,9 +198,9 @@
   </section>
 
   <script>
-    // Fetch product data and update every 15 minutes
+    // Product data fetch and update every 15 minutes
     function fetchProductData() {
-      fetch('http://154.48.226.95:5001/admin/Product/export_csv')
+      fetch('http://localhost:3000/api/products')  // 使用代理服务器
         .then(response => response.text())
         .then(csvData => {
           const products = parseCSV(csvData);
