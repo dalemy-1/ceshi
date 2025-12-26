@@ -7,141 +7,287 @@
   <style>
     body {
       font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
     }
     header {
+      background-color: #111827;
+      color: #fff;
       text-align: center;
-      padding: 10px;
-      background-color: #333;
-      color: white;
+      padding: 20px 0;
+      border-bottom: 5px solid #ffffff;
+    }
+    header h1 {
+      font-size: 2em;
+      font-weight: bold;
     }
     .country-select {
-      margin-top: 10px;
+      margin: 10px;
+      font-size: 1.1em;
       padding: 5px;
+      background-color: #fff;
+      color: #111827;
+      border: 1px solid #ddd;
       border-radius: 5px;
+    }
+    .product-table-container {
+      width: 100%;
+      overflow-x: auto;
     }
     .product-table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      table-layout: auto;
     }
     .product-table th, .product-table td {
-      border: 1px solid #ddd;
-      padding: 10px;
+      padding: 12px;
       text-align: left;
-    }
-    .product-table td img {
-      width: 100px;
-      height: auto;
-      cursor: pointer;
+      border: 1px solid #ddd;
+      word-wrap: break-word;
+      font-size: 0.9em;
     }
     .product-table th {
       background-color: #f4f4f4;
     }
-    .product-row {
-      display: none;
+    .product-image {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      cursor: pointer;
     }
-    .product-row.show {
-      display: table-row;
+    .product-title {
+      font-weight: bold;
+      font-size: 1em;
+    }
+    .product-link {
+      color: #1a73e8;
+      text-decoration: none;
+    }
+    .product-link:hover {
+      text-decoration: underline;
+    }
+    .contact-text {
+      font-size: 1.2em;
+      margin-top: 10px;
+      color: #fff;
+    }
+
+    /* Mobile optimization */
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 1.5em;
+      }
+      .product-table th, .product-table td {
+        padding: 8px;
+        font-size: 0.8em;
+      }
+      .product-image {
+        width: 50px;
+        height: 50px;
+      }
+      .product-table {
+        font-size: 0.85em;
+      }
+      .product-title {
+        font-size: 0.95em;
+      }
+      .contact-text {
+        font-size: 1em;
+      }
+    }
+
+    /* Styles for the modal (image pop-up) */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding-top: 60px;
+    }
+    .modal-content {
+      margin: auto;
+      display: block;
+      width: 80%;
+      max-width: 700px;
+    }
+    .close {
+      position: absolute;
+      top: 15px;
+      right: 35px;
+      color: #f1f1f1;
+      font-size: 40px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    .close:hover,
+    .close:focus {
+      color: #bbb;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    /* Contact Modal */
+    #contact-modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding-top: 60px;
+      text-align: center;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      width: 300px;
+      margin: 0 auto;
+    }
+    .modal-content button {
+      margin: 10px;
     }
   </style>
 </head>
 <body>
-
   <header>
     <h1>Product List</h1>
-    <p>For inquiries, you can contact us via WhatsApp, Telegram, or Email:</p>
-    <div>
-      <a href="https://wa.me/8615377923383" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1024px-WhatsApp.svg.png" alt="WhatsApp" width="30"></a>
-      <a href="https://t.me/dalemyrong" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Telegram_icon.svg/1024px-Telegram_icon.svg.png" alt="Telegram" width="30"></a>
-    </div>
-    <div>
-      <label for="countrySelect">Select Country:</label>
-      <select class="country-select" id="countrySelect" onchange="filterProductsByCountry()">
-        <option value="UK">UK</option>
-        <option value="US">US</option>
-        <option value="DE">Germany</option>
-        <option value="FR">France</option>
-        <option value="IT">Italy</option>
-        <option value="ES">Spain</option>
-        <option value="CA">Canada</option>
-        <option value="JP">Japan</option>
-      </select>
+    <select class="country-select" id="countrySelect" onchange="filterProductsByCountry()">
+      <option value="UK">UK</option>
+      <option value="US">US</option>
+      <option value="DE">Germany</option>
+      <option value="FR">France</option>
+      <option value="IT">Italy</option>
+      <option value="ES">Spain</option>
+      <option value="CA">Canada</option>
+      <option value="JP">Japan</option>
+    </select>
+    <div class="contact-text">
+      <p>For inquiries, you can contact us via WhatsApp, Telegram, or Email:</p>
     </div>
   </header>
 
   <section id="product-list">
     <h2>Products</h2>
-    <table class="product-table">
-      <thead>
-        <tr>
-          <th>Action</th>
-          <th>Market</th>
-          <th>Image</th>
-          <th>Title</th>
-          <th>Keyword</th>
-          <th>Store</th>
-          <th>Remark</th>
-          <th>Price</th>
-          <th>Commission</th>
-        </tr>
-      </thead>
-      <tbody id="product-table-body">
-        <tr class="product-row" data-market="UK">
-          <td><button onclick="forwardProduct('product1')">Forward</button></td>
-          <td>UK</td>
-          <td>
-            <a href="https://amzn.to/4aV7Tli" target="_blank">
-              <img src="https://m.media-amazon.com/images/I/61Njd-RC0BL._AC_SX679_.jpg" alt="Xiaocodou Power Bank" class="product-image">
-            </a>
-          </td>
-          <td class="product-title">英国充电宝</td>
-          <td>Xiaocodou Power Bank</td>
-          <td>Guangzhou Lintang Trading Co., Ltd.</td>
-          <td>Need Text Review</td>
-          <td>£0</td>
-          <td>£0</td>
-        </tr>
-        <tr class="product-row" data-market="US">
-          <td><button onclick="forwardProduct('product2')">Forward</button></td>
-          <td>US</td>
-          <td>
-            <a href="https://amzn.to/4pQ5Fb4" target="_blank">
-              <img src="https://m.media-amazon.com/images/I/71R+UqSeagL._AC_SL1500_.jpg" alt="eye massager" class="product-image">
-            </a>
-          </td>
-          <td class="product-title">美国眼部按摩仪</td>
-          <td>eye massager</td>
-          <td>Alljoy Official Store</td>
-          <td>Need Text Review</td>
-          <td>$0</td>
-          <td>$0</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="product-table-container">
+      <table class="product-table">
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Market</th>
+            <th>Image</th>
+            <th>Title</th>
+            <th>Keyword</th>
+            <th>Store</th>
+            <th>Remark</th>
+            <th>Price</th>
+            <th>Commission</th>
+          </tr>
+        </thead>
+        <tbody id="product-table-body">
+          <!-- Sample Products -->
+        </tbody>
+      </table>
+    </div>
   </section>
 
   <script>
-    function forwardProduct(productId) {
-      const product = document.getElementById(productId);
-      const market = product.querySelector('td:nth-child(2)').textContent;
-      alert('Product forwarded to ' + market);
+    // Product data fetch and update function
+    function fetchProductData() {
+      fetch('http://154.48.226.95:5001/admin/Product/export_csv')
+        .then(response => response.text())
+        .then(csvData => {
+          const products = parseCSV(csvData);
+          displayProducts(products);
+        })
+        .catch(error => console.error("Error fetching product data:", error));
     }
 
+    // Parse CSV data to JSON
+    function parseCSV(data) {
+      const rows = data.split('\n');
+      const products = rows.map(row => {
+        const cols = row.split(',');
+        return {
+          market: cols[0],
+          asin: cols[1],
+          title: cols[2],
+          keyword: cols[3],
+          store: cols[4],
+          remark: cols[5],
+          link: cols[6],
+          image_url: cols[7],
+          price: cols[8],
+          commission: cols[9],
+          status: cols[10]
+        };
+      });
+      return products;
+    }
+
+    // Display products in the table
+    function displayProducts(products) {
+      const tbody = document.getElementById("product-table-body");
+      tbody.innerHTML = '';
+      products.forEach(product => {
+        const row = document.createElement("tr");
+        row.classList.add("product-row");
+        row.setAttribute("data-market", product.market);
+
+        row.innerHTML = `
+          <td><button onclick="forwardProduct('${product.asin}')">Forward</button></td>
+          <td>${product.market}</td>
+          <td>
+            <a href="${product.link}" target="_blank">
+              <img src="${product.image_url}" alt="${product.title}" class="product-image">
+            </a>
+          </td>
+          <td class="product-title">${product.title}</td>
+          <td onclick="copyToClipboard('${product.keyword}')">${product.keyword}</td>
+          <td>${product.store}</td>
+          <td>${product.remark}</td>
+          <td>${product.price}</td>
+          <td>${product.commission}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Filter products by country
     function filterProductsByCountry() {
       const selectedCountry = document.getElementById('countrySelect').value;
       const rows = document.querySelectorAll('.product-row');
       rows.forEach(row => {
         const market = row.getAttribute('data-market');
         if (market === selectedCountry) {
-          row.classList.add('show');
+          row.style.display = '';
         } else {
-          row.classList.remove('show');
+          row.style.display = 'none';
         }
       });
 
+      // Save the selected country to localStorage for future use
       localStorage.setItem('selectedCountry', selectedCountry);
     }
 
+    // Function to copy text to clipboard
+    function copyToClipboard(text) {
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      alert('Keyword copied to clipboard!');
+    }
+
+    // Load selected country from localStorage on page load
     window.onload = function() {
       const savedCountry = localStorage.getItem('selectedCountry');
       if (savedCountry) {
@@ -151,7 +297,16 @@
         document.getElementById('countrySelect').value = 'UK';
         filterProductsByCountry();
       }
+
+      // Fetch product data
+      fetchProductData();
     };
+
+    // Forward product action (optional)
+    function forwardProduct(asin) {
+      alert("Forwarding product: " + asin);
+    }
   </script>
+
 </body>
 </html>
