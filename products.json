@@ -1,6 +1,32 @@
 [
   {
     "market": "UK",
+    "asin": "B0CMMF9CBH",
+    "title": "英国跑步灯",
+    "keyword": "running lights for runners",
+    "store": "Lufcziel",
+    "remark": "五星评论让客户顺便点下“helpful”\nThe five-star rating prompts customers to also click on \"helpful\" as a side benefit.",
+    "link": "https://amzn.to/44xDPbB",
+    "image_url": "https://m.media-amazon.com/images/I/61lQUimsGfL._AC_SX425_.jpg",
+    "price": "0.00",
+    "commission": "0.00",
+    "status": "active"
+  },
+  {
+    "market": "US",
+    "asin": "B0FVGDFGD9",
+    "title": "美国高脚凳",
+    "keyword": "26\" Modern Counter Height Bar Stools",
+    "store": "LVHOMLAX",
+    "remark": "Need Text Review,The actual delivery is a black leather case with a stainless steel and gold-legged design.",
+    "link": "https://amzn.to/4p3VU8u",
+    "image_url": "https://m.media-amazon.com/images/I/61LOTNoiI5L._AC_SL1500_.jpg",
+    "price": "15.00",
+    "commission": "0.00",
+    "status": "active"
+  },
+  {
+    "market": "UK",
     "asin": "B0G3PNYG2K",
     "title": "英国充电宝",
     "keyword": "BYEGUJIN Power Bank 881",
@@ -14,19 +40,6 @@
   },
   {
     "market": "DE",
-    "asin": "B0FNWSK3Z2",
-    "title": "德国电动牙刷",
-    "keyword": "automatische ultraschall zahnbürste",
-    "store": "haihua store",
-    "remark": "Need Text Review",
-    "link": "https://amzn.to/48S56qx",
-    "image_url": "https://m.media-amazon.com/images/I/61UaVz5vQBL._AC_SY450_.jpg",
-    "price": "0.00",
-    "commission": "0.00",
-    "status": "active"
-  },
-  {
-    "market": "DE",
     "asin": "B0FP8DP3TK",
     "title": "德国电动牙刷",
     "keyword": "automatische ultraschall zahnbürste",
@@ -34,6 +47,19 @@
     "remark": "Need Text Review",
     "link": "https://amzn.to/4aeybyz",
     "image_url": "https://m.media-amazon.com/images/I/51Rq-yBxWBL._AC_SY450_.jpg",
+    "price": "0.00",
+    "commission": "0.00",
+    "status": "active"
+  },
+  {
+    "market": "DE",
+    "asin": "B0FNWSK3Z2",
+    "title": "德国电动牙刷",
+    "keyword": "automatische ultraschall zahnbürste",
+    "store": "haihua store",
+    "remark": "Need Text Review",
+    "link": "https://amzn.to/48S56qx",
+    "image_url": "https://m.media-amazon.com/images/I/61UaVz5vQBL._AC_SY450_.jpg",
     "price": "0.00",
     "commission": "0.00",
     "status": "active"
