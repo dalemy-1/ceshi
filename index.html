@@ -33,6 +33,19 @@
     .muted{ color:#6b7280; font-size:12px; }
     .hint-sub{ font-size:12px; color:#6b7280; margin-left:8px; }
 
+    /* Notice box */
+    .notice-box{
+      background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:12px; margin:10px 0;
+    }
+    .notice-head{
+      display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+    }
+    .notice-title{ font-weight:800; }
+    .notice-body{ margin-top:10px; line-height:1.6; font-size:14px; color:#111827; }
+    .notice-body ol{ margin:8px 0 10px 18px; padding:0; }
+    .notice-body ul{ margin:8px 0 10px 18px; padding:0; }
+    .notice-body li{ margin:6px 0; }
+
     .product-table-container{ width:100%; overflow-x:auto; background:#fff; border:1px solid #e5e7eb; border-radius:12px; }
     .product-table{ width:100%; border-collapse:collapse; table-layout:auto; min-width:980px; }
     .product-table th,.product-table td{
@@ -125,6 +138,15 @@
       <button class="btn" onclick="fetchProductData(true)" id="refreshBtn">Refresh</button>
     </div>
 
+    <!-- Notice Box -->
+    <div class="notice-box" id="noticeBox">
+      <div class="notice-head">
+        <div class="notice-title" id="noticeTitle">Important Notice</div>
+        <button class="btn" style="background:#374151;" id="noticeToggleBtn" onclick="toggleNotice()">Hide</button>
+      </div>
+      <div class="notice-body" id="noticeContent"></div>
+    </div>
+
     <div class="product-table-container">
       <table class="product-table">
         <thead>
@@ -201,7 +223,7 @@
         productsTitle: "Products",
         contactText: "For inquiries, you can contact us via WhatsApp, Telegram, or Email:",
         refresh: "Refresh",
-        translatingHint: "Remark auto-translation is enabled (Chinese only). Original kept on hover.",
+        translatingHint: "Remark auto-translation is enabled (Chinese only). Original will be kept if translation fails.",
         forwardTitle: "Forward Product",
         forwardSub: "WhatsApp will open with the message pre-filled. You only need to press Send.",
         copy: "Copy Text",
@@ -213,7 +235,7 @@
         productsTitle: "Produkte",
         contactText: "Bei Fragen kontaktieren Sie uns über WhatsApp, Telegram oder E-Mail:",
         refresh: "Aktualisieren",
-        translatingHint: "Remark wird automatisch übersetzt (nur Chinesisch). Original bleibt per Hover sichtbar.",
+        translatingHint: "Remark wird automatisch übersetzt (nur Chinesisch). Wenn Übersetzung fehlschlägt, wird der Originaltext angezeigt.",
         forwardTitle: "Produkt weiterleiten",
         forwardSub: "WhatsApp öffnet sich mit vorbefüllter Nachricht. Sie müssen nur auf Senden tippen.",
         copy: "Text kopieren",
@@ -225,7 +247,7 @@
         productsTitle: "Produits",
         contactText: "Pour toute question, contactez-nous via WhatsApp, Telegram ou e-mail :",
         refresh: "Actualiser",
-        translatingHint: "Remark est traduit automatiquement (chinois uniquement). Original visible au survol.",
+        translatingHint: "Remark est traduit automatiquement (chinois uniquement). En cas d’échec, le texte original s’affiche.",
         forwardTitle: "Transférer le produit",
         forwardSub: "WhatsApp s’ouvrira avec le message prérempli. Il ne reste qu’à envoyer.",
         copy: "Copier le texte",
@@ -237,7 +259,7 @@
         productsTitle: "Prodotti",
         contactText: "Per informazioni, contattaci tramite WhatsApp, Telegram o Email:",
         refresh: "Aggiorna",
-        translatingHint: "Remark tradotto automaticamente (solo cinese). Originale visibile al passaggio.",
+        translatingHint: "Remark tradotto automaticamente (solo cinese). Se fallisce, verrà mostrato l’originale.",
         forwardTitle: "Inoltra prodotto",
         forwardSub: "WhatsApp si aprirà con il messaggio precompilato. Devi solo inviare.",
         copy: "Copia testo",
@@ -249,7 +271,7 @@
         productsTitle: "Productos",
         contactText: "Para consultas, contáctanos por WhatsApp, Telegram o Email:",
         refresh: "Actualizar",
-        translatingHint: "Remark se traduce automáticamente (solo chino). Original visible al pasar el ratón.",
+        translatingHint: "Remark se traduce automáticamente (solo chino). Si falla, se mostrará el original.",
         forwardTitle: "Reenviar producto",
         forwardSub: "WhatsApp se abrirá con el mensaje prellenado. Solo debes enviarlo.",
         copy: "Copiar texto",
@@ -261,7 +283,7 @@
         productsTitle: "商品",
         contactText: "お問い合わせは WhatsApp / Telegram / Email からご連絡ください：",
         refresh: "更新",
-        translatingHint: "Remark は自動翻訳（中国語のみ）。原文はホバーで確認できます。",
+        translatingHint: "Remark は自動翻訳（中国語のみ）。失敗した場合は原文を表示します。",
         forwardTitle: "商品を転送",
         forwardSub: "WhatsApp はメッセージが入力された状態で開きます。送信ボタンを押すだけです。",
         copy: "コピー",
@@ -270,16 +292,208 @@
       }
     };
 
+    // ===== Notice i18n =====
+    const NOTICE_I18N = {
+      en: {
+        title: "Important Notice",
+        toggleHide: "Hide",
+        toggleShow: "Show",
+        html: `
+          <b>Shopping Process</b>
+          <ol>
+            <li>Select a product on this page and contact me first. I will confirm whether you can place the order.</li>
+            <li>After confirmation, search the product using the <b>Keyword</b> and find it. Open the link to verify details.</li>
+            <li>Verify the <b>product title</b> and <b>store name</b> are correct before ordering.</li>
+            <li>After placing the order, send me the <b>order screenshot</b> for registration.</li>
+            <li>Please include your <b>PayPal account</b> for refund/commission payment.</li>
+            <li>After receiving the product, you can review at your own pace. When the review shows on Amazon, send me the proof/screenshot.</li>
+            <li>I will report to the seller and request payment. Refund usually takes <b>3–7 days</b>.</li>
+          </ol>
+          <b>Remark Guide (Review Requirements)</b>
+          <ul>
+            <li><b>Need Text Review / Need Image Review / Need Video Review</b>: submit the review and wait until it is visible on Amazon, then send proof.</li>
+            <li><b>No Review</b>: no review required. After receiving, send product photos only.</li>
+            <li><b>Need Feedback</b>: leave a <b>5-star store feedback</b> (no product review required). Send screenshot.</li>
+            <li><b>Need Rating</b>: leave a <b>5-star product rating</b> (no text review required). Send screenshot.</li>
+          </ul>
+          <b>Discount Price & Commission</b>
+          <ul>
+            <li><b>Discount Price = 0</b>: full refund.</li>
+            <li><b>Discount Price &gt; 0</b>: you pay this amount first; it will be deducted when refunding.</li>
+            <li><b>Commission</b>: extra payment after your review is confirmed.</li>
+          </ul>
+        `
+      },
+      de: {
+        title: "Wichtiger Hinweis",
+        toggleHide: "Ausblenden",
+        toggleShow: "Anzeigen",
+        html: `
+          <b>Bestellablauf</b>
+          <ol>
+            <li>Produkt auswählen und mich zuerst kontaktieren. Ich bestätige, ob du bestellen kannst.</li>
+            <li>Nach Bestätigung das Produkt über das <b>Keyword</b> suchen. Link öffnen und Details prüfen.</li>
+            <li>Vor der Bestellung <b>Produkttitel</b> und <b>Shop-Name</b> prüfen.</li>
+            <li>Nach der Bestellung <b>Bestell-Screenshot</b> senden (zur Registrierung).</li>
+            <li>Bitte auch dein <b>PayPal-Konto</b> für Rückerstattung/Provision senden.</li>
+            <li>Nach Erhalt kannst du die Bewertung frei planen. Wenn sichtbar, Screenshot/Beleg senden.</li>
+            <li>Ich melde es dem Verkäufer. Rückerstattung dauert in der Regel <b>3–7 Tage</b>.</li>
+          </ol>
+          <b>Remark (Bewertungsanforderungen)</b>
+          <ul>
+            <li><b>Need Text Review / Need Image Review / Need Video Review</b>: Bewertung abgeben, bis sichtbar warten, dann Nachweis senden.</li>
+            <li><b>No Review</b>: Keine Bewertung nötig. Nach Erhalt Produktfotos senden.</li>
+            <li><b>Need Feedback</b>: <b>5-Sterne Shop-Feedback</b> hinterlassen (keine Produktbewertung). Screenshot senden.</li>
+            <li><b>Need Rating</b>: <b>5-Sterne Produktbewertung</b> (ohne Text). Screenshot senden.</li>
+          </ul>
+          <b>Discount Price & Provision</b>
+          <ul>
+            <li><b>Rabattpreis = 0</b>: Vollständige Rückerstattung.</li>
+            <li><b>Rabattpreis &gt; 0</b>: Vorab zu zahlen; wird bei der Rückerstattung abgezogen.</li>
+            <li><b>Provision</b>: Zusätzliche Vergütung nach bestätigter Bewertung.</li>
+          </ul>
+        `
+      },
+      fr: {
+        title: "Avis important",
+        toggleHide: "Masquer",
+        toggleShow: "Afficher",
+        html: `
+          <b>Processus d’achat</b>
+          <ol>
+            <li>Choisissez un produit et contactez-moi d’abord. Je confirme si vous pouvez commander.</li>
+            <li>Après confirmation, recherchez via le <b>Keyword</b> et ouvrez le lien pour vérifier les détails.</li>
+            <li>Vérifiez le <b>titre</b> et le <b>nom de la boutique</b> avant de commander.</li>
+            <li>Après la commande, envoyez la <b>capture d’écran de la commande</b> pour l’enregistrement.</li>
+            <li>Merci d’indiquer votre <b>compte PayPal</b> pour le remboursement/commission.</li>
+            <li>Après réception, laissez l’avis à votre rythme. Une fois visible, envoyez la preuve.</li>
+            <li>Délai de remboursement : <b>3–7 jours</b>.</li>
+          </ol>
+          <b>Remark (Exigences)</b>
+          <ul>
+            <li><b>Need Text Review / Need Image Review / Need Video Review</b> : publier l’avis, attendre qu’il soit visible, puis envoyer la preuve.</li>
+            <li><b>No Review</b> : aucun avis requis. Envoyez uniquement des photos du produit.</li>
+            <li><b>Need Feedback</b> : laisser un <b>feedback boutique 5 étoiles</b> (pas d’avis produit). Envoyer la capture.</li>
+            <li><b>Need Rating</b> : laisser une <b>note produit 5 étoiles</b> (sans texte). Envoyer la capture.</li>
+          </ul>
+          <b>Discount Price & Commission</b>
+          <ul>
+            <li><b>Discount Price = 0</b> : remboursement intégral.</li>
+            <li><b>Discount Price &gt; 0</b> : montant à payer d’abord, puis déduit lors du remboursement.</li>
+            <li><b>Commission</b> : bonus après validation de l’avis.</li>
+          </ul>
+        `
+      },
+      it: {
+        title: "Avviso importante",
+        toggleHide: "Nascondi",
+        toggleShow: "Mostra",
+        html: `
+          <b>Procedura di acquisto</b>
+          <ol>
+            <li>Seleziona un prodotto e contattami prima. Confermerò se puoi ordinare.</li>
+            <li>Dopo la conferma, cerca con <b>Keyword</b> e apri il link per verificare i dettagli.</li>
+            <li>Controlla <b>titolo prodotto</b> e <b>nome negozio</b> prima di ordinare.</li>
+            <li>Dopo l’ordine, inviami lo <b>screenshot dell’ordine</b> per la registrazione.</li>
+            <li>Includi il tuo <b>account PayPal</b> per rimborso/commissione.</li>
+            <li>Dopo la consegna, puoi recensire quando vuoi. Quando visibile, inviami la prova.</li>
+            <li>Rimborso in genere in <b>3–7 giorni</b>.</li>
+          </ol>
+          <b>Remark (Requisiti)</b>
+          <ul>
+            <li><b>Need Text Review / Need Image Review / Need Video Review</b>: invia la recensione, attendi la pubblicazione e poi invia la prova.</li>
+            <li><b>No Review</b>: nessuna recensione. Invia solo foto del prodotto dopo la consegna.</li>
+            <li><b>Need Feedback</b>: lascia <b>feedback negozio 5 stelle</b> (senza recensione prodotto). Invia screenshot.</li>
+            <li><b>Need Rating</b>: lascia <b>valutazione prodotto 5 stelle</b> (senza testo). Invia screenshot.</li>
+          </ul>
+          <b>Discount Price & Commission</b>
+          <ul>
+            <li><b>Discount Price = 0</b>: rimborso totale.</li>
+            <li><b>Discount Price &gt; 0</b>: importo da pagare prima; verrà detratto al rimborso.</li>
+            <li><b>Commission</b>: extra dopo la conferma della recensione.</li>
+          </ul>
+        `
+      },
+      es: {
+        title: "Aviso importante",
+        toggleHide: "Ocultar",
+        toggleShow: "Mostrar",
+        html: `
+          <b>Proceso de compra</b>
+          <ol>
+            <li>Elige un producto y contáctame primero. Confirmaré si puedes hacer el pedido.</li>
+            <li>Tras la confirmación, busca con <b>Keyword</b> y abre el enlace para verificar detalles.</li>
+            <li>Verifica <b>título</b> y <b>nombre de la tienda</b> antes de comprar.</li>
+            <li>Después de comprar, envíame la <b>captura del pedido</b> para registrarlo.</li>
+            <li>Incluye tu <b>cuenta PayPal</b> para reembolso/comisión.</li>
+            <li>Tras recibir, deja la reseña cuando quieras. Cuando sea visible, envía prueba.</li>
+            <li>Reembolso normalmente en <b>3–7 días</b>.</li>
+          </ol>
+          <b>Remark (Requisitos)</b>
+          <ul>
+            <li><b>Need Text Review / Need Image Review / Need Video Review</b>: publicar reseña, esperar a que aparezca y enviar prueba.</li>
+            <li><b>No Review</b>: no se requiere reseña. Solo envía fotos del producto.</li>
+            <li><b>Need Feedback</b>: deja <b>feedback de tienda 5 estrellas</b> (sin reseña). Envía captura.</li>
+            <li><b>Need Rating</b>: deja <b>valoración 5 estrellas</b> (sin texto). Envía captura.</li>
+          </ul>
+          <b>Discount Price & Commission</b>
+          <ul>
+            <li><b>Discount Price = 0</b>: reembolso completo.</li>
+            <li><b>Discount Price &gt; 0</b>: pagas este importe; se deduce en el reembolso.</li>
+            <li><b>Commission</b>: pago extra tras confirmar la reseña.</li>
+          </ul>
+        `
+      },
+      ja: {
+        title: "重要なお知らせ",
+        toggleHide: "非表示",
+        toggleShow: "表示",
+        html: `
+          <b>購入手順</b>
+          <ol>
+            <li>商品を選んだら、まず私に連絡してください。注文可能か確認します。</li>
+            <li>確認後、<b>Keyword</b> で検索して商品を見つけ、リンクを開いて内容を確認してください。</li>
+            <li>注文前に <b>商品名</b> と <b>店舗名</b> を必ず確認してください。</li>
+            <li>注文後、登録のため <b>注文スクリーンショット</b> を送ってください。</li>
+            <li>返金・報酬支払いのため <b>PayPal アカウント</b> も送ってください。</li>
+            <li>到着後、レビューは自由なタイミングでOK。Amazon に表示されたら証拠（スクショ）を送ってください。</li>
+            <li>返金は通常 <b>3〜7日</b> です。</li>
+          </ol>
+          <b>Remark（要件）</b>
+          <ul>
+            <li><b>Need Text Review / Need Image Review / Need Video Review</b>：レビュー投稿→表示待ち→証拠送信。</li>
+            <li><b>No Review</b>：レビュー不要。到着後、商品写真のみ送信。</li>
+            <li><b>Need Feedback</b>：店舗へ <b>星5のフィードバック</b>（商品レビュー不要）。スクショ送信。</li>
+            <li><b>Need Rating</b>：商品へ <b>星5の評価</b>（文章不要）。スクショ送信。</li>
+          </ul>
+          <b>Discount Price & Commission</b>
+          <ul>
+            <li><b>Discount Price = 0</b>：全額返金。</li>
+            <li><b>Discount Price &gt; 0</b>：先に支払い、返金時に差し引きます。</li>
+            <li><b>Commission</b>：レビュー確認後に追加報酬を支払います。</li>
+          </ul>
+        `
+      }
+    };
+
     // ===== Currency formatting =====
     const MARKET_CURRENCY = { US:"USD", UK:"GBP", DE:"EUR", FR:"EUR", IT:"EUR", ES:"EUR", CA:"CAD", JP:"JPY" };
 
     function formatMoneyByMarket(value, market) {
       const currency = MARKET_CURRENCY[market] || "USD";
-      const num = Number(String(value || "").replace(/[^\d.-]/g, ""));
-      if (!Number.isFinite(num)) return String(value || "");
+      const raw = String(value ?? "").trim();
+      if (raw === "" || raw === null || raw === undefined) return "";
+      const num = Number(raw.replace(/[^\d.-]/g, ""));
+      if (!Number.isFinite(num)) return raw;
+
       const isJPY = currency === "JPY";
       const isInt = Math.abs(num - Math.round(num)) < 1e-9;
-      const opts = { style:"currency", currency, minimumFractionDigits: isJPY ? 0 : (isInt ? 0 : 2), maximumFractionDigits: isJPY ? 0 : 2 };
+      const opts = {
+        style:"currency",
+        currency,
+        minimumFractionDigits: isJPY ? 0 : (isInt ? 0 : 2),
+        maximumFractionDigits: isJPY ? 0 : 2
+      };
       return new Intl.NumberFormat("en", opts).format(num);
     }
 
@@ -322,6 +536,39 @@
       document.getElementById("thRemark").textContent = T.th.remark;
       document.getElementById("thPrice").textContent = T.th.price;
       document.getElementById("thCommission").textContent = T.th.commission;
+
+      renderNotice();
+    }
+
+    // ===== Notice functions =====
+    function renderNotice() {
+      const lang = currentLang();
+      const N = NOTICE_I18N[lang] || NOTICE_I18N.en;
+
+      const titleEl = document.getElementById("noticeTitle");
+      const contentEl = document.getElementById("noticeContent");
+      const btnEl = document.getElementById("noticeToggleBtn");
+      if (!titleEl || !contentEl || !btnEl) return;
+
+      titleEl.textContent = N.title;
+
+      const hidden = localStorage.getItem("notice_hidden") === "1";
+      contentEl.innerHTML = N.html;
+      contentEl.style.display = hidden ? "none" : "block";
+      btnEl.textContent = hidden ? N.toggleShow : N.toggleHide;
+    }
+
+    function toggleNotice() {
+      const contentEl = document.getElementById("noticeContent");
+      const lang = currentLang();
+      const N = NOTICE_I18N[lang] || NOTICE_I18N.en;
+
+      const isHidden = contentEl.style.display === "none";
+      contentEl.style.display = isHidden ? "block" : "none";
+      localStorage.setItem("notice_hidden", isHidden ? "0" : "1");
+
+      const btnEl = document.getElementById("noticeToggleBtn");
+      btnEl.textContent = isHidden ? N.toggleHide : N.toggleShow;
     }
 
     // ===== Translation (Remark only, Chinese only) =====
@@ -343,15 +590,20 @@
       return /[\u4e00-\u9fff]/.test(text || "");
     }
 
+    // 任何看起来像“错误提示/说明文字”的翻译结果都当作失败
     function isBadTranslation(out) {
-      const s = (out || "").toString().trim().toUpperCase();
-      if (!s) return true;
-      // 过滤明显报错
+      const sRaw = (out || "").toString().trim();
+      if (!sRaw) return true;
+
+      const s = sRaw.toUpperCase();
       if (s.includes("INVALID")) return true;
       if (s.includes("ERROR")) return true;
       if (s.includes("LANGPAIR")) return true;
-      if (s.includes("PLEASE")) return true;
+      if (s.includes("RFC3066")) return true;
+      if (s.includes("SUPPORTED")) return true;
+      if (s.includes("EXAMPLE:")) return true;
       if (s.startsWith("'AUTO'")) return true;
+      if (s.startsWith("AUTO ")) return true;
       return false;
     }
 
@@ -366,7 +618,7 @@
       if (changed) saveCache();
     }
 
-    // LibreTranslate public instances (may change availability). We try them one by one.
+    // LibreTranslate public instances (availability may vary)
     const LIBRE_INSTANCES = [
       "https://libretranslate.de/translate",
       "https://translate.terraprint.co/translate",
@@ -386,22 +638,21 @@
       });
       if (!res.ok) throw new Error("translate http " + res.status);
       const data = await res.json();
-      // libretranslate returns {translatedText: "..."}
-      const out = (data && (data.translatedText || data.translation)) ? String(data.translatedText || data.translation).trim() : "";
+      const out = (data && (data.translatedText || data.translation))
+        ? String(data.translatedText || data.translation).trim()
+        : "";
       return out;
     }
 
     async function translateRemark(text, targetLang) {
       const q = (text || "").trim();
       if (!q) return "";
-      // 只翻译中文 Remark
       if (!hasChinese(q)) return q;
-      // 英文市场不翻译
       if (targetLang === "en") return q;
 
       const key = cacheKey(targetLang, q);
 
-      // 缓存为坏数据 => 丢弃
+      // 缓存里若是坏数据，直接删掉并回退原文
       if (translateCache[key] && isBadTranslation(translateCache[key])) {
         delete translateCache[key];
         saveCache();
@@ -409,11 +660,12 @@
       }
       if (translateCache[key]) return translateCache[key];
 
-      // 轮询多个公共实例；失败就回退原文
       for (const ep of LIBRE_INSTANCES) {
         try {
           const out = await libreTranslateOnce(ep, q, targetLang);
-          if (!out || isBadTranslation(out) || out === q) continue;
+          // 任何失败/无效输出都回退原文
+          if (!out || out === q || isBadTranslation(out)) continue;
+
           translateCache[key] = out;
           saveCache();
           return out;
@@ -446,7 +698,6 @@
     async function translateVisibleRemarks() {
       const lang = currentLang();
 
-      // 仅翻译可见行、且 remark 含中文
       const visibleRows = Array.from(document.querySelectorAll(".product-row"))
         .filter(r => r.style.display !== "none");
 
@@ -458,7 +709,7 @@
         const orig = (remarkEl.dataset.remarkOriginal || "").trim();
         if (!orig) return;
 
-        // 不含中文 => 不翻译，直接原文
+        // 不含中文或英文市场：直接原文
         if (!hasChinese(orig) || lang === "en") {
           remarkEl.textContent = orig;
           remarkEl.title = orig;
@@ -474,14 +725,14 @@
           return;
         }
 
-        // 翻译中提示
+        // 翻译中提示（可选：你不想显示也可以置空）
         if (loadingEl) loadingEl.textContent = "Translating…";
         remarkEl.textContent = orig;
         remarkEl.title = orig;
 
         enqueueTranslate(async () => {
           const out = await translateRemark(orig, lang);
-          // 翻译失败 => out 会是 orig
+          // out 可能是原文（失败回退）
           remarkEl.textContent = out || orig;
           remarkEl.title = orig;
           if (loadingEl) loadingEl.textContent = "";
@@ -664,7 +915,9 @@
       const remarkOrig = String(product.remark || "").trim();
       let remarkDisplay = remarkOrig;
       if (remarkOrig && hasChinese(remarkOrig) && lang !== "en") {
-        remarkDisplay = await translateRemark(remarkOrig, lang);
+        const out = await translateRemark(remarkOrig, lang);
+        // out 若为坏翻译则回退原文（translateRemark 已保证，但这里再兜底一次）
+        remarkDisplay = (!out || isBadTranslation(out)) ? remarkOrig : out;
       }
 
       const text = buildForwardTextLocalized(product, T.labels, market, remarkDisplay);
@@ -674,7 +927,7 @@
       const waUrl = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(text);
       document.getElementById("forwardWA").href = waUrl;
 
-      // Telegram：直达私聊；先复制文案
+      // Telegram：最稳定方式 = 先复制文案，再打开你的私聊链接
       const tgBtn = document.getElementById("forwardTG");
       tgBtn.href = "https://t.me/" + TG_USERNAME;
       tgBtn.onclick = (e) => {
@@ -710,9 +963,16 @@
 
       const lines = [];
       if (p.title) lines.push(p.title);
+
       lines.push(`${labels.market}: ${market || "-"}`);
-      if (p.price) lines.push(`${labels.price}: ${price}`);
-      if (p.commission) lines.push(`${labels.commission}: ${commission}`);
+
+      // 注意：0 也要显示（你说 Discount Price=0 表示全额返款）
+      const rawPrice = String(p.price ?? "").trim();
+      if (rawPrice !== "") lines.push(`${labels.price}: ${price || rawPrice}`);
+
+      const rawCommission = String(p.commission ?? "").trim();
+      if (rawCommission !== "") lines.push(`${labels.commission}: ${commission || rawCommission}`);
+
       if (p.asin) lines.push(`${labels.asin}: ${p.asin}`);
       if (p.link) lines.push(`${labels.link}: ${p.link}`);
       if (remarkDisplay) lines.push(`${labels.remark}: ${remarkDisplay}`);
@@ -738,11 +998,7 @@
 
     // ===== Init =====
     window.onload = function () {
-      // 清理旧版本错误缓存（你之前那串 AUTO 报错不会再显示）
       purgeBadCacheEntries();
-
-      // 如果你之前用了 v1/v2 混杂，也可以手动清一次：
-      // localStorage.removeItem("remark_translate_cache_v1");
 
       const savedCountry = localStorage.getItem("selectedCountry");
       document.getElementById("countrySelect").value = savedCountry || "UK";
