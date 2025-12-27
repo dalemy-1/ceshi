@@ -1170,19 +1170,6 @@
     "status": "active"
   },
   {
-    "market": "DE",
-    "asin": "B0CG374PV4",
-    "title": "德国负面佣金",
-    "keyword": "https://amzn.to/47LXcj9",
-    "store": "CPVAN EU",
-    "remark": "need 1 star bad review and return",
-    "link": "https://amzn.to/4pVQqxv",
-    "image_url": "https://m.media-amazon.com/images/I/51+caRwcP+L._AC_SL1200_.jpg",
-    "price": "0.00",
-    "commission": "20.00",
-    "status": "active"
-  },
-  {
     "market": "US",
     "asin": "B0DYCF9179",
     "title": "美国靠背",
