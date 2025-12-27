@@ -1,13 +1,13 @@
 [
   {
     "market": "US",
-    "asin": "B0FVVLJS4Y",
-    "title": "美国卫衣",
-    "keyword": "eagles sweatshirt",
-    "store": "Wenyuu",
-    "remark": "Need Text Review\nColor: Pe",
-    "link": "https://amzn.to/48bTXRa",
-    "image_url": "https://m.media-amazon.com/images/I/71q2cjkkIVL._AC_SX679_.jpg",
+    "asin": "1182856065",
+    "title": "美国沃尔玛摄像头图评",
+    "keyword": "Webcam 4K",
+    "store": "Vizolink",
+    "remark": "",
+    "link": "https://www.walmart.com/ip/PC-Camera-Webcam-with-4-Microphones-1080P-for-Laptop-Video-Call-Conference-Stream-Computer-Webcam-Vizolink/1182856065?classType=VARIANT&adsRedirect=true",
+    "image_url": "https://i5.walmartimages.com/seo/PC-Camera-Webcam-with-4-Microphones-1080P-for-Laptop-Video-Call-Conference-Stream-Computer-Webcam-Vizolink_7be1f1b3-5def-44fb-804b-397c6b690d3b.ee4f0faaafa573f8984048c63a53552b.jpeg?odnHeight=573&odnWidth=573&odnBg=FFFFFF",
     "price": "0.00",
     "commission": "0.00",
     "status": "active"
@@ -112,19 +112,6 @@
     "remark": "Need Text Review",
     "link": "https://amzn.to/4aQ76SG",
     "image_url": "https://m.media-amazon.com/images/I/51Rq-yBxWBL._AC_SX679_.jpg",
-    "price": "0.00",
-    "commission": "0.00",
-    "status": "active"
-  },
-  {
-    "market": "UK",
-    "asin": "B0FXX1WNNF",
-    "title": "英国椅套",
-    "keyword": "https://amzn.to/49c1PTj",
-    "store": "Liao shengmin store-UK",
-    "remark": "Need Text Review",
-    "link": "https://amzn.to/49c1PTj",
-    "image_url": "https://m.media-amazon.com/images/I/51Ea5-mwsfL._AC_SX679_.jpg",
     "price": "0.00",
     "commission": "0.00",
     "status": "active"
