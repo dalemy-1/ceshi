@@ -731,51 +731,53 @@
 
     // ===== Forward Modal =====
     async function openForwardModal(product) {
-      CURRENT_FORWARD_PRODUCT = product;
+  CURRENT_FORWARD_PRODUCT = product;
 
-      const market = (product.market || "").trim().toUpperCase();
-      const lang = LANG_BY_MARKET[market] || "en";
-      const T = UI_I18N[lang] || UI_I18N.en;
+  const market = (product.market || "").trim().toUpperCase();
+  const lang = LANG_BY_MARKET[market] || "en";
+  const T = UI_I18N[lang] || UI_I18N.en;
 
-      const remarkOrig = String(product.remark || "").trim();
-      let remarkDisplay = remarkOrig;
-      if (remarkOrig && hasChinese(remarkOrig) && lang !== "en") {
-        const out = await translateRemark(remarkOrig, lang);
-        remarkDisplay = (!out || isBadTranslation(out)) ? remarkOrig : out;
-      }
+  const remarkOrig = String(product.remark || "").trim();
+  let remarkDisplay = remarkOrig;
+  if (remarkOrig && hasChinese(remarkOrig) && lang !== "en") {
+    const out = await translateRemark(remarkOrig, lang);
+    remarkDisplay = (!out || isBadTranslation(out)) ? remarkOrig : out;
+  }
 
-      const text = buildForwardTextLocalized(product, T.labels, market, remarkDisplay);
-      document.getElementById("forwardPreview").textContent = text;
+  // 生成需要的文本格式
+  const text = buildForwardTextLocalized(product, T.labels, market, remarkDisplay);
+  document.getElementById("forwardPreview").textContent = text;
 
-      const waUrl = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(text);
-      const waBtn = document.getElementById("forwardWA");
-      waBtn.href = waUrl;
-      waBtn.onclick = (e) => { e.preventDefault(); window.open(waUrl, "_blank", "noopener"); };
+  const waUrl = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(text);
+  const waBtn = document.getElementById("forwardWA");
+  waBtn.href = waUrl;
+  waBtn.onclick = (e) => { e.preventDefault(); window.open(waUrl, "_blank", "noopener"); };
 
-      const tgUrl = "https://t.me/" + TG_USERNAME;
-      const tgBtn = document.getElementById("forwardTG");
-      tgBtn.href = tgUrl;
-      tgBtn.onclick = (e) => {
-        e.preventDefault();
-        copyText(text).finally(() => window.open(tgUrl, "_blank", "noopener"));
-      };
+  const tgUrl = "https://t.me/" + TG_USERNAME;
+  const tgBtn = document.getElementById("forwardTG");
+  tgBtn.href = tgUrl;
+  tgBtn.onclick = (e) => {
+    e.preventDefault();
+    copyText(text).finally(() => window.open(tgUrl, "_blank", "noopener"));
+  };
 
-      const subject = `[${market}] ${product.title || "Product"}`.trim();
-      const mailUrl =
-        "mailto:" + encodeURIComponent(EMAIL_CONTACT) +
-        "?subject=" + encodeURIComponent(subject) +
-        "&body=" + encodeURIComponent(text);
+  const subject = `[${market}] ${product.title || "Product"}`.trim();
+  const mailUrl =
+    "mailto:" + encodeURIComponent(EMAIL_CONTACT) +
+    "?subject=" + encodeURIComponent(subject) +
+    "&body=" + encodeURIComponent(text);
 
-      const mailBtn = document.getElementById("forwardMail");
-      mailBtn.href = mailUrl;
-      mailBtn.onclick = (e) => { e.preventDefault(); window.open(mailUrl, "_blank", "noopener"); };
+  const mailBtn = document.getElementById("forwardMail");
+  mailBtn.href = mailUrl;
+  mailBtn.onclick = (e) => { e.preventDefault(); window.open(mailUrl, "_blank", "noopener"); };
 
-      document.getElementById("forwardTitle").textContent = T.forwardTitle;
-      document.getElementById("forwardSub").textContent = T.forwardSub;
-      document.getElementById("copyBtn").textContent = T.copy;
+  document.getElementById("forwardTitle").textContent = T.forwardTitle;
+  document.getElementById("forwardSub").textContent = T.forwardSub;
+  document.getElementById("copyBtn").textContent = T.copy;
 
-      document.getElementById("forwardModal").style.display = "block";
-    }
+  document.getElementById("forwardModal").style.display = "block";
+}
+
 
     function closeForwardModal(e) {
       document.getElementById("forwardModal").style.display = "none";
@@ -838,3 +840,4 @@
   </script>
 </body>
 </html>
+
