@@ -791,8 +791,7 @@
   // 构建文本
   const lines = [];
   if (p.title) lines.push(p.title); // 商品标题
-  lines.push(`${labels.market}: ${market || "-"}`); // 市场
-
+  
   // 只在有折扣价格时才显示
   const rawPrice = String(p.price ?? "").trim();
   if (rawPrice !== "0" && rawPrice !== "") lines.push(`Discount Price: ${price || rawPrice}`);
@@ -801,12 +800,16 @@
   const rawCommission = String(p.commission ?? "").trim();
   if (rawCommission !== "0" && rawCommission !== "") lines.push(`Commission: ${commission || rawCommission}`);
 
-  if (p.asin) lines.push(`${labels.asin}: ${p.asin}`); // ASIN
-  if (p.link) lines.push(`Link: ${p.link}`); // 链接
-  if (remarkDisplay) lines.push(`Remark: ${remarkDisplay}`); // Remark
+  if (p.keyword) lines.push(`Keyword: ${p.keyword}`); // 显示Keyword
+  if (p.store) lines.push(`Store: ${p.store}`); // 显示Store
+  if (remarkDisplay) lines.push(`Remark: ${remarkDisplay}`); // 显示Remark
+
+  if (p.link) lines.push(`link:${p.link}`); // 链接字段
+  if (p.asin) lines.push(`ASIN: ${p.asin}`); // ASIN
 
   return lines.join("\n");
 }
+
 
 
     function copyForwardText() {
@@ -845,3 +848,4 @@
   </script>
 </body>
 </html>
+
