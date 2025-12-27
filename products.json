@@ -1,5 +1,31 @@
 [
   {
+    "market": "US",
+    "asin": "B0FG2VXX6G",
+    "title": "美国游戏机图评",
+    "keyword": "electronic games for kids",
+    "store": "Woot",
+    "remark": "Need Image Review\nSold by\nWoot",
+    "link": "https://amzn.to/48sQeQy",
+    "image_url": "https://m.media-amazon.com/images/I/71QGXQwxJxL._AC_SL1500_.jpg",
+    "price": "0.00",
+    "commission": "0.00",
+    "status": "active"
+  },
+  {
+    "market": "US",
+    "asin": "B0GCS6H7LC",
+    "title": "美国椅垫图评",
+    "keyword": "Cloud Couch Sectional",
+    "store": "YI DANICA",
+    "remark": "Need Image Review",
+    "link": "https://amzn.to/49dzuvS",
+    "image_url": "https://m.media-amazon.com/images/I/41zDyJjrcwL._AC_SL1280_.jpg",
+    "price": "5.00",
+    "commission": "0.00",
+    "status": "active"
+  },
+  {
     "market": "UK",
     "asin": "B0FMXXGPRS",
     "title": "英国美容仪",
