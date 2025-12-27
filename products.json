@@ -1,6 +1,19 @@
 [
   {
     "market": "US",
+    "asin": "B0FVVLJS4Y",
+    "title": "美国卫衣",
+    "keyword": "eagles sweatshirt",
+    "store": "Wenyuu",
+    "remark": "Need Text Review\nColor: Pe",
+    "link": "https://amzn.to/48bTXRa",
+    "image_url": "https://m.media-amazon.com/images/I/71q2cjkkIVL._AC_SX679_.jpg",
+    "price": "0.00",
+    "commission": "0.00",
+    "status": "active"
+  },
+  {
+    "market": "US",
     "asin": "B0FMJGFZ24",
     "title": "美国手部按摩仪图评",
     "keyword": "hand massager",
