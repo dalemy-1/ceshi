@@ -788,20 +788,22 @@
   const price = formatMoneyByMarket(p.price, market);
   const commission = formatMoneyByMarket(p.commission, market);
 
+  // 去除货币符号并检查是否为0
+  const rawPrice = (p.price && String(p.price).replace(/[^\d.-]/g, "")) || "0";
+  const rawCommission = (p.commission && String(p.commission).replace(/[^\d.-]/g, "")) || "0";
+
   // 构建文本
   const lines = [];
   if (p.title) lines.push(p.title); // 商品标题
   lines.push(`${labels.market}: ${market || "-"}`); // 市场
 
   // 只在Discount Price不为0时才显示
-  const rawPrice = String(p.price ?? "").trim();
-  if (rawPrice !== "0" && rawPrice !== "") {
+  if (parseFloat(rawPrice) > 0) {
     lines.push(`Discount Price: ${price || rawPrice}`);
   }
 
   // 只在Commission不为0时才显示
-  const rawCommission = String(p.commission ?? "").trim();
-  if (rawCommission !== "0" && rawCommission !== "") {
+  if (parseFloat(rawCommission) > 0) {
     lines.push(`Commission: ${commission || rawCommission}`);
   }
 
@@ -858,6 +860,7 @@
   </script>
 </body>
 </html>
+
 
 
 
