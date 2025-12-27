@@ -791,7 +791,8 @@
   // 构建文本
   const lines = [];
   if (p.title) lines.push(p.title); // 商品标题
-  
+  lines.push(`${labels.market}: ${market || "-"}`); // 市场
+
   // 只在有折扣价格时才显示
   const rawPrice = String(p.price ?? "").trim();
   if (rawPrice !== "0" && rawPrice !== "") lines.push(`Discount Price: ${price || rawPrice}`);
@@ -801,20 +802,21 @@
   if (rawCommission !== "0" && rawCommission !== "") lines.push(`Commission: ${commission || rawCommission}`);
 
   // 显示Keyword和Store
-  if (p.keyword) lines.push(`Keyword: ${p.keyword}`); 
+  if (p.keyword) lines.push(`Keyword: ${p.keyword}`);
   if (p.store) lines.push(`Store: ${p.store}`);
 
   // 显示Remark
   if (remarkDisplay) lines.push(`Remark: ${remarkDisplay}`);
 
-  // 只在有链接时才显示
-  if (p.link) lines.push(`link:${p.link}`); 
+  // 只有在有链接时才显示
+  if (p.link) lines.push(`Link: ${p.link}`);
 
-  // 只有在ASIN有值时才显示
-  if (p.asin && p.asin.trim() !== "") lines.push(`ASIN: ${p.asin}`);
+  // 删除ASIN部分，确保ASIN不被复制
+  // (没有必要添加ASIN信息)
 
   return lines.join("\n");
 }
+
 
 
 
@@ -855,5 +857,6 @@
   </script>
 </body>
 </html>
+
 
 
