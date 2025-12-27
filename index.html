@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Product List</title>
-<style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product List</title>
+  <style>
     body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f9; color:#111827; }
     header { background:#111827; color:#fff; text-align:center; padding:20px 0; border-bottom:5px solid #fff; }
     header h1 { font-size:2em; font-weight:bold; margin:0 0 10px 0; }
@@ -131,96 +130,112 @@
     .remark-loading{ font-size:12px; color:#6b7280; margin-top:4px; }
   </style>
 </head>
+
 <body>
-<header>
-<h1 id="pageTitle">Product List</h1>
-<select class="country-select" id="countrySelect" onchange="onMarketChange()">
-<option value="UK">UK</option>
-<option value="US">US</option>
-<option value="DE">Germany</option>
-<option value="FR">France</option>
-<option value="IT">Italy</option>
-<option value="ES">Spain</option>
-<option value="CA">Canada</option>
-<option value="JP">Japan</option>
-</select>
-<div class="contact-text" id="contactText">
+  <header>
+    <h1 id="pageTitle">Product List</h1>
+
+    <select class="country-select" id="countrySelect" onchange="onMarketChange()">
+      <option value="UK">UK</option>
+      <option value="US">US</option>
+      <option value="DE">Germany</option>
+      <option value="FR">France</option>
+      <option value="IT">Italy</option>
+      <option value="ES">Spain</option>
+      <option value="CA">Canada</option>
+      <option value="JP">Japan</option>
+    </select>
+
+    <div class="contact-text" id="contactText">
       For inquiries, you can contact us via WhatsApp, Telegram, or Email:
     </div>
-<div class="contact-actions">
-<a class="contact-btn" href="https://wa.me/8615778673666" rel="noopener" target="_blank">WhatsApp</a>
-<a class="contact-btn" href="https://t.me/dalemyrong" rel="noopener" target="_blank">Telegram</a>
-<a class="contact-btn" href="mailto:info@dalemy.top" rel="noopener" target="_blank">Email</a>
-</div>
-</header>
-<section id="product-list">
-<h2 id="productsTitle">Products</h2>
-<div class="status-bar">
-<div class="status-left">
-<span class="badge" id="statusBadge">Loading…</span>
-<span class="muted" id="statusMeta"></span>
-<span class="hint-sub" id="translateHint"></span>
-<!-- ✅ Status filter -->
-<div class="filter-wrap" style="margin-left:8px;">
-<span class="filter-label" id="statusFilterLabel">Status</span>
-<select class="filter-select" id="statusSelect" onchange="onStatusChange()">
-<option value="__all__">All</option>
-</select>
-</div>
-</div>
-<button class="btn" id="refreshBtn" onclick="fetchProductData(true)">Refresh</button>
-</div>
-<div class="notice-box" id="noticeBox">
-<div class="notice-head">
-<div class="notice-title" id="noticeTitle">Important Notice</div>
-<button class="btn" id="noticeToggleBtn" onclick="toggleNotice()" style="background:#374151;">Hide</button>
-</div>
-<div class="notice-body" id="noticeContent"></div>
-</div>
-<div class="product-table-container">
-<table class="product-table">
-<thead>
-<tr>
-<th id="thAction">Action</th>
-<th id="thMarket">Market</th>
-<th id="thImage">Image</th>
-<th id="thTitle">Title</th>
-<th id="thKeyword">Keyword</th>
-<th id="thStore">Store</th>
-<th id="thRemark">Remark</th>
-<th class="col-price sortable" id="thPrice" onclick="toggleSort('price')">
+
+    <div class="contact-actions">
+      <a class="contact-btn" href="https://wa.me/8615778673666" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="contact-btn" href="https://t.me/dalemyrong" target="_blank" rel="noopener">Telegram</a>
+      <a class="contact-btn" href="mailto:info@dalemy.top" target="_blank" rel="noopener">Email</a>
+    </div>
+  </header>
+
+  <section id="product-list">
+    <h2 id="productsTitle">Products</h2>
+
+    <div class="status-bar">
+      <div class="status-left">
+        <span class="badge" id="statusBadge">Loading…</span>
+        <span class="muted" id="statusMeta"></span>
+        <span class="hint-sub" id="translateHint"></span>
+
+        <!-- ✅ Status filter -->
+        <div class="filter-wrap" style="margin-left:8px;">
+          <span class="filter-label" id="statusFilterLabel">Status</span>
+          <select class="filter-select" id="statusSelect" onchange="onStatusChange()">
+            <option value="__all__">All</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" onclick="fetchProductData(true)" id="refreshBtn">Refresh</button>
+    </div>
+
+    <div class="notice-box" id="noticeBox">
+      <div class="notice-head">
+        <div class="notice-title" id="noticeTitle">Important Notice</div>
+        <button class="btn" style="background:#374151;" id="noticeToggleBtn" onclick="toggleNotice()">Hide</button>
+      </div>
+      <div class="notice-body" id="noticeContent"></div>
+    </div>
+
+    <div class="product-table-container">
+      <table class="product-table">
+        <thead>
+          <tr>
+            <th id="thAction">Action</th>
+            <th id="thMarket">Market</th>
+            <th id="thImage">Image</th>
+            <th id="thTitle">Title</th>
+            <th id="thKeyword">Keyword</th>
+            <th id="thStore">Store</th>
+            <th id="thRemark">Remark</th>
+
+            <th id="thPrice" class="col-price sortable" onclick="toggleSort('price')">
               Discount Price <span class="sort-ind" id="indPrice"></span>
-</th>
-<th class="col-commission sortable" id="thCommission" onclick="toggleSort('commission')">
+            </th>
+            <th id="thCommission" class="col-commission sortable" onclick="toggleSort('commission')">
               Commission <span class="sort-ind" id="indCommission"></span>
-</th>
-</tr>
-</thead>
-<tbody id="product-table-body"></tbody>
-</table>
-<div class="empty" id="emptyHint" style="display:none;">
+            </th>
+          </tr>
+        </thead>
+        <tbody id="product-table-body"></tbody>
+      </table>
+      <div class="empty" id="emptyHint" style="display:none;">
         No products loaded. If this is your first time, run GitHub Actions once to generate products.json.
       </div>
-</div>
-</section>
-<div class="modal" id="forwardModal" onclick="closeForwardModal(event)">
-<div class="modal-inner" onclick="event.stopPropagation()">
-<span class="close" onclick="closeForwardModal(event)">×</span>
-<h3 id="forwardTitle" style="margin:0 0 10px 0;">Forward Product</h3>
-<div id="forwardSub" style="font-size:13px;color:#6b7280;margin-bottom:8px;">
+    </div>
+  </section>
+
+  <div id="forwardModal" class="modal" onclick="closeForwardModal(event)">
+    <div class="modal-inner" onclick="event.stopPropagation()">
+      <span class="close" onclick="closeForwardModal(event)">&times;</span>
+
+      <h3 style="margin:0 0 10px 0;" id="forwardTitle">Forward Product</h3>
+      <div style="font-size:13px;color:#6b7280;margin-bottom:8px;" id="forwardSub">
         Choose a channel. A new window will open; this page will stay here.
       </div>
-<div id="forwardPreview" style="border:1px solid #e5e7eb;border-radius:12px;padding:10px;background:#f9fafb;white-space:pre-wrap;font-size:13px;line-height:1.4;text-align:left;">
-</div>
-<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px;">
-<button class="btn" id="copyBtn" onclick="copyForwardText()" style="background:#374151;">Copy Text</button>
-<a class="contact-btn" href="#" id="forwardWA" rel="noopener" target="_blank">WhatsApp</a>
-<a class="contact-btn" href="#" id="forwardTG" rel="noopener" target="_blank">Telegram</a>
-<a class="contact-btn" href="#" id="forwardMail" rel="noopener" target="_blank">Email</a>
-</div>
-</div>
-</div>
-<script>
+
+      <div id="forwardPreview"
+           style="border:1px solid #e5e7eb;border-radius:12px;padding:10px;background:#f9fafb;white-space:pre-wrap;font-size:13px;line-height:1.4;text-align:left;">
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px;">
+        <button class="btn" style="background:#374151;" onclick="copyForwardText()" id="copyBtn">Copy Text</button>
+        <a class="contact-btn" id="forwardWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="contact-btn" id="forwardTG" href="#" target="_blank" rel="noopener">Telegram</a>
+        <a class="contact-btn" id="forwardMail" href="#" target="_blank" rel="noopener">Email</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
     // ===== Config =====
     // ✅ 关键修复：用相对路径，兼容 ama.omino.top 和 dalemy-1.github.io/product-list/
     const PRODUCTS_JSON_PATH = "./products.json";
