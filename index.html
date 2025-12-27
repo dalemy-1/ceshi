@@ -793,11 +793,11 @@
   if (p.title) lines.push(p.title); // 商品标题
   lines.push(`${labels.market}: ${market || "-"}`); // 市场
 
-  // 只在有折扣价格时才显示
+  // 只有在折扣价格不为0时才显示
   const rawPrice = String(p.price ?? "").trim();
   if (rawPrice !== "0" && rawPrice !== "") lines.push(`Discount Price: ${price || rawPrice}`);
 
-  // 只在佣金有值时才显示
+  // 只有在佣金不为0时才显示
   const rawCommission = String(p.commission ?? "").trim();
   if (rawCommission !== "0" && rawCommission !== "") lines.push(`Commission: ${commission || rawCommission}`);
 
@@ -816,10 +816,6 @@
 
   return lines.join("\n");
 }
-
-
-
-
 
     function copyForwardText() {
       const text = document.getElementById("forwardPreview").textContent || "";
@@ -857,6 +853,7 @@
   </script>
 </body>
 </html>
+
 
 
 
