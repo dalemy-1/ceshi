@@ -793,13 +793,13 @@
   if (p.title) lines.push(p.title); // 商品标题
   lines.push(`${labels.market}: ${market || "-"}`); // 市场
 
-  // 只有在Discount Price不为0时才显示
+  // 只在Discount Price不为0时才显示
   const rawPrice = String(p.price ?? "").trim();
   if (rawPrice !== "0" && rawPrice !== "") {
     lines.push(`Discount Price: ${price || rawPrice}`);
   }
 
-  // 只有在Commission不为0时才显示
+  // 只在Commission不为0时才显示
   const rawCommission = String(p.commission ?? "").trim();
   if (rawCommission !== "0" && rawCommission !== "") {
     lines.push(`Commission: ${commission || rawCommission}`);
@@ -817,6 +817,7 @@
 
   return lines.join("\n");
 }
+
 
 
 
@@ -857,6 +858,7 @@
   </script>
 </body>
 </html>
+
 
 
 
