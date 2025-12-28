@@ -169,7 +169,13 @@
 </div>
 <button class="btn" id="refreshBtn" onclick="fetchProductData(true)">Refresh</button>
 </div>
-
+<div class="notice-box" id="noticeBox">
+<div class="notice-head">
+<div class="notice-title" id="noticeTitle">Important Notice</div>
+<button class="btn" id="noticeToggleBtn" onclick="toggleNotice()" style="background:#374151;">Hide</button>
+</div>
+<div class="notice-body" id="noticeContent"></div>
+</div>
 <div class="product-table-container">
 <table class="product-table">
 <thead>
@@ -854,7 +860,6 @@
   </script>
 </body>
 </html>
-
 
 
 
