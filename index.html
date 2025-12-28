@@ -34,7 +34,7 @@
   .search-input{ min-width:min(420px, 90vw); }
   .wrap{ max-width:1200px; margin:14px auto 26px; padding:0 12px; }
 
-  /* ===== Compliance banner (审核重点) ===== */
+  /* ===== Compliance banner ===== */
   .compliance{
     background:#fff;
     border:1px solid var(--border);
@@ -72,11 +72,9 @@
     background:var(--primary); color:#fff;
   }
   .btn:hover{ opacity:.92; }
-  .btn.secondary{
-    background:#fff; color:#111827;
-  }
+  .btn.secondary{ background:#fff; color:#111827; }
 
-  /* ===== How to choose (原创内容，提升审核通过率与转化) ===== */
+  /* ===== How to choose ===== */
   .howto{
     margin-top:12px;
     background:#fff;
@@ -140,12 +138,8 @@
   }
   .product-image:hover{ transform:scale(1.02); }
 
-  .asin{
-    font-size:12px; font-weight:900; letter-spacing:.35px;
-    background:#f3f4f6; border:1px solid var(--border);
-    border-radius:999px; padding:4px 10px;
-    max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
+  /* ✅ 不展示 ASIN 行（你要求删除页面展示） */
+  .asin{ display:none !important; }
 
   .actions{
     width:100%;
@@ -186,9 +180,14 @@
     position:absolute; right:14px; top:10px; font-size:26px; font-weight:900; cursor:pointer; user-select:none;
   }
   .contact-btn{
-    display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:12px;
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 14px; border-radius:12px;
     background:#fff; color:#111827; text-decoration:none; border:1px solid var(--border);
     font-weight:900; font-size:14px;
+  }
+  .contact-btn:hover{ background:#f9fafb; }
+  .mini-hint{
+    margin-top:10px;font-size:12px;color:#6b7280;line-height:1.55;
   }
 
   footer{
@@ -221,7 +220,6 @@
 
 <div class="wrap">
 
-  <!-- ✅ 审核关键：强披露 + 非背书声明 -->
   <div class="compliance">
     <div class="row">
       <div class="pill"><strong>Disclosure</strong>: As an Amazon Associate, we earn from qualifying purchases.</div>
@@ -241,7 +239,6 @@
     <button class="btn" onclick="fetchProductData(true)">Refresh</button>
   </div>
 
-  <!-- ✅ How to choose（原创内容区：提高审查通过率 + 提升转化，不含 keyword/remark） -->
   <div class="howto">
     <h2>How to choose</h2>
     <div class="cols">
@@ -275,20 +272,29 @@
 
 </div>
 
-<!-- Forward Modal -->
-<div class="modal" id="forwardModal" onclick="closeForwardModal(event)">
+<!-- Modal: Contact & Copy -->
+<div class="modal" id="contactModal" onclick="closeContactModal(event)">
   <div class="modal-inner" onclick="event.stopPropagation()">
-    <span class="close" onclick="closeForwardModal(event)">×</span>
-    <h3 style="margin:0 0 10px 0;">Forward Product</h3>
+    <span class="close" onclick="closeContactModal(event)">×</span>
+
+    <h3 style="margin:0 0 10px 0;">Contact & Copy</h3>
     <div style="font-size:13px;color:#6b7280;margin-bottom:8px;">
-      Choose a channel. This page will stay here.
+      Copy only Title / ASIN / Market. Contact buttons are for consultation and do not include Amazon links.
     </div>
-    <div id="forwardPreview" style="border:1px solid #e5e7eb;border-radius:14px;padding:10px;background:#f9fafb;white-space:pre-wrap;font-size:13px;line-height:1.45;text-align:left;"></div>
+
+    <div id="contactPreview"
+         style="border:1px solid #e5e7eb;border-radius:14px;padding:10px;background:#f9fafb;white-space:pre-wrap;font-size:13px;line-height:1.45;text-align:left;"></div>
+
     <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px;">
-      <button class="btn" onclick="copyForwardText()" style="background:#374151;">Copy Text</button>
-      <a class="contact-btn" href="#" id="forwardWA" rel="noopener noreferrer" target="_blank">WhatsApp</a>
-      <a class="contact-btn" href="#" id="forwardTG" rel="noopener noreferrer" target="_blank">Telegram</a>
-      <a class="contact-btn" href="#" id="forwardMail" rel="noopener noreferrer" target="_blank">Email</a>
+      <button class="btn" onclick="copyContactInfo()" style="background:#374151;">Copy info</button>
+      <a class="contact-btn" href="#" id="contactWA" rel="noopener noreferrer" target="_blank">WhatsApp</a>
+      <a class="contact-btn" href="#" id="contactTG" rel="noopener noreferrer" target="_blank">Telegram</a>
+      <a class="contact-btn" href="#" id="contactMail" rel="noopener noreferrer" target="_blank">Email</a>
+      <button class="btn secondary" onclick="closeContactModal(event)">Close</button>
+    </div>
+
+    <div class="mini-hint">
+      For purchase, use the “View on Amazon” button on the product card. Final pricing and availability are provided by Amazon on the destination page.
     </div>
   </div>
 </div>
@@ -309,6 +315,7 @@
 <script>
   const PRODUCTS_JSON_PATH = "./products.json";
 
+  // Contact (咨询用：不携带任何 Amazon 链接)
   const WA_PHONE = "8615778673666";
   const TG_USERNAME = "dalemyrong";
   const EMAIL_CONTACT = "info@dalemy.top";
@@ -317,26 +324,30 @@
 
   let ALL_PRODUCTS = [];
   let LAST_LOADED_AT = null;
-  let CURRENT_FORWARD_PRODUCT = null;
+  let CURRENT_CONTACT_PRODUCT = null;
 
   function currentMarket(){
     return (document.getElementById("countrySelect").value || "US").toUpperCase();
   }
+
   function normalizeUrl(u){
     const s = String(u || "").trim();
     if (!s) return "";
     if (/^https?:\/\//i.test(s)) return s;
     return "";
   }
+
   function escapeHtml(str){
     return String(str)
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
   }
+
   function setStatus(text, meta=""){
     document.getElementById("statusBadge").textContent = text;
     document.getElementById("statusMeta").textContent = meta;
   }
+
   function showEmpty(show){
     document.getElementById("emptyHint").style.display = show ? "block" : "none";
   }
@@ -426,11 +437,13 @@
               No Image
             </div>
           `}
+
+          <!-- ✅ 仍保留元素(不展示)，防止其它逻辑依赖；展示已通过 CSS 隐藏 -->
           <div class="asin" title="${escapeHtml(asin)}">ASIN: ${escapeHtml(asin || "-")}</div>
 
           <div class="actions">
             ${viewAmazon}
-            <button class="btn cta secondary" onclick='openForwardModal(${encodeProductForOnclick(p)})'>Forward</button>
+            <button class="btn cta secondary" onclick='openContactModal(${encodeProductForOnclick(p)})'>Contact / Copy</button>
           </div>
         </div>
       `;
@@ -463,57 +476,72 @@
     });
   }
 
-  function buildForwardText(product){
+  // ✅ 复制仍包含：标题 / ASIN / 国家（不包含链接）
+  function buildCopyInfo(product){
     const market = String(product.market || "").trim().toUpperCase();
     const asin = String(product.asin || "").trim();
     const title = String(product.title || "").trim();
-    const link = String(product.link || "").trim();
 
     const lines = [];
     if (title) lines.push(title);
     if (asin) lines.push(`ASIN: ${asin}`);
     if (market) lines.push(`Market: ${market}`);
-    if (link) lines.push(`Link: ${link}`);
     return lines.join("\n");
   }
 
-  async function openForwardModal(product){
-    CURRENT_FORWARD_PRODUCT = product;
-    const text = buildForwardText(product);
-    document.getElementById("forwardPreview").textContent = text;
+  // ✅ 咨询文本：三项 + 咨询句子（不含任何链接）
+  function buildContactText(product){
+    const base = buildCopyInfo(product);
+    const lines = [];
+    if (base) lines.push(base);
+    lines.push("");
+    lines.push("Hi, I have a question about this product. Could you please help?");
+    return lines.join("\n");
+  }
 
-    const waUrl = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(text);
+  function openContactModal(product){
+    CURRENT_CONTACT_PRODUCT = product;
+
+    const previewText = buildCopyInfo(product); // 预览：含 ASIN（不含链接）
+    document.getElementById("contactPreview").textContent = previewText;
+
+    const contactText = buildContactText(product);
+
+    const waUrl = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(contactText);
     const tgUrl = "https://t.me/" + TG_USERNAME;
-    const subject = `[${(product.market||"").toUpperCase()}] ${(product.asin||"").trim()}`;
+
+    const subject = `Product question: ${(product.asin||"").trim()} [${(product.market||"").toUpperCase()}]`;
     const mailUrl = "mailto:" + encodeURIComponent(EMAIL_CONTACT)
       + "?subject=" + encodeURIComponent(subject)
-      + "&body=" + encodeURIComponent(text);
+      + "&body=" + encodeURIComponent(contactText);
 
-    const waBtn = document.getElementById("forwardWA");
+    const waBtn = document.getElementById("contactWA");
     waBtn.href = waUrl;
     waBtn.onclick = (e) => { e.preventDefault(); window.open(waUrl, "_blank", "noopener,noreferrer"); };
 
-    const tgBtn = document.getElementById("forwardTG");
+    const tgBtn = document.getElementById("contactTG");
     tgBtn.href = tgUrl;
     tgBtn.onclick = (e) => {
       e.preventDefault();
-      copyText(text).finally(() => window.open(tgUrl, "_blank", "noopener,noreferrer"));
+      copyText(contactText)
+        .then(() => window.open(tgUrl, "_blank", "noopener,noreferrer"))
+        .catch(() => window.open(tgUrl, "_blank", "noopener,noreferrer"));
     };
 
-    const mailBtn = document.getElementById("forwardMail");
+    const mailBtn = document.getElementById("contactMail");
     mailBtn.href = mailUrl;
     mailBtn.onclick = (e) => { e.preventDefault(); window.open(mailUrl, "_blank", "noopener,noreferrer"); };
 
-    document.getElementById("forwardModal").style.display = "block";
+    document.getElementById("contactModal").style.display = "block";
   }
 
-  function closeForwardModal(){
-    document.getElementById("forwardModal").style.display = "none";
-    CURRENT_FORWARD_PRODUCT = null;
+  function closeContactModal(){
+    document.getElementById("contactModal").style.display = "none";
+    CURRENT_CONTACT_PRODUCT = null;
   }
 
-  function copyForwardText(){
-    const text = document.getElementById("forwardPreview").textContent || "";
+  function copyContactInfo(){
+    const text = document.getElementById("contactPreview").textContent || "";
     if (!text) return;
     copyText(text).then(() => alert("Copied!")).catch(() => alert("Copy failed"));
   }
