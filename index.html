@@ -236,24 +236,16 @@
   footer .inner{ max-width:1200px; margin:0 auto; font-size:12px; color:#374151; line-height:1.7; }
   footer a{ color:#2563eb; text-decoration:none; }
 
-  /* ====== Detail Page (keep UI consistent: reuse existing card styles) ====== */
-  .detail-wrap{
-    margin-top:14px;
-  }
+  /* ====== Detail Page (keep UI consistent) ====== */
+  .detail-wrap{ margin-top:14px; }
   .detail-top{
     display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
     background:#fff; border:1px solid var(--border); border-radius:14px;
     padding:10px 12px;
   }
-  .detail-head{
-    display:flex; flex-direction:column; gap:4px;
-  }
-  .detail-title{
-    font-weight:900; font-size:14px; margin:0;
-  }
-  .detail-sub{
-    font-size:12px; color:#6b7280; margin:0;
-  }
+  .detail-head{ display:flex; flex-direction:column; gap:4px; }
+  .detail-title{ font-weight:900; font-size:14px; margin:0; }
+  .detail-sub{ font-size:12px; color:#6b7280; margin:0; }
   .detail-card{
     margin-top:12px;
     background:#fff;
@@ -273,9 +265,7 @@
     display:block;
     margin:0 auto;
   }
-  .detail-actions{
-    display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px;
-  }
+  .detail-actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px; }
   .detail-note{
     margin-top:10px;
     font-size:12px; color:#4b5563; line-height:1.55;
@@ -429,7 +419,7 @@
   let LAST_LOADED_AT = null;
   let CURRENT_CONTACT_PRODUCT = null;
 
-  /* ========= Placeholder (only used after multiple retries) ========= */
+  /* ========= Placeholder ========= */
   const PLACEHOLDER_SVG = `
     <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
       <defs>
@@ -470,7 +460,7 @@
     document.getElementById("emptyHint").style.display = show ? "block" : "none";
   }
 
-  /* ========= Image URL resolver (maximize display rate) ========= */
+  /* ========= Image URL resolver ========= */
   function isHttpsPage(){
     return String(location.protocol || "").toLowerCase() === "https:";
   }
@@ -522,7 +512,7 @@
     }
   }
 
-  /* ========= GitHub Pages SPA fallback restore (custom domain) ========= */
+  /* ========= SPA fallback restore ========= */
   function restoreSpaPathIfAny(){
     try{
       const restore = sessionStorage.getItem("__spa_redirect_path__");
@@ -596,7 +586,6 @@
     const picked = group[idx] || null;
     if (!picked) return null;
 
-    // ensure consistent keys on picked
     picked.__dupIndex = idx;
     picked.__asinKey = buildAsinKey(picked.asin, idx);
     return picked;
@@ -1098,7 +1087,6 @@
   window.addEventListener("popstate", () => renderByRoute());
 
   window.onload = function(){
-    // SPA fallback restore for GitHub Pages + custom domain
     restoreSpaPathIfAny();
 
     const saved = localStorage.getItem("selectedCountry");
