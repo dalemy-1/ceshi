@@ -657,13 +657,15 @@
         if (!Array.isArray(list)) throw new Error("products.json is not an array");
 
         ALL_PRODUCTS = list.map((p, idx) => ({
-          market: String(p.market || "").trim().toUpperCase(),  // <— market field
-          asin: String(p.asin || "").trim(),
-          title: String(p.title || "").trim(),
-          link: String(p.link || "").trim(),
-          image_url: String(p.image_url || "").trim(),
-          __idx: idx
-        }));
+  // 兼容：market / market / Market
+  market: String(p.market ?? p.market ?? p.Market ?? "").trim().toUpperCase(),
+  asin: String(p.asin ?? p.ASIN ?? "").trim(),
+  title: String(p.title ?? p.Title ?? "").trim(),
+  link: String(p.link ?? p.Link ?? "").trim(),
+  image_url: String(p.image_url ?? p.image_url ?? p.Image ?? "").trim(),
+  __idx: idx
+}));
+
 
         annotateAsinKeys(ALL_PRODUCTS);
 
@@ -1142,3 +1144,4 @@
 </script>
 </body>
 </html>
+
