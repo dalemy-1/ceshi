@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Redirecting…</title>
+</head>
+<body>
+<script>
+  // Save full path, then go to home where index.html will restore it.
+  sessionStorage.setItem("__spa_redirect_path__", location.pathname + location.search + location.hash);
+  location.replace("/");
+</script>
+</body>
+</html>
