@@ -12,7 +12,6 @@
     --border:#e5e7eb;
     --text:#111827;
     --muted:#6b7280;
-    --dark:#0f172a;
     --primary:#111827;
     --soft:#f9fafb;
   }
@@ -34,7 +33,6 @@
   .search-input{ min-width:min(420px, 90vw); }
   .wrap{ max-width:1200px; margin:14px auto 26px; padding:0 12px; }
 
-  /* ===== Compliance banner ===== */
   .compliance{
     background:#fff;
     border:1px solid var(--border);
@@ -57,7 +55,6 @@
   .compliance .small{ font-size:12px; color:#4b5563; margin-top:8px; }
   .compliance a{ color:#2563eb; text-decoration:none; }
 
-  /* ===== Status bar ===== */
   .status-bar{
     display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
     margin-top:12px;
@@ -74,7 +71,6 @@
   .btn:hover{ opacity:.92; }
   .btn.secondary{ background:#fff; color:#111827; }
 
-  /* ===== How to choose ===== */
   .howto{
     margin-top:12px;
     background:#fff;
@@ -104,7 +100,6 @@
     line-height:1.6;
   }
 
-  /* ===== Grid ===== */
   .grid{
     margin-top:14px;
     display:grid;
@@ -138,14 +133,14 @@
   }
   .product-image:hover{ transform:scale(1.02); }
 
-  /* ✅ 不展示 ASIN 行（页面隐藏） */
+  /* 你要求：不展示 ASIN 行，但复制仍包含 ASIN */
   .asin{ display:none !important; }
 
-  /* ✅ 自动生成的中立说明 */
-  .product-notes{
+  /* advisor 更短 */
+  .why{
     width:100%;
     max-width:360px;
-    margin-top:6px;
+    margin-top:4px;
     padding:8px 10px;
     background:#f9fafb;
     border:1px solid #e5e7eb;
@@ -154,7 +149,8 @@
     color:#374151;
     line-height:1.55;
   }
-  .product-notes strong{ font-weight:800; }
+  .why strong{ font-weight:800; }
+  .why .subtle{ color:#4b5563; }
 
   .actions{
     width:100%;
@@ -184,7 +180,6 @@
     font-size:14px;
   }
 
-  /* ===== Modal ===== */
   .modal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); padding-top:60px; z-index:999; }
   .modal-inner{
     width:90%; max-width:560px; margin:0 auto;
@@ -201,9 +196,7 @@
     font-weight:900; font-size:14px;
   }
   .contact-btn:hover{ background:#f9fafb; }
-  .mini-hint{
-    margin-top:10px;font-size:12px;color:#6b7280;line-height:1.55;
-  }
+  .mini-hint{ margin-top:10px;font-size:12px;color:#6b7280;line-height:1.55; }
 
   footer{
     margin-top:18px;
@@ -271,7 +264,7 @@
       </div>
       <div class="item">
         <h3>4) Read recent reviews</h3>
-        <p>Focus on recent verified purchase reviews. Pay attention to recurring issues (durability, sizing, missing parts) rather than single outliers.</p>
+        <p>Focus on recent verified purchase reviews. Pay attention to recurring issues rather than single outliers.</p>
       </div>
     </div>
     <div class="note">
@@ -287,7 +280,6 @@
 
 </div>
 
-<!-- Modal: Contact & Copy -->
 <div class="modal" id="contactModal" onclick="closeContactModal(event)">
   <div class="modal-inner" onclick="event.stopPropagation()">
     <span class="close" onclick="closeContactModal(event)">×</span>
@@ -321,7 +313,7 @@
     <div><strong>Links:</strong> “View on Amazon” redirects to Amazon. Amazon may use cookies for tracking qualifying purchases.</div>
     <div style="margin-top:6px;">
       <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a> ·
-      <a href="./terms.html" target="_blank" rel="noopener">Terms of Use</a>
+      <a href="./terms.html" target="_blank" rel="noopener">Terms</a>
     </div>
     <div style="margin-top:6px;">© 2025 ama.omino.top</div>
   </div>
@@ -330,7 +322,6 @@
 <script>
   const PRODUCTS_JSON_PATH = "./products.json";
 
-  // Contact (咨询用：不携带任何 Amazon 链接)
   const WA_PHONE = "8615778673666";
   const TG_USERNAME = "dalemyrong";
   const EMAIL_CONTACT = "info@dalemy.top";
@@ -341,30 +332,111 @@
   let LAST_LOADED_AT = null;
   let CURRENT_CONTACT_PRODUCT = null;
 
+  /* ========= Placeholder (only used after multiple retries) ========= */
+  const PLACEHOLDER_SVG = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+      <defs>
+        <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stop-color="#f3f4f6"/>
+          <stop offset="1" stop-color="#e5e7eb"/>
+        </linearGradient>
+      </defs>
+      <rect width="800" height="800" rx="48" fill="url(#g)"/>
+      <rect x="180" y="220" width="440" height="300" rx="26" fill="#ffffff" stroke="#d1d5db" stroke-width="6"/>
+      <circle cx="280" cy="310" r="34" fill="#e5e7eb"/>
+      <path d="M210 490 L340 360 L430 450 L510 390 L590 490" fill="none" stroke="#d1d5db" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="400" y="590" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="#6b7280">Image unavailable</text>
+      <text x="400" y="640" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#9ca3af">Placeholder</text>
+    </svg>
+  `;
+  const PLACEHOLDER_DATA_URI = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(PLACEHOLDER_SVG);
+
   function currentMarket(){
     return (document.getElementById("countrySelect").value || "US").toUpperCase();
   }
-
   function normalizeUrl(u){
     const s = String(u || "").trim();
     if (!s) return "";
     if (/^https?:\/\//i.test(s)) return s;
     return "";
   }
-
   function escapeHtml(str){
     return String(str)
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
   }
-
   function setStatus(text, meta=""){
     document.getElementById("statusBadge").textContent = text;
     document.getElementById("statusMeta").textContent = meta;
   }
-
   function showEmpty(show){
     document.getElementById("emptyHint").style.display = show ? "block" : "none";
+  }
+
+  /* ========= Image URL resolver (maximize display rate) =========
+     Strategy:
+      1) try direct original
+      2) if page is HTTPS and image is HTTP -> try https upgrade
+      3) if still fails -> try HTTPS proxy (weserv)
+      4) finally -> placeholder
+  */
+  function isHttpsPage(){
+    return String(location.protocol || "").toLowerCase() === "https:";
+  }
+  function upgradeToHttps(url){
+    return String(url || "").replace(/^http:\/\//i, "https://");
+  }
+  function toWeserv(url){
+    // weserv expects url without scheme in most stable form
+    // Example: https://images.weserv.nl/?url=example.com/image.jpg
+    const cleaned = String(url || "").replace(/^https?:\/\//i, "");
+    return "https://images.weserv.nl/?url=" + encodeURIComponent(cleaned);
+  }
+  function initialImageUrl(raw){
+    const u = normalizeUrl(raw);
+    if (!u) return PLACEHOLDER_DATA_URI;
+    // If HTTPS page + HTTP image -> keep original first (some browsers block anyway),
+    // but we will auto retry via onerror to upgraded https and proxy.
+    return u;
+  }
+
+  function onImgError(imgEl){
+    try{
+      if (!imgEl) return;
+      const stage = Number(imgEl.dataset.stage || "0"); // 0 original, 1 https-upgrade, 2 proxy, 3 placeholder
+      const original = String(imgEl.dataset.original || "");
+      if (!original) {
+        imgEl.src = PLACEHOLDER_DATA_URI;
+        return;
+      }
+
+      // Stage 0 -> Stage 1: try https upgrade (most important for your case)
+      if (stage === 0){
+        imgEl.dataset.stage = "1";
+        if (isHttpsPage() && /^http:\/\//i.test(original)){
+          imgEl.src = upgradeToHttps(original);
+          return;
+        }
+        // if already https, go next
+        imgEl.src = toWeserv(original);
+        imgEl.dataset.stage = "2";
+        return;
+      }
+
+      // Stage 1 -> Stage 2: try proxy
+      if (stage === 1){
+        imgEl.dataset.stage = "2";
+        imgEl.src = toWeserv(original);
+        return;
+      }
+
+      // Stage 2 -> Stage 3: placeholder
+      imgEl.dataset.stage = "3";
+      imgEl.src = PLACEHOLDER_DATA_URI;
+      imgEl.removeAttribute("srcset");
+    }catch(e){
+      try{ imgEl.src = PLACEHOLDER_DATA_URI; }catch(_){}
+    }
   }
 
   function fetchProductData(manual=false){
@@ -425,96 +497,147 @@
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
-  /* ===================== Auto Product Notes (neutral) ===================== */
+  /* ========= advisor (short) copy generator ========= */
+
+  function hash32(str){
+    const s = String(str || "");
+    let h = 2166136261;
+    for (let i=0;i<s.length;i++){
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0);
+  }
+  function seededPick(arr, seed, salt){
+    if (!arr || arr.length === 0) return "";
+    const h = hash32(seed + "|" + salt);
+    return arr[h % arr.length];
+  }
+
   function classifyProduct(p){
     const t = String(p?.title || "").toLowerCase();
     const has = (...kw) => kw.some(k => t.includes(k));
 
-    if (has("printer", "filament", "pla", "abs", "3d")) return "3d_printing";
-    if (has("hoodie", "shirt", "t-shirt", "jacket", "sweater", "dress", "cap", "hat", "pants", "shoes", "sock")) return "apparel";
-    if (has("cream", "serum", "lotion", "shampoo", "soap", "skincare", "cosmetic")) return "personal_care";
-    if (has("supplement", "vitamin", "capsule", "tablet")) return "supplements";
-    if (has("charger", "adapter", "usb", "hdmi", "cable", "battery", "router", "camera", "monitor", "keyboard", "mouse", "earbuds", "headphone")) return "electronics";
-    if (has("toy", "game", "kids", "child")) return "kids_toys";
-    if (has("kitchen", "pan", "pot", "knife", "cook", "coffee", "mug")) return "kitchen";
-    if (has("replacement", "refill", "filter", "cartridge", "spare")) return "replacement";
-    if (has("custom", "personalized", "engrave", "print", "your text")) return "customized";
+    if (has("birthday","anniversary","gift","present","decor","lamp","night light","plaque","acrylic","frame","sign","ornament")) return "gift_decor";
+    if (has("tooth","teeth","whitening","mouth","oral","dental","brush","flosser","water flosser")) return "oral_care";
+    if (has("boot","boots","shoe","shoes","sneaker","rain boot","rain boots")) return "footwear";
+    if (has("mouse","mice","rat","rodent","pest","repellent","trap","cat","dog","pet")) return "pet_pest";
+    if (has("hook","hanger","adhesive","mount","bracket","screw","bolt","drill","tool","hardware")) return "hardware";
+    if (has("charger","adapter","usb","hdmi","cable","battery","router","camera","monitor","keyboard","mouse","earbuds","headphone","speaker")) return "electronics";
+    if (has("cream","serum","lotion","shampoo","soap","skincare","cosmetic","deodorant","razor")) return "personal_care";
+    if (has("hoodie","shirt","t-shirt","jacket","sweater","dress","cap","hat","pants","sock")) return "apparel";
+    if (has("kitchen","pan","pot","knife","cook","coffee","mug","bottle","cup","spoon","fork")) return "kitchen";
+    if (has("replacement","refill","filter","cartridge","spare")) return "replacement";
+    if (has("printer","filament","pla","abs","3d")) return "3d_printing";
+
     return "general";
   }
 
-  function buildProductNotes(p){
+  function buildWhyPickedShortAdvisor(p){
+    const title = String(p?.title || "").trim();
+    const asin = String(p?.asin || "").trim();
+    const market = String(p?.market || "").trim().toUpperCase();
+    const seed = (market || "US") + "|" + (asin || title || "x");
     const bucket = classifyProduct(p);
 
-    const base = {
-      head: "Product notes",
-      line3: "On Amazon: review variants, seller, and fulfillment details."
+    const HEADS = ["Why we picked it", "Advisor note", "Quick guidance", "Selection note"];
+
+    const OPENERS = [
+      "Picked for a practical fit rather than hype.",
+      "Selected as a sensible baseline option.",
+      "Chosen for straightforward use and clear selection steps.",
+      "Included for common scenarios where details matter."
+    ];
+
+    const CHECKS_BY_BUCKET = {
+      electronics: [
+        "Check: ports/specs match your device (power, size, standards).",
+        "Check: compatibility notes and required cables/adapters.",
+        "Check: voltage/power requirements and included accessories."
+      ],
+      footwear: [
+        "Check: size chart and fit notes; returns matter for sizing.",
+        "Check: material and intended weather/use conditions.",
+        "Check: measurements and care instructions before checkout."
+      ],
+      gift_decor: [
+        "Check: dimensions, display method, and personalization details.",
+        "Check: what’s included for setup (stand/hardware/parts).",
+        "Check: wording/custom options and return policy for customized items."
+      ],
+      oral_care: [
+        "Check: directions, cautions, and included accessories.",
+        "Check: replacement parts availability and cleaning guidance.",
+        "Check: usage fit for your routine and any sensitivity notes."
+      ],
+      pet_pest: [
+        "Check: placement guidance and safety notes for pets/children.",
+        "Check: coverage area and power/operating mode details.",
+        "Check: realistic expectations and correct use instructions."
+      ],
+      hardware: [
+        "Check: dimensions, surface compatibility, and load guidance.",
+        "Check: install method (adhesive/screws) and required tools.",
+        "Check: spacing/clearance and what’s included."
+      ],
+      kitchen: [
+        "Check: dimensions/capacity and material care instructions.",
+        "Check: compatibility with your cookware/appliance setup.",
+        "Check: what’s included and cleaning guidance."
+      ],
+      replacement: [
+        "Check: exact model/fit compatibility and pack quantity.",
+        "Check: specs/dimensions and replacement interval if listed.",
+        "Check: variant selection at checkout (model/version)."
+      ],
+      personal_care: [
+        "Check: label directions, cautions, and intended use.",
+        "Check: ingredients/notes and personal restrictions.",
+        "Check: quantity/size and storage guidance."
+      ],
+      apparel: [
+        "Check: sizing details, fabric, and care instructions.",
+        "Check: variant selection (size/color) and return policy.",
+        "Check: measurements and fit notes before checkout."
+      ],
+      general: [
+        "Check: size/variant selection and what’s included.",
+        "Check: seller/fulfillment and return policy details on Amazon.",
+        "Check: key specs and the exact variant at checkout."
+      ],
+      "3d_printing": [
+        "Check: filament type/diameter and spool compatibility.",
+        "Check: recommended temps and storage notes if provided.",
+        "Check: printer compatibility and material properties."
+      ]
     };
 
-    const notesByBucket = {
-      electronics: {
-        line1: "Suitable for: everyday use and common setups.",
-        line2: "Check before buying: compatibility (model/region), size, and power requirements."
-      },
-      kitchen: {
-        line1: "Suitable for: home and daily kitchen use.",
-        line2: "Check before buying: dimensions, material, and care instructions."
-      },
-      apparel: {
-        line1: "Suitable for: everyday wear and gifting.",
-        line2: "Check before buying: size chart, color/variant selection, and material."
-      },
-      personal_care: {
-        line1: "Suitable for: personal care routines.",
-        line2: "Check before buying: ingredients, usage directions, and personal sensitivity considerations."
-      },
-      supplements: {
-        line1: "Suitable for: general wellness consideration (if applicable).",
-        line2: "Check before buying: label details, serving size, and any personal restrictions."
-      },
-      kids_toys: {
-        line1: "Suitable for: family use and gifting.",
-        line2: "Check before buying: age suitability, small parts, and safety notes."
-      },
-      replacement: {
-        line1: "Suitable for: regular replacement or refill use.",
-        line2: "Check before buying: model fitment, quantity, and specifications."
-      },
-      customized: {
-        line1: "Suitable for: gifting or personalization needs.",
-        line2: "Check before buying: customization options, variant selection, and return policy."
-      },
-      "3d_printing": {
-        line1: "Suitable for: 3D printing projects and hobby use.",
-        line2: "Check before buying: filament type, diameter, and printer compatibility."
-      },
-      general: {
-        line1: "Suitable for: common use cases depending on your needs.",
-        line2: "Check before buying: key specs, size/fit, and selected variant."
-      }
-    };
+    const FINAL_REMINDERS = [
+      "Tip: verify the exact variant on Amazon before checkout.",
+      "Tip: confirm seller/fulfillment and return terms on Amazon.",
+      "Tip: double-check what’s included and the selected option at checkout."
+    ];
 
-    const pick = notesByBucket[bucket] || notesByBucket.general;
+    const head = seededPick(HEADS, seed, "h");
+    const opener = seededPick(OPENERS, seed, "o");
+    const checks = CHECKS_BY_BUCKET[bucket] || CHECKS_BY_BUCKET.general;
+    const line1 = seededPick(checks, seed, "c1");
+    const line2 = seededPick(FINAL_REMINDERS, seed, "r");
 
-    return {
-      head: base.head,
-      line1: pick.line1,
-      line2: pick.line2,
-      line3: base.line3
-    };
+    return { head, opener, line1, line2 };
   }
 
-  function productNotesHtml(p){
-    const n = buildProductNotes(p);
+  function whyHtml(p){
+    const w = buildWhyPickedShortAdvisor(p);
     return `
-      <div class="product-notes">
-        <strong>${escapeHtml(n.head)}</strong><br>
-        • ${escapeHtml(n.line1)}<br>
-        • ${escapeHtml(n.line2)}<br>
-        • ${escapeHtml(n.line3)}
+      <div class="why">
+        <strong>${escapeHtml(w.head)}</strong><br>
+        <span class="subtle">${escapeHtml(w.opener)}</span><br>
+        • <span class="subtle">${escapeHtml(w.line1)}</span><br>
+        • <span class="subtle">${escapeHtml(w.line2)}</span>
       </div>
     `;
   }
-  /* ===================== Auto Product Notes end ===================== */
 
   function renderGrid(){
     const grid = document.getElementById("productGrid");
@@ -523,7 +646,7 @@
 
     items.forEach(p => {
       const asin = String(p.asin || "").trim();
-      const img  = String(p.image_url || "").trim();
+      const imgRaw  = String(p.image_url || "").trim();
       const link = normalizeUrl(p.link);
 
       const card = document.createElement("div");
@@ -533,21 +656,24 @@
         ? `<a class="btn cta" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer nofollow sponsored">View on Amazon</a>`
         : `<button class="btn cta" onclick="alert('No valid Amazon link for this item.');">View on Amazon</button>`;
 
+      const imgSrc = initialImageUrl(imgRaw);
+
       card.innerHTML = `
         <div class="image-wrap">
-          ${img ? `
-            <img class="product-image" src="${escapeHtml(img)}" alt="${escapeHtml(asin || 'Product')}"
-                 onclick='openProductLink(${encodeProductForOnclick(p)})' />
-          ` : `
-            <div class="product-image" style="display:flex;align-items:center;justify-content:center;color:#6b7280;">
-              No Image
-            </div>
-          `}
+          <img class="product-image"
+               src="${escapeHtml(imgSrc)}"
+               data-original="${escapeHtml(normalizeUrl(imgRaw) || "")}"
+               data-stage="0"
+               alt="${escapeHtml(asin || 'Product')}"
+               loading="lazy"
+               decoding="async"
+               referrerpolicy="no-referrer"
+               onerror="onImgError(this)"
+               onclick='openProductLink(${encodeProductForOnclick(p)})' />
 
-          <!-- ✅ 元素保留但隐藏（CSS display:none），不在页面展示 -->
           <div class="asin" title="${escapeHtml(asin)}">ASIN: ${escapeHtml(asin || "-")}</div>
 
-          ${productNotesHtml(p)}
+          ${whyHtml(p)}
 
           <div class="actions">
             ${viewAmazon}
@@ -584,7 +710,7 @@
     });
   }
 
-  // ✅ 复制仍包含：标题 / ASIN / 国家（不包含链接）
+  // 复制：只要 Title/ASIN/Market（不含任何链接）
   function buildCopyInfo(product){
     const market = String(product.market || "").trim().toUpperCase();
     const asin = String(product.asin || "").trim();
@@ -597,7 +723,6 @@
     return lines.join("\n");
   }
 
-  // ✅ 咨询文本：三项 + 咨询句子（不含任何链接）
   function buildContactText(product){
     const base = buildCopyInfo(product);
     const lines = [];
@@ -644,12 +769,6 @@
   }
 
   function closeContactModal(){
-    document.getElementById("contactModal").style.display = "none";
-    CURRENT_CONTACT_PRODUCT = null;
-  }
-
-  function closeContactModal(event){
-    // allow click backdrop close; keep button close too
     document.getElementById("contactModal").style.display = "none";
     CURRENT_CONTACT_PRODUCT = null;
   }
