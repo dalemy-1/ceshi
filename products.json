@@ -8,13 +8,6 @@
   },
   {
     "market": "US",
-    "asin": "B0FHW4528N",
-    "title": "美国宠物相机",
-    "link": "https://amzn.to/4pyXos6",
-    "image_url": "https://m.media-amazon.com/images/I/61o6vBGyjRL._AC_SX425_.jpg"
-  },
-  {
-    "market": "US",
     "asin": "B0GC4CN5SZ",
     "title": "美国高尔夫球包邮",
     "link": "https://amzn.to/48Xx5Xi",
@@ -190,17 +183,17 @@
   },
   {
     "market": "US",
-    "asin": "B0G4FWMY61",
-    "title": "美国加湿器",
-    "link": "https://amzn.to/4jcWz6m",
-    "image_url": "https://m.media-amazon.com/images/I/610Lr-9JIDL._AC_SL1500_.jpg"
-  },
-  {
-    "market": "US",
     "asin": "B0FLPQQTB6",
     "title": "美国猫蒸汽刷",
     "link": "https://amzn.to/43WQYL8",
     "image_url": "https://m.media-amazon.com/images/I/71GYmXKLg2L._SX679_.jpg"
+  },
+  {
+    "market": "US",
+    "asin": "B0G4FWMY61",
+    "title": "美国加湿器",
+    "link": "https://amzn.to/4jcWz6m",
+    "image_url": "https://m.media-amazon.com/images/I/610Lr-9JIDL._AC_SL1500_.jpg"
   },
   {
     "market": "US",
