@@ -12,6 +12,10 @@
   <meta property="og:title" content="美国沃尔玛监控"/>
   <meta property="og:description" content="Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases."/>
   <meta property="og:url" content="https://ama.omino.top/p/us/1707852068"/>
+
+  <!-- Prefer proxy image for higher crawler success -->
+  <meta property="og:image" content="https://images.weserv.nl/?url=154.48.226.95%3A5001%2Fimage%2F20251017%2Fcacd23219f2f46ae83fc74c7626be498.png"/>
+  <!-- Fallback to direct image -->
   <meta property="og:image" content="http://154.48.226.95:5001/image/20251017/cacd23219f2f46ae83fc74c7626be498.png"/>
   <meta property="og:image:width" content="1200"/>
   <meta property="og:image:height" content="630"/>
@@ -19,15 +23,17 @@
   <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:title" content="美国沃尔玛监控"/>
   <meta name="twitter:description" content="Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases."/>
-  <meta name="twitter:image" content="http://154.48.226.95:5001/image/20251017/cacd23219f2f46ae83fc74c7626be498.png"/>
+  <meta name="twitter:image" content="https://images.weserv.nl/?url=154.48.226.95%3A5001%2Fimage%2F20251017%2Fcacd23219f2f46ae83fc74c7626be498.png"/>
 
-  <!-- optional: reduce indexing noise -->
   <meta name="robots" content="index,follow"/>
-
-  <!-- human users see a clean handoff -->
-  <meta http-equiv="refresh" content="0; url=https://ama.omino.top/?open=%2Fp%2Fus%2F1707852068"/>
 </head>
 <body>
+  <!-- Important: do NOT use meta refresh; redirect via JS for humans only. -->
+  <script>
+    // JS redirect for humans; most preview crawlers do not execute JS.
+    location.replace("https://ama.omino.top/?open=%2Fp%2Fus%2F1707852068");
+  </script>
+
   <noscript>
     <p>Redirecting… <a href="https://ama.omino.top/?open=%2Fp%2Fus%2F1707852068">Open product page</a></p>
   </noscript>

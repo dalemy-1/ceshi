@@ -12,6 +12,10 @@
   <meta property="og:title" content="英国颈部按摩"/>
   <meta property="og:description" content="Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases."/>
   <meta property="og:url" content="https://ama.omino.top/p/uk/B0DPQMN2PD"/>
+
+  <!-- Prefer proxy image for higher crawler success -->
+  <meta property="og:image" content="https://images.weserv.nl/?url=m.media-amazon.com%2Fimages%2FI%2F61MedAMKB%2BL._AC_SX679_.jpg"/>
+  <!-- Fallback to direct image -->
   <meta property="og:image" content="https://m.media-amazon.com/images/I/61MedAMKB+L._AC_SX679_.jpg"/>
   <meta property="og:image:width" content="1200"/>
   <meta property="og:image:height" content="630"/>
@@ -19,15 +23,17 @@
   <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:title" content="英国颈部按摩"/>
   <meta name="twitter:description" content="Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases."/>
-  <meta name="twitter:image" content="https://m.media-amazon.com/images/I/61MedAMKB+L._AC_SX679_.jpg"/>
+  <meta name="twitter:image" content="https://images.weserv.nl/?url=m.media-amazon.com%2Fimages%2FI%2F61MedAMKB%2BL._AC_SX679_.jpg"/>
 
-  <!-- optional: reduce indexing noise -->
   <meta name="robots" content="index,follow"/>
-
-  <!-- human users see a clean handoff -->
-  <meta http-equiv="refresh" content="0; url=https://ama.omino.top/?open=%2Fp%2Fuk%2FB0DPQMN2PD"/>
 </head>
 <body>
+  <!-- Important: do NOT use meta refresh; redirect via JS for humans only. -->
+  <script>
+    // JS redirect for humans; most preview crawlers do not execute JS.
+    location.replace("https://ama.omino.top/?open=%2Fp%2Fuk%2FB0DPQMN2PD");
+  </script>
+
   <noscript>
     <p>Redirecting… <a href="https://ama.omino.top/?open=%2Fp%2Fuk%2FB0DPQMN2PD">Open product page</a></p>
   </noscript>
