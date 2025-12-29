@@ -7,6 +7,20 @@
     "image_url": "https://m.media-amazon.com/images/I/71zBYo6086L._AC_SL1500_.jpg"
   },
   {
+    "market": "FR",
+    "asin": "B0FJDQQM9Q",
+    "title": "法国瘦脸仪",
+    "link": "https://amzn.to/48rZ283",
+    "image_url": "https://m.media-amazon.com/images/I/51N17adb-RL._AC_SY355_.jpg"
+  },
+  {
+    "market": "US",
+    "asin": "B0FYFB9H43",
+    "title": "美国情人节灯",
+    "link": "https://amzn.to/495nP3r",
+    "image_url": "https://m.media-amazon.com/images/I/71zBYo6086L._AC_SL1500_.jpg"
+  },
+  {
     "market": "ES",
     "asin": "B0G2LKPPH4",
     "title": "西班牙驱蚊器",
@@ -469,13 +483,6 @@
     "image_url": "https://m.media-amazon.com/images/I/61t2zAStwHL._AC_SY450_.jpg"
   },
   {
-    "market": "FR",
-    "asin": "B0FJDQQM9Q",
-    "title": "法国瘦脸仪",
-    "link": "https://amzn.to/48rZ283",
-    "image_url": "https://m.media-amazon.com/images/I/51N17adb-RL._AC_SY355_.jpg"
-  },
-  {
     "market": "US",
     "asin": "B0FSZ8S6G6",
     "title": "美国椅垫图评",
@@ -719,13 +726,6 @@
     "title": "美国大理石礼品袋",
     "link": "https://amzn.to/4aevHQO",
     "image_url": "https://m.media-amazon.com/images/I/71e2WhAYuGL._AC_SL1500_.jpg"
-  },
-  {
-    "market": "DE",
-    "asin": "B0FLCPY45R",
-    "title": "德国挂钩免评feedback",
-    "link": "https://amzn.to/3Xng02f",
-    "image_url": "https://m.media-amazon.com/images/I/61v06M28f-L._AC_SY879_.jpg"
   },
   {
     "market": "US",
