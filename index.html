@@ -305,7 +305,7 @@
       We do not sell products directly and do not process orders or payments.
     </p>
     <div class="hint">
-      Need help identifying an item? Use <strong>Contact / Copy</strong> to copy ASIN / Market and reach us for general assistance.
+      Need help identifying an item? Use <strong>Contact / Copy</strong> to copy Title / ASIN / Market and reach us for general assistance.
       See <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a> and <a href="./terms.html" target="_blank" rel="noopener">Terms</a>.
     </div>
   </section>
@@ -368,7 +368,7 @@
 
     <h3 style="margin:0 0 10px 0;">Contact & Copy</h3>
     <div style="font-size:13px;color:#6b7280;margin-bottom:8px;">
-      Copy only ASIN / Market. Contact buttons are for consultation and do not include Amazon links.
+      Copy only Title / ASIN / Market. Contact buttons are for consultation and do not include Amazon links.
     </div>
 
     <div id="contactPreview"
@@ -407,23 +407,58 @@
      Root has products.json. */
   const PRODUCTS_JSON_PATH = "/products.json";
 
-  // NEW: archive fallback for delisted products (product pages keep working)
-  const ARCHIVE_JSON_PATH = "/archive.json";
-
   const WA_PHONE = "8615778673666";
   const TG_USERNAME = "dalemyrong";
   const EMAIL_CONTACT = "info@dalemy.top";
 
   const AUTO_REFRESH_MS = 60 * 1000;
 
-  let ALL_PRODUCTS = [];
-  let ARCHIVE_PRODUCTS = [];
-  let LAST_LOADED_AT = null;
-  let ARCHIVE_LOADED_AT = null;
+  // === IP Geo (best-effort) ===
+  // Purpose: suggest a default Market based on user's IP country.
+  // Behavior: only runs when user has not manually selected a Market before.
+  // Fallback: US on any error/timeout/unknown country.
+  const GEO_API = "https://ipapi.co/json/"; // You may replace with another provider you trust
+  const GEO_TIMEOUT_MS = 1800;
 
+  // ISO country code -> site Market
+  // Note: United Kingdom is GB, not UK.
+  const COUNTRY_TO_MARKET = {
+    US: "US",
+    CA: "CA",
+    GB: "UK",
+    DE: "DE",
+    FR: "FR",
+    IT: "IT",
+    ES: "ES",
+    JP: "JP"
+  };
+
+  function withTimeout(promise, ms){
+    return new Promise((resolve, reject) => {
+      const t = setTimeout(() => reject(new Error("timeout")), ms);
+      promise.then(
+        v => { clearTimeout(t); resolve(v); },
+        e => { clearTimeout(t); reject(e); }
+      );
+    });
+  }
+
+  async function detectMarketFromIP(){
+    try{
+      const res = await withTimeout(fetch(GEO_API, { cache: "no-store" }), GEO_TIMEOUT_MS);
+      if (!res.ok) throw new Error("geo http " + res.status);
+      const data = await res.json();
+      const cc = String(data.country_code || data.country || "").toUpperCase().trim();
+      return COUNTRY_TO_MARKET[cc] || "US";
+    }catch(e){
+      return "US";
+    }
+  }
+
+  let ALL_PRODUCTS = [];
+  let LAST_LOADED_AT = null;
   let CURRENT_CONTACT_PRODUCT = null;
   let LAST_LOAD_ERROR = "";
-  let ARCHIVE_LOAD_ERROR = "";
   let IS_LOADING = false;
 
   const PLACEHOLDER_SVG = `
@@ -642,7 +677,7 @@
           asin: String(p.asin ?? p.ASIN ?? "").trim(),
           title: String(p.title ?? p.Title ?? "").trim(),
           link: String(p.link ?? p.Link ?? "").trim(),
-          image_url: String(p.image_url ?? p.imageUrl ?? p.image ?? p.Image ?? "").trim(),
+          image_url: String(p.image_url ?? p.image_url ?? p.image ?? p.Image ?? "").trim(),
           __idx: idx
         }));
 
@@ -657,29 +692,6 @@
           const visible = getVisibleProducts().length;
           setStatus("Loaded", `${visible}/${ALL_PRODUCTS.length} visible · ${currentMarket()} · ${LAST_LOADED_AT.toLocaleString()}`);
         }
-
-        // Non-blocking: load archive.json for product-page fallback (delisted products)
-        const aurl = ARCHIVE_JSON_PATH + "?ts=" + Date.now();
-        ARCHIVE_LOAD_ERROR = "";
-        fetch(aurl, { cache:"no-store" })
-          .then(r => r.ok ? r.json() : [])
-          .then(a => {
-            if (!Array.isArray(a)) return;
-            ARCHIVE_PRODUCTS = a.map((p, idx) => ({
-              market: String(p.market ?? p.Market ?? p.MARKET ?? "").trim().toUpperCase(),
-              asin: String(p.asin ?? p.ASIN ?? "").trim(),
-              title: String(p.title ?? p.Title ?? "").trim(),
-              link: String(p.link ?? p.Link ?? "").trim(),
-              image_url: String(p.image_url ?? p.imageUrl ?? p.image ?? p.Image ?? "").trim(),
-              __idx: idx
-            }));
-            annotateAsinKeys(ARCHIVE_PRODUCTS);
-            ARCHIVE_LOADED_AT = new Date();
-          })
-          .catch(e => {
-            ARCHIVE_LOAD_ERROR = e?.message || String(e);
-            ARCHIVE_PRODUCTS = [];
-          });
       })
       .catch(err => {
         console.error(err);
@@ -912,15 +924,7 @@
         renderProductLoading(route);
         return;
       }
-
-      // First try active list
-      let prod = findProductByRoute(ALL_PRODUCTS, route.market, route.key);
-
-      // Fallback to archive list for delisted products
-      if (!prod && ARCHIVE_PRODUCTS && ARCHIVE_PRODUCTS.length){
-        prod = findProductByRoute(ARCHIVE_PRODUCTS, route.market, route.key);
-      }
-
+      const prod = findProductByRoute(ALL_PRODUCTS, route.market, route.key);
       if (!prod){
         renderNotFound(route);
         return;
@@ -960,13 +964,13 @@
 
     const market = normalizeMarket(marketRaw);
     const asinKey = String(keyRaw || p.__asinKey || "").trim();
+    const title = String(p.title || "").trim();
     const link = normalizeUrl(p.link);
     const imgRaw = String(p.image_url || "").trim();
     const imgSrc = initialImageUrl(imgRaw);
     const pageLink = buildProductPermalink(market.toLowerCase(), asinKey);
 
-    // IMPORTANT: do NOT use product title in page title
-    document.title = `${market} • ${asinKey} • Product Reference`;
+    document.title = `${title || asinKey} • ${market} • Product Reference`;
 
     const viewAmazon = link
       ? `<a class="btn cta" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer nofollow sponsored">View on Amazon</a>`
@@ -977,8 +981,7 @@
       <div class="detail-wrap">
         <div class="detail-top">
           <div class="detail-head">
-            <!-- IMPORTANT: do NOT display product title -->
-            <p class="detail-title">Product Reference</p>
+            <p class="detail-title">${escapeHtml(title || "Product Reference")}</p>
             <p class="detail-sub">Market: <b>${escapeHtml(market)}</b> · Page key: <b>${escapeHtml(asinKey)}</b></p>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -1090,12 +1093,13 @@
     });
   }
 
-  // IMPORTANT: Copy only ASIN + Market (no title)
   function buildCopyInfo(product){
     const market = String(product.market || "").trim().toUpperCase();
     const asin = String(product.asin || "").trim();
+    const title = String(product.title || "").trim();
 
     const lines = [];
+    if (title) lines.push(title);
     if (asin) lines.push(`ASIN: ${asin}`);
     if (market) lines.push(`Market: ${market}`);
     return lines.join("\n");
@@ -1159,20 +1163,31 @@
 
   window.addEventListener("popstate", () => renderByRoute());
 
-  window.onload = function(){
+  window.onload = async function(){
     restoreSpaPathIfAny();
 
-    // support ?open=/p/uk/B0G1Y9WTDL
-    try{
-      const u = new URL(location.href);
-      const openPath = u.searchParams.get("open");
-      if (openPath && /^\/p\//i.test(openPath)){
-        history.replaceState(null, "", openPath);
-      }
-    }catch(e){}
+  // support ?open=/p/uk/B0G1Y9WTDL  (from preview redirect pages)
+try{
+  const u = new URL(location.href);
+  const openPath = (u.searchParams.get("open") || "").trim();
+
+  // only allow internal /p/... route
+  if (openPath && /^\/p\//i.test(openPath)) {
+    // remove ?open= from the URL, then move SPA route to /p/...
+    history.replaceState(null, "", openPath);
+  }
+}catch(e){}
 
     const saved = localStorage.getItem("selectedCountry");
-    if (saved) document.getElementById("countrySelect").value = saved;
+
+    if (saved){
+      document.getElementById("countrySelect").value = saved;
+    }else{
+      // Only infer by IP when user has never chosen a market before
+      const guessed = await detectMarketFromIP();
+      document.getElementById("countrySelect").value = guessed;
+      localStorage.setItem("selectedCountry", guessed);
+    }
 
     // Render immediately (so /p/... shows "Loading" instead of "Not found")
     renderByRoute();
