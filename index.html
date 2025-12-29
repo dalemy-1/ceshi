@@ -1124,6 +1124,18 @@
   window.onload = function(){
     restoreSpaPathIfAny();
 
+  // support ?open=/p/uk/B0G1Y9WTDL  (from preview redirect pages)
+try{
+  const u = new URL(location.href);
+  const openPath = (u.searchParams.get("open") || "").trim();
+
+  // only allow internal /p/... route
+  if (openPath && /^\/p\//i.test(openPath)) {
+    // remove ?open= from the URL, then move SPA route to /p/...
+    history.replaceState(null, "", openPath);
+  }
+}catch(e){}
+
     const saved = localStorage.getItem("selectedCountry");
     if (saved) document.getElementById("countrySelect").value = saved;
 
@@ -1136,3 +1148,4 @@
 </script>
 </body>
 </html>
+
