@@ -1,38 +1,30 @@
+// tools/generate_product_pages.mjs
+// Generate static preview pages with OG tags for WhatsApp/Telegram link previews.
+// Output: /p/{marketLower}/{asinKey}/index.html
+// Data source: /products.json (root)
+// Key improvements:
+// 1) No meta refresh (some crawlers stop parsing).
+// 2) og:image uses a stable proxy (weserv) + direct image fallback.
+
 import fs from "fs";
 import path from "path";
 
 const ROOT = process.cwd();
 
-// 你的站点域名（GitHub Pages 自定义域名就是这个）
+// Your public site origin (custom domain for GitHub Pages)
 const SITE_ORIGIN = "https://ama.omino.top";
 
-// products.json 路径（仓库根）
+// Input data file
 const PRODUCTS_JSON = path.join(ROOT, "products.json");
 
-// 输出目录：在仓库内生成 /p/...
+// Output root folder under repository root
 const OUT_DIR = path.join(ROOT, "p");
 
-// 读取 products.json
-if (!fs.existsSync(PRODUCTS_JSON)) {
-  console.error("Missing products.json at:", PRODUCTS_JSON);
-  process.exit(1);
-}
-const raw = fs.readFileSync(PRODUCTS_JSON, "utf-8");
-let items = [];
-try {
-  items = JSON.parse(raw);
-} catch (e) {
-  console.error("products.json parse error:", e);
-  process.exit(1);
-}
-if (!Array.isArray(items)) {
-  console.error("products.json must be an array");
-  process.exit(1);
-}
-
+// ===== Helpers =====
 function safeText(s) {
   return String(s ?? "").trim();
 }
+
 function escHtml(s) {
   return String(s ?? "")
     .replaceAll("&", "&amp;")
@@ -40,12 +32,15 @@ function escHtml(s) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 }
+
 function normalizeMarket(m) {
   return safeText(m).toUpperCase();
 }
+
 function normalizeAsin(a) {
   return safeText(a).toUpperCase();
 }
+
 function ensureAbsUrl(u) {
   const s = safeText(u);
   if (!s) return "";
@@ -53,35 +48,51 @@ function ensureAbsUrl(u) {
   return "";
 }
 
-// 处理重复 ASIN：同 market + asin 出现多次 => asinKey = ASIN / ASIN_1 / ASIN_2
-const counter = new Map();
-function buildAsinKey(market, asin) {
-  const key = `${market}|${asin}`;
-  const n = counter.get(key) || 0;
-  counter.set(key, n + 1);
-  return n === 0 ? asin : `${asin}_${n}`;
+function toWeserv(url) {
+  // weserv requires URL without protocol for best compatibility
+  const cleaned = String(url || "").replace(/^https?:\/\//i, "");
+  return "https://images.weserv.nl/?url=" + encodeURIComponent(cleaned);
+}
+
+function ensureDir(p) {
+  fs.mkdirSync(p, { recursive: true });
 }
 
 function buildPageUrl(marketLower, asinKey) {
   return `${SITE_ORIGIN}/p/${marketLower}/${encodeURIComponent(asinKey)}`;
 }
 
-// 生成静态 HTML：关键是 OG 标签（WhatsApp/Telegram 只看 head）
+function buildOpenUrl(marketLower, asinKey) {
+  // We will redirect humans to the SPA which understands /p/... route
+  // Your index.html already added support for ?open=...
+  const openPath = `/p/${marketLower}/${asinKey}`;
+  return `${SITE_ORIGIN}/?open=${encodeURIComponent(openPath)}`;
+}
+
+// ===== Duplicate ASIN handling =====
+// Same market + same asin may appear multiple times -> ASIN, ASIN_1, ASIN_2...
+const counter = new Map();
+function buildAsinKey(market, asin) {
+  const k = `${market}|${asin}`;
+  const n = counter.get(k) || 0;
+  counter.set(k, n + 1);
+  return n === 0 ? asin : `${asin}_${n}`;
+}
+
+// ===== HTML builder =====
 function buildHtml({ market, marketLower, asinKey, asin, title, imageUrl }) {
   const pageUrl = buildPageUrl(marketLower, asinKey);
+  const openUrl = buildOpenUrl(marketLower, asinKey);
 
   const ogTitle = title ? title : `ASIN ${asin}`;
   const ogDesc =
     "Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases.";
 
-  // 尽量用高分辨率图：你 products.json 是 m.media-amazon.com，通常可用
-  const ogImage = imageUrl;
-
-  // 你可以选择：让页面直接跳转到你主站 SPA 详情（这样视觉保持一致）
-  // 但注意：爬虫只抓这里的 OG，跳转不影响预览生成
-  const redirectTo = `${SITE_ORIGIN}/?open=${encodeURIComponent(
-    `/p/${marketLower}/${asinKey}`
-  )}`;
+  // Improve preview reliability:
+  // - Use image proxy first (Telegram/WhatsApp crawlers often fail on Amazon CDN)
+  // - Keep direct image as fallback
+  const ogImageProxy = toWeserv(imageUrl);
+  const ogImageDirect = imageUrl;
 
   return `<!doctype html>
 <html lang="en">
@@ -97,50 +108,74 @@ function buildHtml({ market, marketLower, asinKey, asin, title, imageUrl }) {
   <meta property="og:title" content="${escHtml(ogTitle)}"/>
   <meta property="og:description" content="${escHtml(ogDesc)}"/>
   <meta property="og:url" content="${escHtml(pageUrl)}"/>
-  <meta property="og:image" content="${escHtml(ogImage)}"/>
+
+  <!-- Prefer proxy image for higher crawler success -->
+  <meta property="og:image" content="${escHtml(ogImageProxy)}"/>
+  <!-- Fallback to direct image -->
+  <meta property="og:image" content="${escHtml(ogImageDirect)}"/>
   <meta property="og:image:width" content="1200"/>
   <meta property="og:image:height" content="630"/>
 
   <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:title" content="${escHtml(ogTitle)}"/>
   <meta name="twitter:description" content="${escHtml(ogDesc)}"/>
-  <meta name="twitter:image" content="${escHtml(ogImage)}"/>
+  <meta name="twitter:image" content="${escHtml(ogImageProxy)}"/>
 
-  <!-- optional: reduce indexing noise -->
   <meta name="robots" content="index,follow"/>
-
-  <!-- human users see a clean handoff -->
-  <meta http-equiv="refresh" content="0; url=${escHtml(redirectTo)}"/>
 </head>
 <body>
+  <!-- Important: do NOT use meta refresh; redirect via JS for humans only. -->
+  <script>
+    // JS redirect for humans; most preview crawlers do not execute JS.
+    location.replace(${JSON.stringify(openUrl)});
+  </script>
+
   <noscript>
-    <p>Redirecting… <a href="${escHtml(redirectTo)}">Open product page</a></p>
+    <p>Redirecting… <a href="${escHtml(openUrl)}">Open product page</a></p>
   </noscript>
 </body>
 </html>`;
 }
 
-function ensureDir(p) {
-  fs.mkdirSync(p, { recursive: true });
+// ===== Main =====
+if (!fs.existsSync(PRODUCTS_JSON)) {
+  console.error("Missing products.json at:", PRODUCTS_JSON);
+  process.exit(1);
 }
 
-// 清理旧输出（可选：避免删除你手工文件的话可注释掉）
+let items = [];
+try {
+  items = JSON.parse(fs.readFileSync(PRODUCTS_JSON, "utf-8"));
+} catch (e) {
+  console.error("products.json parse error:", e);
+  process.exit(1);
+}
+
+if (!Array.isArray(items)) {
+  console.error("products.json must be an array");
+  process.exit(1);
+}
+
+// Optional: clean old outputs to avoid stale pages
 if (fs.existsSync(OUT_DIR)) {
-  // 只清理 OUT_DIR 下内容
   fs.rmSync(OUT_DIR, { recursive: true, force: true });
 }
 ensureDir(OUT_DIR);
 
-// 生成
 let count = 0;
-for (const it of items) {
-  const market = normalizeMarket(it.market || it.Market || it.MARKET);
-  const asin = normalizeAsin(it.asin || it.ASIN);
-  const title = safeText(it.title || it.Title);
-  const imageUrl = ensureAbsUrl(it.image_url || it.imageUrl || it.image || it.Image);
+let skipped = 0;
 
-  // 必要字段检查
-  if (!market || !asin || !imageUrl) continue;
+for (const it of items) {
+  const market = normalizeMarket(it.market ?? it.Market ?? it.MARKET);
+  const asin = normalizeAsin(it.asin ?? it.ASIN);
+  const title = safeText(it.title ?? it.Title);
+  const imageUrl = ensureAbsUrl(it.image_url ?? it.imageUrl ?? it.image ?? it.Image);
+
+  // Required fields for previews: market + asin + image_url
+  if (!market || !asin || !imageUrl) {
+    skipped++;
+    continue;
+  }
 
   const marketLower = market.toLowerCase();
   const asinKey = buildAsinKey(market, asin);
@@ -155,3 +190,4 @@ for (const it of items) {
 }
 
 console.log(`Generated ${count} product preview pages under /p`);
+if (skipped) console.log(`Skipped ${skipped} items missing market/asin/image_url`);
