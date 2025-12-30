@@ -3,30 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Redirecting...</title>
-  <meta http-equiv="refresh" content="0; url=/" />
+  <title>Opening…</title>
 </head>
 <body>
 <script>
 (function () {
   var p = location.pathname || "/";
-  // 统一去掉结尾 /
   if (p.length > 1 && p.endsWith("/")) p = p.slice(0, -1);
 
-  // 兼容 /p/us/B07... 这种独立页路径
-  // 规则：/p/{market}/{asin}
+  // /p/us/B07J43CWC3  ->  /product.html?market=US&asin=B07J43CWC3
   var m = p.match(/^\/p\/([a-zA-Z]{2})\/([A-Za-z0-9]{10})$/);
   if (m) {
     var market = m[1].toUpperCase();
     var asin = m[2].toUpperCase();
-    // 跳到你的独立页模板，并用 query 传参
     location.replace("/product.html?market=" + encodeURIComponent(market) + "&asin=" + encodeURIComponent(asin));
     return;
   }
 
-  // 其它未知路径：回首页，并保留原路径（可选）
-  // 如果你首页支持 open=xxx 的打开逻辑，也可以改成： "/?open=" + encodeURIComponent(p + location.search + location.hash)
-  location.replace("/?from404=" + encodeURIComponent(p));
+  // 其他未知路径回首页
+  location.replace("/");
 })();
 </script>
 </body>
