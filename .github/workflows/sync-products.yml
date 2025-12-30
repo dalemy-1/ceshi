@@ -1,20 +1,25 @@
-name: Sync products.json from CSV (every 5 min)
+name: Sync products.json from CSV (every 1 min)
 
 on:
-  workflow_dispatch:
+  # 每分钟跑一次（方案 2C）
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/1 * * * *"
 
-permissions:
-  contents: write
+  # 保留手动触发（方便你测试）
+  workflow_dispatch: {}
 
+# 防止上一次还没跑完就又排队：只保留最新一次
 concurrency:
   group: sync-products
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,24 +29,67 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 20
 
-      - name: Sync from CSV -> products.json
+      # （可选）加速：如果你有 package-lock.json / pnpm-lock.yaml 可自行加缓存
+      # - name: Cache node_modules
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ~/.npm
+      #     key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+
+      - name: Run sync script (export_csv -> products.json)
         env:
-          CSV_URL: "http://154.48.226.95:5001/admin/Product/export_csv"
+          EXPORT_CSV_URL: "http://154.48.226.95:5001/admin/Product/export_csv"
         run: |
-          node scripts/sync_from_csv.mjs
+          set -e
+          node -v
+          # 你的同步脚本（按你仓库结构：scripts/sync-products.mjs）
+          # 如果你实际脚本名称不同，就改下面这一行
+          node scripts/sync-products.mjs
 
-      - name: Commit changes (only if changed)
+      - name: Detect changes
+        id: diff
+        run: |
+          # 只要 products.json / products.csv / archive.json 有变化才提交
+          git status --porcelain
+          if git diff --quiet -- products.json products.csv archive.json 2>/dev/null; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit & push if changed
+        if: steps.diff.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet; then
-            echo "No changes."
+          git add products.json products.csv archive.json || true
+
+          # 避免空提交
+          if git diff --cached --quiet; then
+            echo "No staged changes."
             exit 0
           fi
 
-          git add -A
-          git commit -m "chore: sync products.json"
+          git commit -m "chore: sync products" || true
+          git push
+
+      # 触发“生成预览页”的 workflow（如果你另一个 workflow 支持 workflow_run，就可省略）
+      # 这里直接在同一个 job 里生成，能减少等待（更新更快）
+      - name: Generate product preview pages
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          node tools/generate_product_pages.mjs
+
+          # 如果生成的静态页在 /p 目录，提交它
+          git add p || true
+
+          if git diff --cached --quiet; then
+            echo "No preview pages changes."
+            exit 0
+          fi
+
+          git commit -m "chore: generate product preview pages" || true
           git push
