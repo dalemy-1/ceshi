@@ -9,19 +9,23 @@
 <script>
 (function () {
   var p = location.pathname || "/";
+  // 去掉结尾 /
   if (p.length > 1 && p.endsWith("/")) p = p.slice(0, -1);
 
-  // /p/us/B07J43CWC3  ->  /product.html?market=US&asin=B07J43CWC3
-  var m = p.match(/^\/p\/([a-zA-Z]{2})\/([A-Za-z0-9]{10})$/);
-  if (m) {
-    var market = m[1].toUpperCase();
-    var asin = m[2].toUpperCase();
+  // 兼容大小写：/p/us/B07... 或 /P/US/B07...
+  var mm = p.match(/^\/p\/([a-zA-Z]{2})\/([A-Za-z0-9]{10})$/i);
+  if (mm) {
+    var market = (mm[1] || "").toUpperCase();
+    var asin = (mm[2] || "").toUpperCase();
+
+    // 关键：把伪路由转到真正的独立页模板（展示用，不跳亚马逊）
+    // 你的独立页模板是 product.html（截图同款），它应能读取 market/asin 并渲染
     location.replace("/product.html?market=" + encodeURIComponent(market) + "&asin=" + encodeURIComponent(asin));
     return;
   }
 
-  // 其他未知路径回首页
-  location.replace("/");
+  // 其他未知路径：回首页
+  location.replace("/index.html");
 })();
 </script>
 </body>
