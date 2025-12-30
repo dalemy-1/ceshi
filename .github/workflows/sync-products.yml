@@ -32,7 +32,7 @@ jobs:
           CSV_URL: "http://154.48.226.95:5001/admin/Product/export_csv"
         run: |
           echo "[workflow] CSV_URL=$CSV_URL"
-          node scripts/sync_from_csv.mjs
+          node scripts/sync_products.mjs
 
       # 2) Generate white UI /p pages (NO redirect to /?open=)
       - name: Generate /p pages
