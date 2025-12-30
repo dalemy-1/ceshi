@@ -54,11 +54,11 @@ jobs:
           fi
 
       # 关键：把本地文件路径传给脚本（你需要让脚本支持 CSV_FILE；下一步我给你脚本最终版）
-      - name: Sync from CSV file -> products.json
-        env:
-          CSV_FILE: "export.csv"
-        run: |
-          node scripts/sync_products.mjs
+      - name: Sync from CSV -> products.json
+  env:
+    CSV_URL: "http://154.48.226.95:5001/admin/Product/export_csv"
+  run: |
+    node scripts/sync_products.mjs
 
       - name: Commit changes (only if changed)
         run: |
