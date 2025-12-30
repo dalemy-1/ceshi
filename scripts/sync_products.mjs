@@ -10,6 +10,9 @@
 // Optional env:
 //   SITE_ORIGIN=https://ama.omino.top   (used for /p page generation)
 //   OUT_DIR=./p                         (defaults to ./p)
+//
+// Optional debug env:
+//   DEBUG_ASIN=B0FCSFYFSD               (prints matched CSV rows + final classification)
 
 import fs from "fs";
 import path from "path";
@@ -24,6 +27,7 @@ if (!CSV_URL) {
 
 const SITE_ORIGIN = (process.env.SITE_ORIGIN || "https://ama.omino.top").replace(/\/+$/, "");
 const OUT_DIR = (process.env.OUT_DIR || "./p").trim();
+const DEBUG_ASIN = (process.env.DEBUG_ASIN || "B0FCSFYFSD").trim().toUpperCase(); // 默认帮你查这个
 
 // ================== PATHS ==================
 const ROOT = process.cwd();
@@ -147,11 +151,59 @@ function mapRow(headers, cells) {
   return obj;
 }
 
+// ✅ 更强的 status 解析：兼容大写/中文/数字
 function isActiveStatus(v) {
   const s = norm(v).toLowerCase();
-  if (!s) return true; // CSV 未填 status => 默认上架
-  return ["1", "true", "yes", "on", "active", "enabled", "publish", "published", "online"].includes(s);
+  if (!s) return true; // 空 => 默认上架
+
+  const activeSet = new Set([
+    "1",
+    "true",
+    "yes",
+    "y",
+    "on",
+    "active",
+    "enabled",
+    "publish",
+    "published",
+    "online",
+    "up",
+    "instock",
+    "in_stock",
+    "上架",
+    "在售",
+    "上线",
+    "启用",
+  ]);
+
+  const inactiveSet = new Set([
+    "0",
+    "false",
+    "no",
+    "n",
+    "off",
+    "inactive",
+    "disabled",
+    "unpublish",
+    "unpublished",
+    "offline",
+    "oos",
+    "out_of_stock",
+    "下架",
+    "停售",
+    "停用",
+  ]);
+
+  if (activeSet.has(s)) return true;
+  if (inactiveSet.has(s)) return false;
+
+  // 兜底：纯数字且不为 0 => 上架
+  if (/^\d+$/.test(s)) return s !== "0";
+
+  // 未知值：更保守，视作下架（避免误上架）
+  return false;
 }
+
 function isAllDigits(s) {
   const x = norm(s);
   return x !== "" && /^[0-9]+$/.test(x);
@@ -432,6 +484,27 @@ function generatePPages(activeList, archiveList) {
   console.log("[sync] headers =", headers.join(" | "));
   console.log("[sync] data rows =", dataRows.length);
 
+  // ===== debug: check one asin in CSV =====
+  if (DEBUG_ASIN) {
+    let hit = 0;
+    for (const r of dataRows) {
+      const o = mapRow(headers, r);
+      const asin0 = normalizeAsin(o.asin || o.ASIN);
+      if (asin0 === DEBUG_ASIN) {
+        hit++;
+        console.log("[debug] found asin row:", JSON.stringify({
+          market: o.market,
+          asin: o.asin,
+          status: o.status,
+          title: o.title,
+          link: o.link,
+          image_url: o.image_url
+        }).slice(0, 800));
+      }
+    }
+    console.log("[debug] asin hit count =", hit, "asin =", DEBUG_ASIN);
+  }
+
   const prevProducts = Array.isArray(safeReadJson(PRODUCTS_PATH, [])) ? safeReadJson(PRODUCTS_PATH, []) : [];
   const prevArchive = Array.isArray(safeReadJson(ARCHIVE_PATH, [])) ? safeReadJson(ARCHIVE_PATH, []) : [];
 
@@ -443,6 +516,8 @@ function generatePPages(activeList, archiveList) {
 
   // Build new active list from CSV (source of truth)
   const nextProducts = [];
+  let dbgClassified = { active: 0, archived_inactive: 0, archived_nonamazon: 0 };
+
   for (const r of dataRows) {
     const o = mapRow(headers, r);
 
@@ -450,7 +525,6 @@ function generatePPages(activeList, archiveList) {
     const asin = normalizeAsin(o.asin || o.ASIN);
     if (!market || !asin) continue;
 
-    // 统一只声明一次，避免重复 const
     const title = norm(o.title || o.Title || "");
     const link = normalizeUrl(o.link || o.Link);
     const image_url = norm(o.image_url || o.image || o.Image || o.imageUrl || "");
@@ -460,6 +534,7 @@ function generatePPages(activeList, archiveList) {
       const nonAmazonItem = { market, asin, title, link, image_url, _hidden_reason: "non_amazon_numeric_asin" };
       const k = keyOf(nonAmazonItem);
       if (!archiveMap.has(k)) archiveMap.set(k, nonAmazonItem);
+      if (asin === DEBUG_ASIN) dbgClassified.archived_nonamazon++;
       continue;
     }
 
@@ -469,11 +544,17 @@ function generatePPages(activeList, archiveList) {
       const archivedItem = { market, asin, title, link, image_url, _hidden_reason: "inactive_status" };
       const k = keyOf(archivedItem);
       if (!archiveMap.has(k)) archiveMap.set(k, archivedItem);
+      if (asin === DEBUG_ASIN) dbgClassified.archived_inactive++;
       continue;
     }
 
     // 正常上架：进 products
     nextProducts.push({ market, asin, title, link, image_url });
+    if (asin === DEBUG_ASIN) dbgClassified.active++;
+  }
+
+  if (DEBUG_ASIN) {
+    console.log("[debug] classification for", DEBUG_ASIN, dbgClassified);
   }
 
   nextProducts.sort((a, b) => {
