@@ -1,33 +1,47 @@
-name: Sync products from CSV
+name: Sync products.json from CSV (every 5 min)
 
 on:
+  workflow_dispatch:
   schedule:
-    - cron: "*/1 * * * *"   # 每 1 分钟执行一次（可改成 */2、*/5）
-  workflow_dispatch:        # 允许手动触发
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-products
+  cancel-in-progress: true
 
 jobs:
   sync:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "20"
 
-      - name: Install deps
-        run: npm install csv-parse@5 node-fetch@3
-
-      - name: Fetch CSV and convert to products.json
-        run: node scripts/csv_to_products.js
-
-      - name: Commit changes if any
+      - name: Sync from CSV -> products.json
+        env:
+          CSV_URL: "http://154.48.226.95:5001/admin/Product/export_csv"
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add products.json
-          git diff --cached --quiet || git commit -m "chore: sync products.json"
+          node scripts/sync_from_csv.mjs
+
+      - name: Commit changes (only if changed)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet; then
+            echo "No changes."
+            exit 0
+          fi
+
+          git add -A
+          git commit -m "chore: sync products.json"
           git push
