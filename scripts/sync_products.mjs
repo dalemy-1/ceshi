@@ -3,7 +3,7 @@
 // 1) Fetch CSV from CSV_URL (source of truth)
 // 2) Rebuild products.json + archive.json
 // 3) Generate /p/{market}/{asin}/index.html pages (stable share URLs -> redirect to SPA)
-// 4) NEW: Download OG images to /og/{market}/{asin}.(jpg|png) for WhatsApp previews (no weserv)
+// 4) Download OG images to /og/{market}/{asin}.(jpg|png|webp) for WhatsApp previews (no weserv)
 
 import fs from "fs";
 import path from "path";
@@ -46,7 +46,7 @@ const OUT_DIR = (() => {
   return "p";
 })();
 
-// NEW: OG image output dir at site root
+// OG image output dir at site root
 const OG_DIR = "og"; // relative to SITE_DIR
 const OG_PLACEHOLDER = `${SITE_ORIGIN}/og-placeholder.jpg`;
 
@@ -63,7 +63,9 @@ function normalizeUrl(v) {
   return "";
 }
 
-function safeHttps(url) { return norm(url).replace(/^http:\/\//i, "https://"); }
+function safeHttps(url) {
+  return norm(url).replace(/^http:\/\//i, "https://");
+}
 
 function safeReadJson(file, fallback) {
   try {
@@ -81,7 +83,9 @@ function writeJsonPretty(file, obj) {
   fs.writeFileSync(file, json, "utf8");
 }
 
-function ensureDir(p) { fs.mkdirSync(p, { recursive: true }); }
+function ensureDir(p) {
+  fs.mkdirSync(p, { recursive: true });
+}
 
 function escapeHtml(str) {
   return String(str ?? "")
@@ -204,50 +208,68 @@ async function fetchText(url) {
   return await res.text();
 }
 
-// ================== OG IMAGE DOWNLOADER (NEW) ==================
+// ================== OG IMAGE DOWNLOADER ==================
 function guessExtFromContentType(ct) {
   const s = String(ct || "").toLowerCase();
   if (s.includes("image/jpeg") || s.includes("image/jpg")) return "jpg";
   if (s.includes("image/png")) return "png";
   if (s.includes("image/webp")) return "webp";
-  return ""; // unknown
+  return "";
 }
 
+async function fetchWithTimeout(url, opts = {}, timeoutMs = 8000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...opts, signal: ctrl.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/**
+ * 下载单张OG图：
+ * - 失败返回 null（不抛异常）
+ * - 超时中断
+ * - 2次重试
+ */
 async function downloadOgImage(imageUrl, outAbsNoExt) {
   const url = safeHttps(imageUrl);
   if (!isValidHttpUrl(url)) return null;
 
-  // GitHub Actions 直连下载，尽量模拟正常 UA
-  const res = await fetch(url, {
-    redirect: "follow",
-    headers: {
-      "user-agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
-      accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
-      "accept-language": "en-US,en;q=0.9",
-      // 注意：不要加 Referer=amazon，会更容易触发风控；保持空更稳
-    },
-  });
+  const headers = {
+    "user-agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
+    accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+    "accept-language": "en-US,en;q=0.9",
+  };
 
-  if (!res.ok) {
-    return null;
+  const tryOnce = async () => {
+    const res = await fetchWithTimeout(url, { redirect: "follow", headers }, 8000);
+    if (!res.ok) return null;
+
+    const ct = res.headers.get("content-type") || "";
+    const ext = guessExtFromContentType(ct);
+    if (!ext) return null;
+
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.length < 2048) return null;
+
+    const outAbs = `${outAbsNoExt}.${ext}`;
+    ensureDir(path.dirname(outAbs));
+    fs.writeFileSync(outAbs, buf);
+    return { ext, bytes: buf.length };
+  };
+
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const r = await tryOnce();
+      if (r) return r;
+    } catch {
+      // swallow
+    }
   }
-
-  const ct = res.headers.get("content-type") || "";
-  const ext = guessExtFromContentType(ct);
-  if (!ext) {
-    return null;
-  }
-
-  const buf = Buffer.from(await res.arrayBuffer());
-  // 简单防呆：避免写入非常小的错误内容
-  if (buf.length < 2048) return null;
-
-  const outAbs = `${outAbsNoExt}.${ext}`;
-  ensureDir(path.dirname(outAbs));
-  fs.writeFileSync(outAbs, buf);
-
-  return { ext, bytes: buf.length };
+  return null;
 }
 
 // ================== /p PAGE GENERATOR ==================
@@ -332,27 +354,32 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
   let ogOk = 0;
   let ogFail = 0;
 
-  // 逐个下载图片（简单稳定；如果你以后量很大再做并发优化）
   for (const p of uniq) {
     const market = upper(p.market);
     const asin = upper(p.asin);
     const img = norm(p.image_url);
 
-    // 1) Download OG image to /og/{market}/{asin}.(jpg|png|webp)
+    // 1) Download OG image
     let ogImageUrl = "";
     if (img) {
-      const outNoExt = path.join(ogDirAbs, market.toLowerCase(), asin); // no ext
-      const r = await downloadOgImage(img, outNoExt);
-      if (r?.ext) {
-        ogImageUrl = `${SITE_ORIGIN}/${OG_DIR}/${market.toLowerCase()}/${asin}.${r.ext}`;
-        ogOk++;
-        console.log(`[og] ok ${market}/${asin}.${r.ext} (${r.bytes} bytes)`);
-      } else {
+      try {
+        const outNoExt = path.join(ogDirAbs, market.toLowerCase(), asin); // no ext
+        const r = await downloadOgImage(img, outNoExt);
+        if (r?.ext) {
+          ogImageUrl = `${SITE_ORIGIN}/${OG_DIR}/${market.toLowerCase()}/${asin}.${r.ext}`;
+          ogOk++;
+          console.log(`[og] ok ${market}/${asin}.${r.ext} (${r.bytes} bytes)`);
+        } else {
+          ogFail++;
+          console.log(`[og] fail ${market}/${asin} -> fallback placeholder`);
+        }
+      } catch {
         ogFail++;
-        // fallback below
+        console.log(`[og] fail ${market}/${asin} (exception) -> fallback placeholder`);
       }
     } else {
       ogFail++;
+      console.log(`[og] fail ${market}/${asin} (no image_url) -> fallback placeholder`);
     }
 
     // 2) Generate /p page
@@ -469,7 +496,7 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
   nextArchive.sort((a, b) => {
     const am = a.market.localeCompare(b.market);
     if (am) return am;
-    return a.asin.localeCompare(b.asin);
+    return a.asin.localeCompare(ab.asin);
   });
 
   console.log("[sync] next active =", nextProducts.length);
