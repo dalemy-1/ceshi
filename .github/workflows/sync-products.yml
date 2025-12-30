@@ -26,23 +26,22 @@ jobs:
         with:
           node-version: "20"
 
-      # 1) 同步 products.json + archive.json（如果你的 sync_products.mjs 也会生成 /p，没关系）
-      - name: Sync products.json + archive.json from CSV
+      # 1) Sync products.json + archive.json from CSV
+      - name: Sync from CSV -> products.json + archive.json
         env:
           CSV_URL: "http://154.48.226.95:5001/admin/Product/export_csv"
-          SITE_ORIGIN: "https://ama.omino.top"
         run: |
           echo "[workflow] CSV_URL=$CSV_URL"
-          node scripts/sync_products.mjs
+          node scripts/sync_from_csv.mjs
 
-      # 2) 强制用 tools/generate_product_pages.mjs 生成“白色独立页”版本，覆盖掉 sync_products 可能生成的跳转版
-      - name: Generate white /p pages (override)
+      # 2) Generate white UI /p pages (NO redirect to /?open=)
+      - name: Generate /p pages
         env:
           SITE_ORIGIN: "https://ama.omino.top"
         run: |
           node tools/generate_product_pages.mjs
 
-      # 3) 提交（仅当有变更）
+      # 3) Commit changes (only if changed)
       - name: Commit changes (only if changed)
         run: |
           git config user.name "github-actions[bot]"
