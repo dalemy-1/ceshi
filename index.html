@@ -751,11 +751,22 @@
     list = dedupeByMarketAsinKeepFirst(list);
 
     list.sort((a, b) => {
+  // 1) 仍然保持：已下架(archive)的排在后面（如果你想 archive 在前，把 0/1 反过来）
+  const ka = archivedKeySet.has(keyOf(a.market, a.asin)) ? 1 : 0; // active=0, archive=1
+  const kb = archivedKeySet.has(keyOf(b.market, b.asin)) ? 1 : 0;
+  if (ka !== kb) return ka - kb;
+
+  // 2) 新到旧：优先按 _updated 倒序
   const ua = Number(a._updated || 0);
   const ub = Number(b._updated || 0);
-  if (ub !== ua) return ub - ua;      // 最新在上
-  return (a._idx ?? 0) - (b._idx ?? 0);
+  if (ub !== ua) return ub - ua;
+
+  // 3) 同更新时间：按文档顺序倒序（后面的行更“新”）
+  const ia = Number(a._idx || 0);
+  const ib = Number(b._idx || 0);
+  return ib - ia;
 });
+
 
 
     return list;
@@ -1307,4 +1318,5 @@
 </script>
 </body>
 </html>
+
 
