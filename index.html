@@ -540,12 +540,21 @@
   }
 
   function buildProductPath(market, asinKey){
-    const m = String(market||"").trim().toLowerCase();
-    return `/p/${encodeURIComponent(m)}/${encodeURIComponent(String(asinKey||""))}`;
-  }
-  function buildProductPermalink(market, asinKey){
-    return location.origin + buildProductPath(market, asinKey);
-  }
+  const m = String(market||"").trim().toLowerCase();
+  // 关键：目录型页面必须带结尾 /
+  return `/p/${encodeURIComponent(m)}/${encodeURIComponent(String(asinKey||""))}/`;
+}
+  function goToProductPage(p){
+  const m = String(p.market||"").trim().toLowerCase();
+  const asinKey = normalizeAsin(p.asin || "");
+  if (!m || !asinKey) return;
+  if (shouldHideNonAmazonAsin(asinKey)) return;
+
+  const url = buildProductPath(m, asinKey);
+  // 关键：直接跳转到真实静态独立页目录
+  location.assign(url);
+}
+
 
   function findProductByRoute(products, market, asinKey){
     const M = normalizeMarket(market);
@@ -1278,3 +1287,4 @@
 </script>
 </body>
 </html>
+
