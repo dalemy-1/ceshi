@@ -1,233 +1,58 @@
-// scripts/sync_from_csv.mjs
-// Rebuild products.json from CSV_URL every run (source of truth).
-// Also maintain archive.json for removed/offline items.
+name: Sync products.json + archive.json and generate /p pages (every 5 min)
 
-import fs from "fs";
-import path from "path";
-import process from "process";
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
 
-const CSV_URL = (process.env.CSV_URL || "").trim();
-if (!CSV_URL) {
-  console.error("[error] CSV_URL is empty. Set env CSV_URL in workflow.");
-  process.exit(1);
-}
+permissions:
+  contents: write
 
-const ROOT = process.cwd();
-const PRODUCTS_PATH = path.join(ROOT, "products.json");
-const ARCHIVE_PATH = path.join(ROOT, "archive.json");
+concurrency:
+  group: sync-products
+  cancel-in-progress: true
 
-// --- helpers ---
-function normalizeMarket(v) {
-  return String(v || "").trim().toUpperCase();
-}
-function normalizeAsin(v) {
-  return String(v || "").trim().toUpperCase();
-}
-function normalizeUrl(v) {
-  const s = String(v || "").trim();
-  if (!s) return "";
-  if (/^https?:\/\//i.test(s)) return s;
-  return "";
-}
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-function safeReadJson(file, fallback) {
-  try {
-    if (!fs.existsSync(file)) return fallback;
-    const txt = fs.readFileSync(file, "utf8");
-    const obj = JSON.parse(txt);
-    return obj;
-  } catch {
-    return fallback;
-  }
-}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
-function writeJsonPretty(file, obj) {
-  const json = JSON.stringify(obj, null, 2) + "\n";
-  fs.writeFileSync(file, json, "utf8");
-}
+      # 1) 从 CSV_URL 重建 products.json + archive.json（你的脚本：scripts/sync_from_csv.mjs）
+      - name: Sync from CSV -> products.json + archive.json
+        env:
+          CSV_URL: "http://154.48.226.95:5001/admin/Product/export_csv"
+        run: |
+          echo "[workflow] CSV_URL=$CSV_URL"
+          node scripts/sync_from_csv.mjs
 
-// Minimal CSV parser that handles quoted fields and commas inside quotes.
-function parseCSV(text) {
-  const rows = [];
-  let i = 0;
-  let field = "";
-  let row = [];
-  let inQuotes = false;
+      # 2) 生成 /p/{market}/{asinKey}/index.html（URL 保持不变的静态独立页）
+      - name: Generate product pages under /p
+        env:
+          SITE_ORIGIN: "https://ama.omino.top"
+        run: |
+          node tools/generate_product_pages.mjs
 
-  while (i < text.length) {
-    const c = text[i];
+      # 3) 提交（仅当有变更）
+      - name: Commit changes (only if changed)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-    if (inQuotes) {
-      if (c === '"') {
-        // double quote escape
-        if (text[i + 1] === '"') {
-          field += '"';
-          i += 2;
-          continue;
-        }
-        inQuotes = false;
-        i++;
-        continue;
-      }
-      field += c;
-      i++;
-      continue;
-    }
+          git add -A
 
-    if (c === '"') {
-      inQuotes = true;
-      i++;
-      continue;
-    }
-    if (c === ",") {
-      row.push(field);
-      field = "";
-      i++;
-      continue;
-    }
-    if (c === "\r") {
-      i++;
-      continue;
-    }
-    if (c === "\n") {
-      row.push(field);
-      rows.push(row);
-      row = [];
-      field = "";
-      i++;
-      continue;
-    }
-    field += c;
-    i++;
-  }
-  // last
-  if (field.length || row.length) {
-    row.push(field);
-    rows.push(row);
-  }
-  return rows;
-}
+          if git diff --cached --quiet; then
+            echo "No changes."
+            exit 0
+          fi
 
-function mapRow(headers, cells) {
-  const obj = {};
-  headers.forEach((h, idx) => {
-    obj[h] = (cells[idx] ?? "").trim();
-  });
-  return obj;
-}
-
-function isActiveStatus(v) {
-  // 兼容你的 status 字段：空/active/on/1/true/yes 等都算上架（可按你实际改）
-  const s = String(v || "").trim().toLowerCase();
-  if (!s) return true; // 如果你 CSV 没填 status，默认当作上架
-  return ["1", "true", "yes", "on", "active", "enabled", "publish", "published", "online"].includes(s);
-}
-
-function keyOf(p) {
-  // 用 market+asin 唯一识别
-  return `${normalizeMarket(p.market)}|${normalizeAsin(p.asin)}`;
-}
-
-async function fetchText(url) {
-  const res = await fetch(url, {
-    headers: {
-      "user-agent": "github-actions-sync/1.0",
-      "cache-control": "no-cache",
-      "pragma": "no-cache",
-    },
-  });
-  if (!res.ok) throw new Error(`Fetch CSV failed: HTTP ${res.status} ${res.statusText}`);
-  return await res.text();
-}
-
-// --- main ---
-(async () => {
-  console.log("[sync] CSV_URL =", CSV_URL);
-
-  const csvText = await fetchText(CSV_URL);
-  console.log("[sync] CSV bytes =", csvText.length);
-
-  const rows = parseCSV(csvText);
-  if (!rows.length) throw new Error("CSV is empty");
-
-  const headers = rows[0].map(h => String(h || "").trim());
-  const dataRows = rows.slice(1).filter(r => r.some(c => String(c || "").trim() !== ""));
-
-  console.log("[sync] headers =", headers.join(" | "));
-  console.log("[sync] data rows =", dataRows.length);
-
-  // read existing for archive diff
-  const prevProducts = Array.isArray(safeReadJson(PRODUCTS_PATH, [])) ? safeReadJson(PRODUCTS_PATH, []) : [];
-  const prevArchive = Array.isArray(safeReadJson(ARCHIVE_PATH, [])) ? safeReadJson(ARCHIVE_PATH, []) : [];
-
-  const prevMap = new Map();
-  prevProducts.forEach(p => prevMap.set(keyOf(p), p));
-
-  const archiveMap = new Map();
-  prevArchive.forEach(p => archiveMap.set(keyOf(p), p));
-
-  // build new active list from CSV (source of truth)
-  const nextProducts = [];
-  for (const r of dataRows) {
-    const o = mapRow(headers, r);
-
-    const market = normalizeMarket(o.market || o.Market || o.MARKET);
-    const asin = normalizeAsin(o.asin || o.ASIN);
-    if (!market || !asin) continue;
-
-    // status optional
-    const statusVal = o.status ?? o.Status ?? o.STATUS;
-    if (!isActiveStatus(statusVal)) continue;
-
-    const link = normalizeUrl(o.link || o.Link);
-    const image_url = (o.image_url || o.image || o.Image || o.imageUrl || "").trim();
-
-    // 只保留前端需要的字段（title 保留也行，但你前端不展示 title）
-    nextProducts.push({
-      market,
-      asin,
-      title: String(o.title || o.Title || "").trim(),
-      link,
-      image_url,
-    });
-  }
-
-  // stable sort for deterministic diffs
-  nextProducts.sort((a, b) => {
-    const am = a.market.localeCompare(b.market);
-    if (am) return am;
-    return a.asin.localeCompare(b.asin);
-  });
-
-  // move removed items into archive
-  const nextKeys = new Set(nextProducts.map(keyOf));
-  let removedCount = 0;
-  for (const [k, oldP] of prevMap.entries()) {
-    if (!nextKeys.has(k)) {
-      // removed from active => ensure in archive
-      if (!archiveMap.has(k)) {
-        archiveMap.set(k, oldP);
-      }
-      removedCount++;
-    }
-  }
-
-  const nextArchive = Array.from(archiveMap.values());
-  nextArchive.sort((a, b) => {
-    const am = a.market.localeCompare(b.market);
-    if (am) return am;
-    return a.asin.localeCompare(b.asin);
-  });
-
-  console.log("[sync] next active =", nextProducts.length);
-  console.log("[sync] removed from active =", removedCount);
-  console.log("[sync] archive size =", nextArchive.length);
-
-  writeJsonPretty(PRODUCTS_PATH, nextProducts);
-  writeJsonPretty(ARCHIVE_PATH, nextArchive);
-
-  console.log("[sync] wrote products.json & archive.json");
-})().catch(err => {
-  console.error("[fatal]", err?.stack || err);
-  process.exit(1);
-});
+          git commit -m "chore: sync products + generate pages"
+          git push
