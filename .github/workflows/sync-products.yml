@@ -1,25 +1,20 @@
-name: Sync products.json from CSV (every 1 min)
+name: Sync products.json from CSV (every 5 min)
 
 on:
-  # 每分钟跑一次（方案 2C）
+  workflow_dispatch:
   schedule:
-    - cron: "*/1 * * * *"
-
-  # 保留手动触发（方便你测试）
-  workflow_dispatch: {}
-
-# 防止上一次还没跑完就又排队：只保留最新一次
-concurrency:
-  group: sync-products
-  cancel-in-progress: true
+    - cron: "*/5 * * * *"
 
 permissions:
   contents: write
 
+concurrency:
+  group: sync-products
+  cancel-in-progress: true
+
 jobs:
   sync:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,67 +24,56 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "20"
 
-      # （可选）加速：如果你有 package-lock.json / pnpm-lock.yaml 可自行加缓存
-      # - name: Cache node_modules
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: ~/.npm
-      #     key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
-
-      - name: Run sync script (export_csv -> products.json)
+      # 关键：先把 CSV 下载成文件，并做最基础的“是不是 CSV”的校验
+      - name: Download CSV (with retries) and validate
         env:
-          EXPORT_CSV_URL: "http://154.48.226.95:5001/admin/Product/export_csv"
+          CSV_URL: "http://154.48.226.95:5001/admin/Product/export_csv"
         run: |
           set -e
-          node -v
-          # 你的同步脚本（按你仓库结构：scripts/sync-products.mjs）
-          # 如果你实际脚本名称不同，就改下面这一行
-          node scripts/sync-products.mjs
 
-      - name: Detect changes
-        id: diff
-        run: |
-          # 只要 products.json / products.csv / archive.json 有变化才提交
-          git status --porcelain
-          if git diff --quiet -- products.json products.csv archive.json 2>/dev/null; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
+          echo "Downloading CSV from: $CSV_URL"
+          # 加 ts 防缓存（很多反向代理/中间层会缓存 GET）
+          URL="$CSV_URL?ts=$(date +%s)"
+
+          # 下载（重试 + 超时）
+          curl -L --fail --retry 5 --retry-delay 2 --connect-timeout 10 --max-time 60 \
+            -H "Cache-Control: no-cache" -H "Pragma: no-cache" \
+            "$URL" -o export.csv
+
+          echo "First 3 lines of export.csv:"
+          head -n 3 export.csv || true
+
+          echo "File type:"
+          file export.csv || true
+
+          # 校验：必须包含 asin 表头（你导出里肯定有 asin 这一列）
+          if ! head -n 1 export.csv | tr '[:upper:]' '[:lower:]' | grep -q "asin"; then
+            echo "ERROR: export.csv header does not contain 'asin'."
+            echo "This usually means the export URL returned HTML/login/error page instead of CSV."
+            echo "Dump first 50 lines for debugging:"
+            sed -n '1,50p' export.csv || true
+            exit 1
           fi
 
-      - name: Commit & push if changed
-        if: steps.diff.outputs.changed == 'true'
+      # 关键：把文件路径传给脚本（你需要在脚本里支持 CSV_FILE；见下方第2点）
+      - name: Sync from CSV file -> products.json
+        env:
+          CSV_FILE: "export.csv"
+        run: |
+          node scripts/sync_from_csv.mjs
+
+      - name: Commit changes (only if changed)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add products.json products.csv archive.json || true
-
-          # 避免空提交
-          if git diff --cached --quiet; then
-            echo "No staged changes."
+          if git diff --quiet; then
+            echo "No changes."
             exit 0
           fi
 
-          git commit -m "chore: sync products" || true
-          git push
-
-      # 触发“生成预览页”的 workflow（如果你另一个 workflow 支持 workflow_run，就可省略）
-      # 这里直接在同一个 job 里生成，能减少等待（更新更快）
-      - name: Generate product preview pages
-        if: steps.diff.outputs.changed == 'true'
-        run: |
-          node tools/generate_product_pages.mjs
-
-          # 如果生成的静态页在 /p 目录，提交它
-          git add p || true
-
-          if git diff --cached --quiet; then
-            echo "No preview pages changes."
-            exit 0
-          fi
-
-          git commit -m "chore: generate product preview pages" || true
+          git add -A
+          git commit -m "chore: sync products.json"
           git push
