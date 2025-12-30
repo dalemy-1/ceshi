@@ -2,8 +2,8 @@
 // One-shot pipeline:
 // 1) Fetch CSV from CSV_URL (source of truth)
 // 2) Rebuild products.json + archive.json
-// 3) Generate /p/{market}/{asin}/index.html pages (stable share URLs -> redirect to SPA)
-// 4) Generate /og/{market}/{asin}.(jpg|png|webp) for WhatsApp previews (best-effort; never fail the job)
+// 3) Generate /p/{market}/{asin}/index.html pages (share URLs; include OG tags)
+// 4) Download OG images to /og/{market}/{asin}.(jpg|png) for WhatsApp previews (no weserv)
 //
 // Required env:
 //   CSV_URL=http(s)://.../export_csv
@@ -11,9 +11,7 @@
 // Optional env:
 //   SITE_ORIGIN=https://ama.omino.top
 //   OUT_DIR=p
-//   SITE_DIR=product-list   (if your GitHub Pages publishes a subfolder)
-//   OG_DIR=og
-//   OG_MAX_PER_RUN=120      (download at most N OG images per run; best for stability)
+//   SITE_DIR=product-list   (auto-detected if repo has product-list/index.html)
 
 import fs from "fs";
 import path from "path";
@@ -33,11 +31,9 @@ const SITE_DIR = (() => {
   const explicit = (process.env.SITE_DIR || "").trim();
   if (explicit) return explicit.replace(/^\/+|\/+$/g, "");
   if (
-    fs.existsSync(path.join(ROOT, "product-list", "products.json")) ||
-    fs.existsSync(path.join(ROOT, "product-list", "index.html"))
-  ) {
-    return "product-list";
-  }
+    fs.existsSync(path.join(ROOT, "product-list", "index.html")) ||
+    fs.existsSync(path.join(ROOT, "product-list", "products.json"))
+  ) return "product-list";
   return "";
 })();
 
@@ -54,12 +50,10 @@ const OUT_DIR = (() => {
   return "p";
 })();
 
-const OG_DIR = (process.env.OG_DIR || "og").trim().replace(/^\/+/, "") || "og";
-const OG_PLACEHOLDER_FILE = "og-placeholder.jpg"; // must exist at site root
-const OG_PLACEHOLDER_URL = `${SITE_ORIGIN}/${OG_PLACEHOLDER_FILE}`;
-
-// limit OG downloads per run (stability)
-const OG_MAX_PER_RUN = Math.max(0, parseInt(process.env.OG_MAX_PER_RUN || "120", 10) || 120);
+// OG output
+const OG_DIR = "og";
+const OG_PLACEHOLDER_PATH = "og-placeholder.jpg"; // file should exist at site root
+const OG_PLACEHOLDER_URL = `${SITE_ORIGIN}/${OG_PLACEHOLDER_PATH}`;
 
 // ================== HELPERS ==================
 function norm(s) { return String(s ?? "").trim(); }
@@ -73,14 +67,12 @@ function normalizeUrl(v) {
   if (/^https?:\/\//i.test(s)) return s;
   return "";
 }
-
 function safeHttps(url) { return norm(url).replace(/^http:\/\//i, "https://"); }
 
 function safeReadJson(file, fallback) {
   try {
     if (!fs.existsSync(file)) return fallback;
-    const txt = fs.readFileSync(file, "utf8");
-    return JSON.parse(txt);
+    return JSON.parse(fs.readFileSync(file, "utf8"));
   } catch {
     return fallback;
   }
@@ -103,53 +95,30 @@ function escapeHtml(str) {
     .replaceAll("'", "&#39;");
 }
 
-// Minimal CSV parser (quoted fields supported)
+// Minimal CSV parser supporting quoted fields and commas inside quotes.
 function parseCSV(text) {
   const rows = [];
-  let i = 0;
-  let field = "";
-  let row = [];
-  let inQuotes = false;
+  let i = 0, field = "", row = [], inQuotes = false;
 
   while (i < text.length) {
     const c = text[i];
 
     if (inQuotes) {
       if (c === '"') {
-        if (text[i + 1] === '"') {
-          field += '"';
-          i += 2;
-          continue;
-        }
-        inQuotes = false;
-        i++;
-        continue;
+        if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
+        inQuotes = false; i++; continue;
       }
-      field += c;
-      i++;
-      continue;
+      field += c; i++; continue;
     }
 
     if (c === '"') { inQuotes = true; i++; continue; }
     if (c === ",") { row.push(field); field = ""; i++; continue; }
     if (c === "\r") { i++; continue; }
-    if (c === "\n") {
-      row.push(field);
-      rows.push(row);
-      row = [];
-      field = "";
-      i++;
-      continue;
-    }
+    if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; i++; continue; }
 
-    field += c;
-    i++;
+    field += c; i++;
   }
-
-  if (field.length || row.length) {
-    row.push(field);
-    rows.push(row);
-  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
   return rows;
 }
 
@@ -169,21 +138,12 @@ function isAllDigits(s) {
   const x = norm(s);
   return x !== "" && /^[0-9]+$/.test(x);
 }
+function isNonAmazonByAsin(asin) { return isAllDigits(asin); }
 
-// numeric-only "asin" => hide into archive
-function isNonAmazonByAsin(asin) {
-  return isAllDigits(asin);
-}
+function keyOf(p) { return `${upper(p.market)}|${upper(p.asin)}`; }
 
-function keyOf(p) {
-  return `${upper(p.market)}|${upper(p.asin)}`;
-}
+function isValidHttpUrl(u) { return /^https?:\/\//i.test(norm(u)); }
 
-function isValidHttpUrl(u) {
-  return /^https?:\/\//i.test(norm(u));
-}
-
-// keep better record when duplicate
 function pickBetter(existing, incoming) {
   if (!existing) return incoming;
 
@@ -215,82 +175,69 @@ async function fetchText(url) {
   return await res.text();
 }
 
-// ================== OG IMAGE (best-effort; never fatal) ==================
+// ================== OG IMAGE DOWNLOADER ==================
 function guessExtFromContentType(ct) {
   const s = String(ct || "").toLowerCase();
   if (s.includes("image/jpeg") || s.includes("image/jpg")) return "jpg";
   if (s.includes("image/png")) return "png";
-  if (s.includes("image/webp")) return "webp";
+  // WhatsApp/FB 预览对 webp 经常不稳，直接当失败，用 placeholder
   return "";
 }
 
-async function fetchWithTimeout(url, opts = {}, timeoutMs = 10000) {
+async function fetchWithTimeout(url, opts = {}, timeoutMs = 8000) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    return await fetch(url, { ...opts, signal: ctrl.signal, redirect: "follow" });
+    return await fetch(url, { ...opts, signal: ctrl.signal });
   } finally {
     clearTimeout(t);
   }
 }
 
-function pickExistingOgFile(outNoExtAbs) {
-  const exts = ["jpg", "png", "webp"];
-  for (const ext of exts) {
-    const p = `${outNoExtAbs}.${ext}`;
-    if (fs.existsSync(p)) return { ext, abs: p };
+/**
+ * 下载单张OG图：
+ * - 永不抛异常（失败返回 null）
+ * - 超时中断
+ * - 重试 2 次
+ */
+async function downloadOgImage(imageUrl, outAbsNoExt) {
+  const url = safeHttps(imageUrl);
+  if (!isValidHttpUrl(url)) return null;
+
+  const headers = {
+    "user-agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
+    accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+    "accept-language": "en-US,en;q=0.9",
+  };
+
+  const tryOnce = async () => {
+    const res = await fetchWithTimeout(url, { redirect: "follow", headers }, 8000);
+    if (!res || !res.ok) return null;
+
+    const ct = res.headers.get("content-type") || "";
+    const ext = guessExtFromContentType(ct);
+    if (!ext) return null;
+
+    const buf = Buffer.from(await res.arrayBuffer());
+    // 防呆：太小往往是错误页/拦截页
+    if (!buf || buf.length < 4096) return null;
+
+    const outAbs = `${outAbsNoExt}.${ext}`;
+    ensureDir(path.dirname(outAbs));
+    fs.writeFileSync(outAbs, buf);
+    return { ext, bytes: buf.length };
+  };
+
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const r = await tryOnce();
+      if (r) return r;
+    } catch {
+      // swallow
+    }
   }
   return null;
-}
-
-/**
- * Download og image:
- * - returns {ext, bytes} or null
- * - NEVER throws outward (best-effort)
- */
-async function downloadOgImageBestEffort(imageUrl, outAbsNoExt) {
-  try {
-    const url = safeHttps(imageUrl);
-    if (!isValidHttpUrl(url)) return null;
-
-    // if already exists, skip
-    const existing = pickExistingOgFile(outAbsNoExt);
-    if (existing) return { ext: existing.ext, bytes: fs.statSync(existing.abs).size, skipped: true };
-
-    const headers = {
-      "user-agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
-      accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
-      "accept-language": "en-US,en;q=0.9",
-    };
-
-    const tryOnce = async () => {
-      const res = await fetchWithTimeout(url, { headers }, 10000);
-      if (!res || !res.ok) return null;
-
-      const ct = res.headers.get("content-type") || "";
-      const ext = guessExtFromContentType(ct);
-      if (!ext) return null;
-
-      const buf = Buffer.from(await res.arrayBuffer());
-      // 防呆：过小通常是错误页/重定向页
-      if (!buf || buf.length < 2048) return null;
-
-      const outAbs = `${outAbsNoExt}.${ext}`;
-      ensureDir(path.dirname(outAbs));
-      fs.writeFileSync(outAbs, buf);
-      return { ext, bytes: buf.length };
-    };
-
-    // retry 2 times
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      const r = await tryOnce().catch(() => null);
-      if (r) return r;
-    }
-    return null;
-  } catch {
-    return null;
-  }
 }
 
 // ================== /p PAGE GENERATOR ==================
@@ -299,6 +246,8 @@ function buildPreviewHtml({ market, asin, ogImageUrl }) {
   const asinKey = String(asin).toUpperCase();
 
   const pagePath = `/p/${encodeURIComponent(mLower)}/${encodeURIComponent(asinKey)}`;
+
+  // 独立页不做 302，保持 OG 标签可被抓取；页面再用 meta refresh / JS 跳转
   const landing = `${SITE_ORIGIN}/?to=${encodeURIComponent(pagePath)}`;
 
   const ogTitle = `Product Reference • ${String(market).toUpperCase()} • ${asinKey}`;
@@ -306,6 +255,9 @@ function buildPreviewHtml({ market, asin, ogImageUrl }) {
     "Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases.";
 
   const ogImage = ogImageUrl || OG_PLACEHOLDER_URL;
+
+  // WhatsApp/FB 抓取更稳定：补齐 type/width/height
+  const ogType = ogImage.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
 
   return `<!doctype html>
 <html lang="en">
@@ -322,6 +274,9 @@ function buildPreviewHtml({ market, asin, ogImageUrl }) {
   <meta property="og:url" content="${escapeHtml(SITE_ORIGIN + pagePath)}" />
   <meta property="og:image" content="${escapeHtml(ogImage)}" />
   <meta property="og:image:secure_url" content="${escapeHtml(ogImage)}" />
+  <meta property="og:image:type" content="${ogType}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${escapeHtml(ogTitle)}" />
@@ -343,16 +298,17 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
   const outDirAbs = siteJoin(OUT_DIR);
   const ogDirAbs = siteJoin(OG_DIR);
 
-  // 每次全量重建 /p（保证删除旧页面）
+  // 全量重建 /p
   if (fs.existsSync(outDirAbs)) fs.rmSync(outDirAbs, { recursive: true, force: true });
   ensureDir(outDirAbs);
 
-  // /og 不再每次清空：只补齐缺失，避免频繁全量下载导致失败
+  // /og 也重建（只删目录，不影响根部的 og-placeholder.jpg）
+  if (fs.existsSync(ogDirAbs)) fs.rmSync(ogDirAbs, { recursive: true, force: true });
   ensureDir(ogDirAbs);
 
   const all = [...(activeList || []), ...(archiveList || [])].filter((p) => p && p.market && p.asin);
 
-  // uniq by market+asin
+  // 去重：同 market+asin 只保留一个
   const seen = new Set();
   const uniq = [];
   for (const p of all) {
@@ -362,6 +318,7 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
     uniq.push(p);
   }
 
+  // 稳定排序输出
   uniq.sort((a, b) => {
     const ma = upper(a.market), mb = upper(b.market);
     if (ma !== mb) return ma.localeCompare(mb);
@@ -370,54 +327,41 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
     return 0;
   });
 
-  let pageCount = 0;
-  let ogOk = 0;
-  let ogSkip = 0;
-  let ogFail = 0;
-  let ogTried = 0;
+  let pageCount = 0, ogOk = 0, ogFail = 0;
 
   for (const p of uniq) {
     const market = upper(p.market);
     const asin = upper(p.asin);
     const img = norm(p.image_url);
 
-    // 1) best-effort og image (limited per run)
+    // 1) OG image download -> /og/{market}/{asin}.jpg|png
     let ogImageUrl = "";
-    const outNoExt = path.join(ogDirAbs, market.toLowerCase(), asin);
-
-    // if already exists, use it
-    const existing = pickExistingOgFile(outNoExt);
-    if (existing) {
-      ogImageUrl = `${SITE_ORIGIN}/${OG_DIR}/${market.toLowerCase()}/${asin}.${existing.ext}`;
-      ogSkip++;
-    } else if (img && ogTried < OG_MAX_PER_RUN) {
-      ogTried++;
-      const r = await downloadOgImageBestEffort(img, outNoExt);
-      if (r && r.ext) {
+    if (img) {
+      const outNoExt = path.join(ogDirAbs, market.toLowerCase(), asin);
+      const r = await downloadOgImage(img, outNoExt);
+      if (r?.ext) {
         ogImageUrl = `${SITE_ORIGIN}/${OG_DIR}/${market.toLowerCase()}/${asin}.${r.ext}`;
-        if (r.skipped) ogSkip++;
-        else ogOk++;
+        ogOk++;
         console.log(`[og] ok ${market}/${asin}.${r.ext} (${r.bytes} bytes)`);
       } else {
         ogFail++;
+        console.log(`[og] fail ${market}/${asin} -> placeholder`);
       }
     } else {
-      // no image or exceeded cap
-      if (!img) ogFail++;
+      ogFail++;
+      console.log(`[og] no image_url ${market}/${asin} -> placeholder`);
     }
 
-    // 2) generate /p page with og image fallback
+    // 2) /p page
     const dir = path.join(outDirAbs, market.toLowerCase(), asin);
     ensureDir(dir);
-
     const html = buildPreviewHtml({ market, asin, ogImageUrl: ogImageUrl || OG_PLACEHOLDER_URL });
     fs.writeFileSync(path.join(dir, "index.html"), html, "utf-8");
     pageCount++;
   }
 
   console.log(`[p] generated ${pageCount} pages under ${SITE_DIR ? SITE_DIR + "/" : ""}${OUT_DIR}`);
-  console.log(`[og] tried=${ogTried}, ok=${ogOk}, skipped(existing)=${ogSkip}, failed=${ogFail}, cap=${OG_MAX_PER_RUN}`);
-  console.log(`[og] fallback placeholder = ${OG_PLACEHOLDER_URL}`);
+  console.log(`[og] downloaded ok=${ogOk}, failed=${ogFail} (fallback to og-placeholder.jpg)`);
 }
 
 // ================== MAIN ==================
@@ -429,12 +373,11 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
   console.log("[sync] p out dir        =", siteJoin(OUT_DIR));
   console.log("[sync] og out dir       =", siteJoin(OG_DIR));
   console.log("[sync] og placeholder   =", OG_PLACEHOLDER_URL);
-  console.log("[sync] og max per run   =", OG_MAX_PER_RUN);
 
-  // Ensure placeholder exists (warn only; do not fail)
-  const placeholderAbs = siteJoin(OG_PLACEHOLDER_FILE);
+  // 先确保 placeholder 文件存在（避免 OG 全挂）
+  const placeholderAbs = siteJoin(OG_PLACEHOLDER_PATH);
   if (!fs.existsSync(placeholderAbs)) {
-    console.warn(`[warn] Missing ${OG_PLACEHOLDER_FILE} at site root: ${placeholderAbs}`);
+    console.warn(`[warn] ${OG_PLACEHOLDER_PATH} not found at site root. Please add it (your repo root / product-list root).`);
   }
 
   const csvText = await fetchText(CSV_URL);
@@ -475,43 +418,43 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
     const link = normalizeUrl(o.link || o.Link);
     const image_url = norm(o.image_url || o.image || o.Image || o.imageUrl || "");
 
+    // 非 Amazon（纯数字）-> archive
     if (isNonAmazonByAsin(asin)) {
-      const nonAmazonItem = { market, asin, title, link, image_url, _hidden_reason: "non_amazon_numeric_asin" };
-      const k = keyOf(nonAmazonItem);
-      if (!archiveMap.has(k)) archiveMap.set(k, nonAmazonItem);
+      const item = { market, asin, title, link, image_url, _hidden_reason: "non_amazon_numeric_asin" };
+      const k = keyOf(item);
+      if (!archiveMap.has(k)) archiveMap.set(k, item);
       continue;
     }
 
+    // status 下架 -> archive
     const statusVal = o.status ?? o.Status ?? o.STATUS;
     if (!isActiveStatus(statusVal)) {
-      const archivedItem = { market, asin, title, link, image_url, _hidden_reason: "inactive_status" };
-      const k = keyOf(archivedItem);
-      if (!archiveMap.has(k)) archiveMap.set(k, archivedItem);
+      const item = { market, asin, title, link, image_url, _hidden_reason: "inactive_status" };
+      const k = keyOf(item);
+      if (!archiveMap.has(k)) archiveMap.set(k, item);
       continue;
     }
 
+    // 上架 -> active 去重
     const item = { market, asin, title, link, image_url };
     const k = keyOf(item);
 
-    if (!activeMap.has(k)) {
-      activeMap.set(k, item);
-    } else {
+    if (!activeMap.has(k)) activeMap.set(k, item);
+    else {
       dupActive++;
-      const kept = pickBetter(activeMap.get(k), item);
-      activeMap.set(k, kept);
+      activeMap.set(k, pickBetter(activeMap.get(k), item));
     }
   }
 
-  const nextProducts = Array.from(activeMap.values());
-  nextProducts.sort((a, b) => {
+  const nextProducts = Array.from(activeMap.values()).sort((a, b) => {
     const am = a.market.localeCompare(b.market);
     if (am) return am;
     return a.asin.localeCompare(b.asin);
   });
 
+  // 从 active 消失的旧数据 -> archive
   const nextKeys = new Set(nextProducts.map(keyOf));
   let removedCount = 0;
-
   for (const [k, oldP] of prevMap.entries()) {
     if (!nextKeys.has(k)) {
       if (!archiveMap.has(k)) archiveMap.set(k, oldP);
@@ -519,8 +462,7 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
     }
   }
 
-  const nextArchive = Array.from(archiveMap.values());
-  nextArchive.sort((a, b) => {
+  const nextArchive = Array.from(archiveMap.values()).sort((a, b) => {
     const am = a.market.localeCompare(b.market);
     if (am) return am;
     return a.asin.localeCompare(b.asin);
@@ -535,6 +477,7 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
   writeJsonPretty(ARCHIVE_PATH, nextArchive);
   console.log("[sync] wrote products.json & archive.json");
 
+  // 生成 /p + /og（即使 og 下载大量失败，也不会让 workflow 失败）
   await generatePPagesAndOgImages(nextProducts, nextArchive);
 
   console.log("[done] sync + generate /p pages + /og images completed");
