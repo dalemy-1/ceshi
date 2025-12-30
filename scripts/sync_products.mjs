@@ -157,13 +157,29 @@ function pickBetter(existing, incoming) {
   const exTitleLen = norm(existing.title).length;
   const inTitleLen = norm(incoming.title).length;
 
+  const exKeyLen = norm(existing.keyword).length;
+  const inKeyLen = norm(incoming.keyword).length;
+
+  const exStoreLen = norm(existing.store).length;
+  const inStoreLen = norm(incoming.store).length;
+
+  const exRemarkLen = norm(existing.remark).length;
+  const inRemarkLen = norm(incoming.remark).length;
+
   // 让“更靠后（更可能新）”的 CSV 行优先（用于“文档顺序”）
   const exIdx = Number(existing._idx || 0);
   const inIdx = Number(incoming._idx || 0);
 
   if (!exLink && inLink) return incoming;
   if (exLink === inLink && !exImg && inImg) return incoming;
+
+  // 字段更完整优先
   if (exLink === inLink && exImg === inImg && inTitleLen > exTitleLen) return incoming;
+  if (exLink === inLink && exImg === inImg && inTitleLen === exTitleLen && inKeyLen > exKeyLen) return incoming;
+  if (exLink === inLink && exImg === inImg && inTitleLen === exTitleLen && inKeyLen === exKeyLen && inStoreLen > exStoreLen) return incoming;
+  if (exLink === inLink && exImg === inImg && inTitleLen === exTitleLen && inKeyLen === exKeyLen && inStoreLen === exStoreLen && inRemarkLen > exRemarkLen) return incoming;
+
+  // 最后按 CSV 行号优先（更靠后更优先）
   if (exLink === inLink && exImg === inImg && inTitleLen === exTitleLen && inIdx > exIdx) return incoming;
 
   return existing;
@@ -212,10 +228,7 @@ async function downloadOgImage(imageUrl, outAbsNoExt) {
 
   // ===== Amazon 图片特殊处理：FMwebp 强制改 FMjpg，避免返回 webp 导致失败 =====
   if (/^https?:\/\/m\.media-amazon\.com\/images\//i.test(url)) {
-    // 常见：..._FMwebp_.jpg  实际返回 image/webp
     url = url.replace(/_FMwebp_/gi, "_FMjpg_");
-    // 少量情况没有 FMxxx，但会返回 webp：也可按需加一条（可选）
-    // if (!/_FM[a-z]+_/i.test(url)) url = url.replace(/(\.[a-z0-9]+)$/i, "_FMjpg_$1");
   }
   // =====================================================================
 
@@ -235,7 +248,6 @@ async function downloadOgImage(imageUrl, outAbsNoExt) {
     if (!ext) return null;
 
     const buf = Buffer.from(await res.arrayBuffer());
-    // 防呆：太小往往是错误页/拦截页
     if (!buf || buf.length < 4096) return null;
 
     const outAbs = `${outAbsNoExt}.${ext}`;
@@ -261,12 +273,9 @@ function buildPreviewHtml({ market, asin, ogImageUrl }) {
   const asinKey = String(asin).toUpperCase();
 
   const pagePath = `/p/${encodeURIComponent(mLower)}/${encodeURIComponent(asinKey)}`;
-  // 独立页不做 302，保留 OG 标签；页面再 meta refresh / JS 跳转
   const landing = `${SITE_ORIGIN}/?to=${encodeURIComponent(pagePath)}`;
 
-  // 你要求 WhatsApp 只显示 “US • B07...”
   const ogTitle = `${String(market).toUpperCase()} • ${asinKey}`;
-
   const ogDesc =
     "Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases.";
 
@@ -320,9 +329,9 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
   if (fs.existsSync(ogDirAbs)) fs.rmSync(ogDirAbs, { recursive: true, force: true });
   ensureDir(ogDirAbs);
 
+  // 注意：archiveList 现在是“全量最新库”，因此下架也会生成 /p 页，避免断链
   const all = [...(activeList || []), ...(archiveList || [])].filter((p) => p && p.market && p.asin);
 
-  // 去重：同 market+asin 只保留一个
   const seen = new Set();
   const uniq = [];
   for (const p of all) {
@@ -332,7 +341,6 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
     uniq.push(p);
   }
 
-  // 稳定排序输出（文件生成稳定）
   uniq.sort((a, b) => {
     const ma = upper(a.market), mb = upper(b.market);
     if (ma !== mb) return ma.localeCompare(mb);
@@ -363,7 +371,6 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
           console.log(`[og] fail ${market}/${asin} -> placeholder`);
         }
       } catch {
-        // 关键：绝不让 OG 下载失败导致 workflow 失败
         ogFail++;
         console.log(`[og] error ${market}/${asin} -> placeholder`);
       }
@@ -394,7 +401,6 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
   console.log("[sync] og out dir       =", siteJoin(OG_DIR));
   console.log("[sync] og placeholder   =", OG_PLACEHOLDER_URL);
 
-  // placeholder 文件建议存在（不存在也不阻塞工作流）
   const placeholderAbs = siteJoin(OG_PLACEHOLDER_PATH);
   if (!fs.existsSync(placeholderAbs)) {
     console.warn(`[warn] ${OG_PLACEHOLDER_PATH} not found at site root. Add it to repo root (or product-list root).`);
@@ -429,8 +435,6 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
 
   const nowTs = Date.now();
 
-  // 关键：记录 CSV 顺序（0..n-1）。若你的“新产品”是追加到 CSV 末尾，
-  // 前端用 _idx 倒序即可让新产品在上。
   let rowIdx = 0;
 
   for (const r of dataRows) {
@@ -441,41 +445,54 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
     if (!market || !asin) { rowIdx++; continue; }
 
     const title = norm(o.title || o.Title || "");
+    const keyword = norm(o.keyword || o.Keyword || "");
+    const store = norm(o.store || o.Store || "");
+    const remark = norm(o.remark || o.Remark || "");
+
     const link = normalizeUrl(o.link || o.Link);
     const image_url = norm(o.image_url || o.image || o.Image || o.imageUrl || "");
 
-    // 非 Amazon（纯数字）-> archive
-    if (isNonAmazonByAsin(asin)) {
-      const item = { market, asin, title, link, image_url, _idx: rowIdx, _hidden_reason: "non_amazon_numeric_asin" };
-      const k = keyOf(item);
-      if (!archiveMap.has(k)) archiveMap.set(k, item);
-      rowIdx++;
-      continue;
-    }
-
-    // status 下架 -> archive
     const statusVal = o.status ?? o.Status ?? o.STATUS;
-    if (!isActiveStatus(statusVal)) {
-      const item = { market, asin, title, link, image_url, _idx: rowIdx, _hidden_reason: "inactive_status" };
-      const k = keyOf(item);
-      if (!archiveMap.has(k)) archiveMap.set(k, item);
-      rowIdx++;
-      continue;
-    }
 
-    // 上架 -> active 去重
+    // prev 用于 _ts（首次出现时间）复用
     const prev = prevMap.get(keyOf({ market, asin })) || null;
 
-    const item = {
+    // 统一构建“完整 item”（无论 active / inactive 都可用）
+    const baseItem = {
       market,
       asin,
       title,
+      keyword,
+      store,
+      remark,
+      status: norm(statusVal),          // 关键：保留原 status（即使为空也保留）
       link,
       image_url,
-      _idx: rowIdx,                 // CSV 顺序（用于 tie-break）
-      _ts: prev?._ts || nowTs,       // 首次出现时间（可选）
-      _updated: nowTs,               // 每次同步刷新（用于“新到旧”排序）
+      _idx: rowIdx,                     // CSV 顺序（用于 tie-break）
+      _ts: prev?._ts || nowTs,           // 首次出现时间（可选）
+      _updated: nowTs,                   // 每次同步刷新（用于“新到旧”排序）
     };
+
+    // 非 Amazon（纯数字）-> archive（全量库）
+    if (isNonAmazonByAsin(asin)) {
+      const item = { ...baseItem, _hidden_reason: "non_amazon_numeric_asin" };
+      const k = keyOf(item);
+      archiveMap.set(k, item);          // 关键：允许覆盖，保持最新
+      rowIdx++;
+      continue;
+    }
+
+    // status 下架 -> archive（全量库）
+    if (!isActiveStatus(statusVal)) {
+      const item = { ...baseItem, _hidden_reason: "inactive_status" };
+      const k = keyOf(item);
+      archiveMap.set(k, item);          // 关键：允许覆盖，保持最新
+      rowIdx++;
+      continue;
+    }
+
+    // 上架 -> active 去重（并同步写入 archive）
+    const item = { ...baseItem };
 
     const k = keyOf(item);
 
@@ -485,11 +502,13 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
       activeMap.set(k, pickBetter(activeMap.get(k), item));
     }
 
+    // 关键：active 的最终版本也写入 archive（全量库始终最新完整）
+    archiveMap.set(k, activeMap.get(k));
+
     rowIdx++;
   }
 
-  // products.json 本身不强制排序（前端会按 _updated/_idx 排），
-  // 但这里给一个“新到旧”默认排序方便你直接看 JSON
+  // products.json 给一个“新到旧”默认排序（前端也可再排序）
   const nextProducts = Array.from(activeMap.values()).sort((a, b) => {
     const ua = Number(a._updated || 0);
     const ub = Number(b._updated || 0);
@@ -499,20 +518,23 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
     return ib - ia;
   });
 
-  // 从 active 消失的旧数据 -> archive
+  // 从 active 消失的旧数据 -> archive（当 CSV 彻底删除该产品时仍保留历史）
   const nextKeys = new Set(nextProducts.map(keyOf));
   let removedCount = 0;
   for (const [k, oldP] of prevMap.entries()) {
     if (!nextKeys.has(k)) {
-      if (!archiveMap.has(k)) archiveMap.set(k, oldP);
+      if (!archiveMap.has(k)) {
+        // 旧数据可能字段不全，但至少保留；并标记来源，便于排查
+        archiveMap.set(k, { ...oldP, _hidden_reason: oldP?._hidden_reason || "removed_from_active" });
+      }
       removedCount++;
     }
   }
 
   const nextArchive = Array.from(archiveMap.values()).sort((a, b) => {
-    const am = a.market.localeCompare(b.market);
+    const am = upper(a.market).localeCompare(upper(b.market));
     if (am) return am;
-    return a.asin.localeCompare(b.asin);
+    return upper(a.asin).localeCompare(upper(b.asin));
   });
 
   console.log("[sync] next active =", nextProducts.length);
@@ -533,7 +555,6 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
 
   console.log("[done] sync + generate /p pages + /og images completed");
 })().catch((err) => {
-  // 只在“核心链路”失败时才失败：CSV 拉取/解析等
   console.error("[fatal]", err?.stack || err);
   process.exit(1);
 });
