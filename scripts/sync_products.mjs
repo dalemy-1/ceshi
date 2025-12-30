@@ -459,10 +459,15 @@ const item = {
   }
 
   const nextProducts = Array.from(activeMap.values()).sort((a, b) => {
-    const am = a.market.localeCompare(b.market);
-    if (am) return am;
-    return a.asin.localeCompare(b.asin);
-  });
+  const ta = Number(a._updated || 0);
+  const tb = Number(b._updated || 0);
+  if (tb !== ta) return tb - ta; // 最新在上
+  // 同时间再按 market/asin 稳定排序
+  const am = String(a.market || "").localeCompare(String(b.market || ""));
+  if (am) return am;
+  return String(a.asin || "").localeCompare(String(b.asin || ""));
+});
+
 
   // 从 active 消失的旧数据 -> archive
   const nextKeys = new Set(nextProducts.map(keyOf));
