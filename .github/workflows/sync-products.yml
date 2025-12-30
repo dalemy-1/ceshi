@@ -31,8 +31,12 @@ jobs:
         env:
           CSV_URL: "http://154.48.226.95:5001/admin/Product/export_csv"
           SITE_ORIGIN: "https://ama.omino.top"
+          OUT_DIR: "./p"
         run: |
+          set -e
           echo "[workflow] CSV_URL=$CSV_URL"
+          echo "[workflow] SITE_ORIGIN=$SITE_ORIGIN"
+          echo "[workflow] OUT_DIR=$OUT_DIR"
           node scripts/sync_products.mjs
 
       - name: Commit changes (only if changed)
