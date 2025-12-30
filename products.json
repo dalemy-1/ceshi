@@ -911,13 +911,6 @@
   },
   {
     "market": "UK",
-    "asin": "B0FZ88WYVH",
-    "title": "英国颈部按摩",
-    "link": "https://amzn.to/4pBOpa8",
-    "image_url": "https://m.media-amazon.com/images/I/61j6kgLeWnL._AC_SX425_.jpg"
-  },
-  {
-    "market": "UK",
     "asin": "B0G1XKKCPJ",
     "title": "英国地钉",
     "link": "https://amzn.to/4oX4E10",
@@ -1020,6 +1013,13 @@
     "title": "美国排气扇",
     "link": "https://amzn.to/4aWF1Jw",
     "image_url": "https://m.media-amazon.com/images/I/51iSOAxJRxL._AC_SX569_.jpg"
+  },
+  {
+    "market": "US",
+    "asin": "B0BY4Z96P4",
+    "title": "美国排水篷布",
+    "link": "https://amzn.to/4b1sYL2",
+    "image_url": "https://m.media-amazon.com/images/I/61Jc6OYqhML._AC_SL1500_.jpg"
   },
   {
     "market": "US",
