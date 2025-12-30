@@ -163,6 +163,18 @@ function pickBetter(existing, incoming) {
   return existing;
 }
 
+function sameCoreFields(a, b) {
+  // 用于判断“本次 CSV 是否真正更新了这个产品”
+  // 只比较会影响展示/跳转/预览的字段
+  return (
+    upper(a?.market) === upper(b?.market) &&
+    upper(a?.asin) === upper(b?.asin) &&
+    norm(a?.title) === norm(b?.title) &&
+    norm(a?.link) === norm(b?.link) &&
+    norm(a?.image_url) === norm(b?.image_url)
+  );
+}
+
 async function fetchText(url) {
   const res = await fetch(url, {
     headers: {
@@ -250,6 +262,7 @@ function buildPreviewHtml({ market, asin, ogImageUrl }) {
   // 独立页不做 302，保持 OG 标签可被抓取；页面再用 meta refresh / JS 跳转
   const landing = `${SITE_ORIGIN}/?to=${encodeURIComponent(pagePath)}`;
 
+  // 你要求：只显示 “US • B07J43CWC3” 这种标题
   const ogTitle = `${String(market).toUpperCase()} • ${asinKey}`;
 
   const ogDesc =
@@ -319,7 +332,7 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
     uniq.push(p);
   }
 
-  // 稳定排序输出
+  // 稳定排序输出（生成静态文件用，和列表显示排序无关）
   uniq.sort((a, b) => {
     const ma = upper(a.market), mb = upper(b.market);
     if (ma !== mb) return ma.localeCompare(mb);
@@ -378,7 +391,7 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
   // 先确保 placeholder 文件存在（避免 OG 全挂）
   const placeholderAbs = siteJoin(OG_PLACEHOLDER_PATH);
   if (!fs.existsSync(placeholderAbs)) {
-    console.warn(`[warn] ${OG_PLACEHOLDER_PATH} not found at site root. Please add it (your repo root / product-list root).`);
+    console.warn(`[warn] ${OG_PLACEHOLDER_PATH} not found at site root. Please add it (repo root or SITE_DIR root).`);
   }
 
   const csvText = await fetchText(CSV_URL);
@@ -399,6 +412,7 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
   const prevProducts = Array.isArray(prevProductsRaw) ? prevProductsRaw : [];
   const prevArchive = Array.isArray(prevArchiveRaw) ? prevArchiveRaw : [];
 
+  // prevMap / archiveMap：key 必须用 keyOf()（全大写），避免你之前遇到的 prev 取不到
   const prevMap = new Map();
   prevProducts.forEach((p) => prevMap.set(keyOf(p), p));
 
@@ -407,6 +421,9 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
 
   const activeMap = new Map();
   let dupActive = 0;
+
+  // 这一次同步的“批次时间”
+  const batchNow = Date.now();
 
   for (const r of dataRows) {
     const o = mapRow(headers, r);
@@ -436,38 +453,46 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
       continue;
     }
 
-    // 上架 -> active 去重
-    const nowTs = Date.now();
-const prev = prevMap.get(`${market}|${asin}`) || null; // 注意 key 格式要一致
-const item = {
-  market,
-  asin,
-  title,
-  link,
-  image_url,
-  _ts: prev?._ts || nowTs,   // 已存在保留原时间（可选）
-  _updated: nowTs            // 每次同步都记录本次更新时间（用于排序）
-};
+    // 上架 -> active
+    const k = keyOf({ market, asin });     // ✅ 统一 key
+    const prev = prevMap.get(k) || null;
 
-    const k = keyOf(item);
+    const draft = { market, asin, title, link, image_url };
 
-    if (!activeMap.has(k)) activeMap.set(k, item);
-    else {
+    // ✅ 排序用更新时间：只有当“核心字段变化 or 新增”时才更新 _updated
+    const isChanged = !prev || !sameCoreFields(prev, draft);
+
+    const item = {
+      ...draft,
+      _ts: prev?._ts || batchNow,                         // 首次出现时间
+      _updated: isChanged ? batchNow : (prev?._updated || prev?._ts || batchNow) // 变化才更新时间
+    };
+
+    if (!activeMap.has(k)) {
+      activeMap.set(k, item);
+    } else {
       dupActive++;
-      activeMap.set(k, pickBetter(activeMap.get(k), item));
+      // 注意：pickBetter 可能挑出“更完整”的字段；如果 pickBetter 改变了字段，也应视为 changed
+      const kept = pickBetter(activeMap.get(k), item);
+      activeMap.set(k, kept);
     }
   }
 
+  // ================== LIST SORT (你要求：新增/更新在上) ==================
+  // 先按 _updated 倒序；再按 _ts 倒序；最后按 market/asin 保证稳定
   const nextProducts = Array.from(activeMap.values()).sort((a, b) => {
-  const ta = Number(a._updated || 0);
-  const tb = Number(b._updated || 0);
-  if (tb !== ta) return tb - ta; // 最新在上
-  // 同时间再按 market/asin 稳定排序
-  const am = String(a.market || "").localeCompare(String(b.market || ""));
-  if (am) return am;
-  return String(a.asin || "").localeCompare(String(b.asin || ""));
-});
+    const ua = Number(a._updated || 0);
+    const ub = Number(b._updated || 0);
+    if (ua !== ub) return ub - ua;
 
+    const ta = Number(a._ts || 0);
+    const tb = Number(b._ts || 0);
+    if (ta !== tb) return tb - ta;
+
+    const am = upper(a.market).localeCompare(upper(b.market));
+    if (am) return am;
+    return upper(a.asin).localeCompare(upper(b.asin));
+  });
 
   // 从 active 消失的旧数据 -> archive
   const nextKeys = new Set(nextProducts.map(keyOf));
@@ -480,9 +505,9 @@ const item = {
   }
 
   const nextArchive = Array.from(archiveMap.values()).sort((a, b) => {
-    const am = a.market.localeCompare(b.market);
+    const am = upper(a.market).localeCompare(upper(b.market));
     if (am) return am;
-    return a.asin.localeCompare(b.asin);
+    return upper(a.asin).localeCompare(upper(b.asin));
   });
 
   console.log("[sync] next active =", nextProducts.length);
