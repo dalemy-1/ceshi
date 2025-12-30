@@ -10,7 +10,7 @@ permissions:
 
 concurrency:
   group: sync-products
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   sync:
