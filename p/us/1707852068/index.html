@@ -22,7 +22,6 @@
   <meta name="twitter:description" content="Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases." />
   <meta name="twitter:image" content="https://images.weserv.nl/?url=154.48.226.95%3A5001%2Fimage%2F20251017%2Fcacd23219f2f46ae83fc74c7626be498.png&amp;w=1200&amp;h=630&amp;fit=cover&amp;output=jpg" />
 
-  <!-- 建议：独立页不参与索引，降低审核与重复页风险 -->
   <meta name="robots" content="noindex,nofollow" />
 
   <style>
@@ -85,7 +84,6 @@
   function parsePath(){
     var p = location.pathname || "/";
     if (p.length > 1 && p.endsWith("/")) p = p.slice(0,-1);
-    // /p/uk/B07RYTFHCR 或 /p/uk/B07RYTFHCR_1
     var m = p.match(/^\/p\/([a-zA-Z]{2})\/([A-Za-z0-9]{10})(?:_(\d+))?$/);
     if(!m) return null;
     return { market: upper(m[1]), asin: upper(m[2]) };
@@ -110,7 +108,6 @@
   function safeLinkAmazon(link){
     var s = norm(link);
     if(!s) return "";
-    // 简单校验：只接受 http/https
     if(!/^https?:\/\//i.test(s)) return "";
     return s.replace(/^http:\/\//i,"https://");
   }
@@ -122,7 +119,6 @@
       setHTML("msg",'<div class="err">Path format not recognized. Expected /p/{market}/{asin}.</div>');
       return;
     }
-
     setText("badge", info.market + " · " + info.asin);
 
     var products=null, archive=null;
@@ -130,21 +126,16 @@
     try{ archive  = await loadJson("/archive.json"); }catch(e){}
 
     var p = findItem(products, info.market, info.asin) || findItem(archive, info.market, info.asin);
-
     if(!p){
       setText("title","Product not found");
-      setText("meta","Market: " + info.market + "\nASIN: " + info.asin);
+      setText("meta","Market: " + info.market + " • ASIN: " + info.asin);
       setHTML("msg",'<div class="err">This item is not in the active list or archive.</div>');
       return;
     }
 
     var title = norm(p.title) || ("ASIN " + info.asin);
     setText("title", title);
-
-    var meta = [];
-    meta.push("Market: " + info.market);
-    meta.push("ASIN: " + info.asin);
-    setText("meta", meta.join(" • "));
+    setText("meta", "Market: " + info.market + " • ASIN: " + info.asin);
 
     var img = norm(p.image_url);
     if(img){
