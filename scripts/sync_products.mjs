@@ -2,14 +2,14 @@
 // One-shot pipeline:
 // 1) Fetch CSV from CSV_URL (source of truth)
 // 2) Rebuild products.json + archive.json
-// 3) Generate /p/{market}/{asinKey}/index.html pages for stable share URLs
+// 3) Generate /p/{market}/{asin}/index.html pages (stable share URLs)
 //
 // Required env:
-//   CSV_URL=https://.../export_csv
+//   CSV_URL=http(s)://.../export_csv
 //
 // Optional env:
-//   SITE_ORIGIN=https://ama.omino.top   (used for /p page generation)
-//   OUT_DIR=./p                         (defaults to ./p)
+//   SITE_ORIGIN=https://ama.omino.top
+//   OUT_DIR=./p
 
 import fs from "fs";
 import path from "path";
@@ -158,13 +158,40 @@ function isAllDigits(s) {
   return x !== "" && /^[0-9]+$/.test(x);
 }
 
-// 你的规则：纯数字 => 其它平台（Walmart 等），不展示（但保留到 archive 以便独立页可查）
+// 你的规则：纯数字 => 其它平台（Walmart 等），不展示（隐藏进 archive）
 function isNonAmazonByAsin(asin) {
   return isAllDigits(asin);
 }
 
 function keyOf(p) {
   return `${upper(p.market)}|${upper(p.asin)}`;
+}
+
+function isValidHttpUrl(u) {
+  return /^https?:\/\//i.test(norm(u));
+}
+
+// 简单去重：同 market+asin 只保留一个。
+// 默认保留先出现的；但如果后来的记录更“完整”，则替换（仍然算简单去重）。
+function pickBetter(existing, incoming) {
+  if (!existing) return incoming;
+
+  const exLink = isValidHttpUrl(existing.link);
+  const inLink = isValidHttpUrl(incoming.link);
+
+  const exImg = !!norm(existing.image_url);
+  const inImg = !!norm(incoming.image_url);
+
+  const exTitleLen = norm(existing.title).length;
+  const inTitleLen = norm(incoming.title).length;
+
+  // 规则优先级：有链接 > 有图 > 标题更长
+  if (!exLink && inLink) return incoming;
+  if (exLink === inLink && !exImg && inImg) return incoming;
+  if (exLink === inLink && exImg === inImg && inTitleLen > exTitleLen) return incoming;
+
+  // 否则保留原来的（等于“保留第一条”）
+  return existing;
 }
 
 async function fetchText(url) {
@@ -180,7 +207,6 @@ async function fetchText(url) {
 }
 
 // ================== /p PAGE GENERATOR ==================
-// Always use Weserv for OG image (stable https)
 function toWeservOg(url) {
   const u = safeHttps(url);
   if (!u) return "";
@@ -188,30 +214,18 @@ function toWeservOg(url) {
   return `https://images.weserv.nl/?url=${encodeURIComponent(cleaned)}&w=1200&h=630&fit=cover&output=jpg`;
 }
 
-function annotateAsinKeys(list) {
-  const counter = new Map();
-  for (const p of list) {
-    const m = upper(p.market);
-    const a = upper(p.asin);
-    const k = `${m}|${a}`;
-    const seen = counter.get(k) || 0;
-    p.__asinKey = seen === 0 ? a : `${a}_${seen}`;
-    counter.set(k, seen + 1);
-  }
-}
-
-function buildPreviewHtml({ market, asinKey, imageUrl }) {
+// /p 页面渲染：不跳转到 product.html，而是在 /p/... 原地加载 products.json / archive.json
+function buildPreviewHtml({ market, asin, imageUrl }) {
   const mLower = String(market).toLowerCase();
-  const pagePath = `/p/${encodeURIComponent(mLower)}/${encodeURIComponent(asinKey)}/`;
+  const pagePath = `/p/${encodeURIComponent(mLower)}/${encodeURIComponent(asin)}/`;
   const pageUrl = SITE_ORIGIN + pagePath;
 
-  const ogTitle = `Product Reference • ${upper(market)} • ${asinKey}`;
+  const ogTitle = `Product Reference • ${upper(market)} • ${asin}`;
   const ogDesc =
     "Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases.";
 
   const ogImage = toWeservOg(imageUrl) || `${SITE_ORIGIN}/og-placeholder.jpg`;
 
-  // /p/... 原地渲染，并从 products.json / archive.json 里查找对应 market+asin
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -236,13 +250,10 @@ function buildPreviewHtml({ market, asinKey, imageUrl }) {
   <meta name="twitter:description" content="${escapeHtml(ogDesc)}" />
   <meta name="twitter:image" content="${escapeHtml(ogImage)}" />
 
-  <!-- 独立页不参与索引，降低重复页风险 -->
   <meta name="robots" content="noindex,nofollow" />
 
   <style>
-    :root{
-      --bg:#0b1220;--card:#0f1b33;--txt:#e5e7eb;--muted:#9ca3af;--bd:rgba(255,255,255,.12);--btn:#2563eb
-    }
+    :root{--bg:#0b1220;--card:#0f1b33;--txt:#e5e7eb;--muted:#9ca3af;--bd:rgba(255,255,255,.12)}
     *{box-sizing:border-box}
     body{margin:0;background:linear-gradient(180deg,#070b14,#0b1220);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--txt)}
     .wrap{max-width:980px;margin:0 auto;padding:18px}
@@ -255,9 +266,11 @@ function buildPreviewHtml({ market, asinKey, imageUrl }) {
     .imgbox img{width:100%;height:auto;display:block}
     .title{font-size:20px;font-weight:700;line-height:1.25;margin:0 0 8px}
     .meta{color:var(--muted);font-size:13px;line-height:1.55}
-    .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:12px 14px;border-radius:12px;border:1px solid rgba(37,99,235,.35);
-         background:rgba(37,99,235,.18);color:#fff;text-decoration:none;font-weight:700}
-    .btn:hover{background:rgba(37,99,235,.28)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+         background:rgba(255,255,255,.08);color:#fff;text-decoration:none;font-weight:700}
+    .btn:hover{background:rgba(255,255,255,.12)}
+    .primary{border:1px solid rgba(37,99,235,.35);background:rgba(37,99,235,.18)}
+    .primary:hover{background:rgba(37,99,235,.28)}
     .disclaimer{margin-top:12px;color:var(--muted);font-size:12px;line-height:1.55}
     .err{color:#fecaca;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);padding:10px 12px;border-radius:12px}
     .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
@@ -269,8 +282,8 @@ function buildPreviewHtml({ market, asinKey, imageUrl }) {
       <div class="top">
         <div class="badge" id="badge">Loading…</div>
         <div class="row">
-          <a class="btn" id="ctaAmazon" href="#" rel="nofollow noopener" target="_blank" style="display:none">Open on Amazon</a>
-          <a class="btn" id="ctaHome" href="${escapeHtml(SITE_ORIGIN)}/" style="background:rgba(255,255,255,.08);border:1px solid var(--bd)">Back to list</a>
+          <a class="btn primary" id="ctaAmazon" href="#" rel="nofollow noopener" target="_blank" style="display:none">Open on Amazon</a>
+          <a class="btn" id="ctaHome" href="${escapeHtml(SITE_ORIGIN)}/">Back to list</a>
         </div>
       </div>
 
@@ -299,8 +312,8 @@ function buildPreviewHtml({ market, asinKey, imageUrl }) {
   function parsePath(){
     var p = location.pathname || "/";
     if (p.length > 1 && p.endsWith("/")) p = p.slice(0,-1);
-    // /p/uk/B07RYTFHCR 或 /p/uk/B07RYTFHCR_1
-    var m = p.match(/^\\/p\\/([a-zA-Z]{2})\\/([A-Za-z0-9]{10})(?:_(\\d+))?$/);
+    // /p/uk/B07RYTFHCR
+    var m = p.match(/^\\/p\\/([a-zA-Z]{2})\\/([A-Za-z0-9]{10})$/);
     if(!m) return null;
     return { market: upper(m[1]), asin: upper(m[2]) };
   }
@@ -384,7 +397,7 @@ function buildPreviewHtml({ market, asinKey, imageUrl }) {
 function generatePPages(activeList, archiveList) {
   const outDirAbs = path.isAbsolute(OUT_DIR) ? OUT_DIR : path.join(ROOT, OUT_DIR);
 
-  // 每次全量重建 /p，避免旧页面残留（非常关键）
+  // 每次全量重建 /p，避免旧页面残留
   if (fs.existsSync(outDirAbs)) {
     fs.rmSync(outDirAbs, { recursive: true, force: true });
   }
@@ -392,47 +405,30 @@ function generatePPages(activeList, archiveList) {
 
   const all = [...(activeList || []), ...(archiveList || [])].filter((p) => p && p.market && p.asin);
 
-  // stable ordering -> stable asinKey assignment
+  // 去重后的全量列表，按 market/asin 稳定输出
   all.sort((a, b) => {
-    const ma = upper(a.market),
-      mb = upper(b.market);
+    const ma = upper(a.market), mb = upper(b.market);
     if (ma !== mb) return ma.localeCompare(mb);
-    const aa = upper(a.asin),
-      ab = upper(b.asin);
+    const aa = upper(a.asin), ab = upper(b.asin);
     if (aa !== ab) return aa.localeCompare(ab);
     return 0;
   });
 
-  annotateAsinKeys(all);
-
   let count = 0;
   for (const p of all) {
     const market = upper(p.market);
-    const asinKey = p.__asinKey; // 如仍有重复，会产生 _1；后面我们已对 products 去重，archive 也尽量稳定
+    const asin = upper(p.asin);
     const img = norm(p.image_url);
 
-    const dir = path.join(outDirAbs, market.toLowerCase(), asinKey);
+    const dir = path.join(outDirAbs, market.toLowerCase(), asin);
     ensureDir(dir);
 
-    const html = buildPreviewHtml({ market, asinKey, imageUrl: img });
+    const html = buildPreviewHtml({ market, asin, imageUrl: img });
     fs.writeFileSync(path.join(dir, "index.html"), html, "utf-8");
     count++;
   }
 
   console.log(`[p] generated ${count} pages under ${OUT_DIR}`);
-}
-
-// ===== simple dedupe: keep first occurrence per market+asin =====
-function dedupeByMarketAsin(list) {
-  const seen = new Set();
-  const out = [];
-  for (const p of list) {
-    const k = `${upper(p.market)}|${upper(p.asin)}`;
-    if (seen.has(k)) continue;
-    seen.add(k);
-    out.push(p);
-  }
-  return out;
 }
 
 // ================== MAIN ==================
@@ -460,8 +456,11 @@ function dedupeByMarketAsin(list) {
   const archiveMap = new Map();
   prevArchive.forEach((p) => archiveMap.set(keyOf(p), p));
 
-  // Build new active list from CSV (source of truth)
-  const nextProducts = [];
+  // Active 用 Map 去重（同 market+asin 只保留一个）
+  const activeMap = new Map();
+
+  let dupActive = 0;
+
   for (const r of dataRows) {
     const o = mapRow(headers, r);
 
@@ -473,55 +472,43 @@ function dedupeByMarketAsin(list) {
     const link = normalizeUrl(o.link || o.Link);
     const image_url = norm(o.image_url || o.image || o.Image || o.imageUrl || "");
 
-    // 纯数字 ASIN => 非 Amazon，隐藏：进 archive，不进 products
+    // 纯数字 ASIN => 非 Amazon：隐藏进 archive
     if (isNonAmazonByAsin(asin)) {
-      const nonAmazonItem = {
-        market,
-        asin,
-        title,
-        link,
-        image_url,
-        _hidden_reason: "non_amazon_numeric_asin",
-      };
+      const nonAmazonItem = { market, asin, title, link, image_url, _hidden_reason: "non_amazon_numeric_asin" };
       const k = keyOf(nonAmazonItem);
       if (!archiveMap.has(k)) archiveMap.set(k, nonAmazonItem);
       continue;
     }
 
-    // status 下架：不进 products，但必须进 archive（确保独立页仍能展示）
+    // 下架 status：进 archive（确保独立页仍可打开）
     const statusVal = o.status ?? o.Status ?? o.STATUS;
     if (!isActiveStatus(statusVal)) {
-      const archivedItem = {
-        market,
-        asin,
-        title,
-        link,
-        image_url,
-        _hidden_reason: "inactive_status",
-      };
+      const archivedItem = { market, asin, title, link, image_url, _hidden_reason: "inactive_status" };
       const k = keyOf(archivedItem);
+      // 如果 archive 里已存在同 key，就保留旧的（或你也可用 pickBetter 替换）
       if (!archiveMap.has(k)) archiveMap.set(k, archivedItem);
       continue;
     }
 
-    // 正常上架：进 products
-    nextProducts.push({ market, asin, title, link, image_url });
+    // 上架：写入 activeMap（去重）
+    const item = { market, asin, title, link, image_url };
+    const k = keyOf(item);
+
+    if (!activeMap.has(k)) {
+      activeMap.set(k, item);
+    } else {
+      dupActive++;
+      const kept = pickBetter(activeMap.get(k), item);
+      activeMap.set(k, kept);
+    }
   }
 
-  // Sort -> stable output
+  const nextProducts = Array.from(activeMap.values());
   nextProducts.sort((a, b) => {
     const am = a.market.localeCompare(b.market);
     if (am) return am;
     return a.asin.localeCompare(b.asin);
   });
-
-  // ✅ simple dedupe on active list
-  const before = nextProducts.length;
-  const deduped = dedupeByMarketAsin(nextProducts);
-  const removedDup = before - deduped.length;
-  if (removedDup > 0) console.log("[sync] dedup removed =", removedDup);
-  nextProducts.length = 0;
-  nextProducts.push(...deduped);
 
   // Move removed items into archive (present before, missing now)
   const nextKeys = new Set(nextProducts.map(keyOf));
@@ -542,6 +529,7 @@ function dedupeByMarketAsin(list) {
   });
 
   console.log("[sync] next active =", nextProducts.length);
+  console.log("[sync] duplicate active rows dropped/replaced =", dupActive);
   console.log("[sync] removed from active =", removedCount);
   console.log("[sync] archive size =", nextArchive.length);
 
