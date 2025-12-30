@@ -1,4 +1,4 @@
-name: Sync products.json from CSV (every 5 min)
+name: Sync products + generate /p pages (every 5 min)
 
 on:
   workflow_dispatch:
@@ -26,23 +26,33 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Sync from CSV -> products.json
+      # 1) Sync products.json / archive.json from CSV
+      - name: Sync from CSV -> products.json + archive.json
         env:
           CSV_URL: "http://154.48.226.95:5001/admin/Product/export_csv"
         run: |
           echo "CSV_URL=$CSV_URL"
           node scripts/sync_products.mjs
 
+      # 2) Generate /p/{market}/{asinKey}/index.html pages for stable share URLs
+      - name: Generate product pages under /p
+        env:
+          SITE_ORIGIN: "https://ama.omino.top"
+        run: |
+          node tools/generate_product_pages.mjs
+
+      # 3) Commit & push only if there are changes
       - name: Commit changes (only if changed)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet; then
+          git add -A
+
+          if git diff --cached --quiet; then
             echo "No changes."
             exit 0
           fi
 
-          git add -A
-          git commit -m "chore: sync products.json"
+          git commit -m "chore: sync products + generate pages"
           git push
