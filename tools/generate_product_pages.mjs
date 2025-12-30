@@ -1,7 +1,9 @@
 // tools/generate_product_pages.mjs
-// Generate social-preview pages under /p/{market}/{asinKey}/index.html
-// Uses Open Graph tags for WhatsApp/Telegram previews.
-// IMPORTANT: Title is neutral and DOES NOT use product title (to avoid showing CN titles).
+// Generate /p/{market}/{asinKey}/index.html for WhatsApp/Telegram previews.
+// Key changes:
+// 1) og:image ALWAYS uses images.weserv.nl proxy (stable https, fewer 403)
+// 2) Title is neutral (does not use product title)
+// 3) Pages generated from products.json + archive.json union (downlisted still keeps preview page)
 
 import fs from "fs";
 import path from "path";
@@ -16,20 +18,27 @@ const OUT_DIR = path.join(REPO_ROOT, "p");
 function readJson(p, fallback) {
   try { return JSON.parse(fs.readFileSync(p, "utf-8")); } catch { return fallback; }
 }
-
 function ensureDir(p) { fs.mkdirSync(p, { recursive: true }); }
-
 function norm(s) { return String(s ?? "").trim(); }
 function upper(s) { return norm(s).toUpperCase(); }
-function safeHttps(url) { return norm(url).replace(/^http:\/\//i, "https://"); }
-
 function escapeHtml(str) {
   return String(str ?? "")
     .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
     .replaceAll('"',"&quot;").replaceAll("'","&#39;");
 }
+function safeHttps(url) { return norm(url).replace(/^http:\/\//i, "https://"); }
 
-// duplicates: market+asin may appear multiple times. Build asinKey = ASIN or ASIN_1, ASIN_2...
+// Always use Weserv for OG image (better success rate than direct Amazon image)
+function toWeservOg(url) {
+  const u = safeHttps(url);
+  if (!u) return "";
+  // weserv requires "url=" without protocol
+  const cleaned = u.replace(/^https?:\/\//i, "");
+  // force JPG and size suitable for previews
+  return `https://images.weserv.nl/?url=${encodeURIComponent(cleaned)}&w=1200&h=630&fit=cover&output=jpg`;
+}
+
+// duplicates: market+asin may repeat -> ASIN, ASIN_1, ASIN_2...
 function annotateAsinKeys(list) {
   const counter = new Map();
   for (const p of list) {
@@ -44,20 +53,19 @@ function annotateAsinKeys(list) {
 }
 
 function buildPreviewHtml({ market, asinKey, imageUrl }) {
-  const m = String(market).toLowerCase();
-  const pagePath = `/p/${encodeURIComponent(m)}/${encodeURIComponent(asinKey)}/`;
+  const mLower = String(market).toLowerCase();
+  const pagePath = `/p/${encodeURIComponent(mLower)}/${encodeURIComponent(asinKey)}/`;
   const pageUrl = SITE_ORIGIN + pagePath;
 
-  // 用 open 参数跳回 SPA（你 index.html 已支持 ?open=/p/xx/yyy）
+  // redirect humans to SPA (your index.html supports ?open=/p/xx/yyy)
   const openParam = encodeURIComponent(pagePath);
   const redirectUrl = `${SITE_ORIGIN}/?open=${openParam}`;
 
   const ogTitle = `Product Reference • ${upper(market)} • ${asinKey}`;
   const ogDesc = `Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases.`;
 
-  const img = safeHttps(imageUrl || "");
-  // WhatsApp/Telegram 对图片抓取要求比较苛刻：建议保证是 https 且可公网访问
-  const ogImage = img || `${SITE_ORIGIN}/og-placeholder.png`;
+  // OG image
+  const ogImage = toWeservOg(imageUrl) || `${SITE_ORIGIN}/og-placeholder.jpg`;
 
   return `<!doctype html>
 <html lang="en">
@@ -73,7 +81,10 @@ function buildPreviewHtml({ market, asinKey, imageUrl }) {
   <meta property="og:title" content="${escapeHtml(ogTitle)}" />
   <meta property="og:description" content="${escapeHtml(ogDesc)}" />
   <meta property="og:url" content="${escapeHtml(pageUrl)}" />
+
   <meta property="og:image" content="${escapeHtml(ogImage)}" />
+  <meta property="og:image:secure_url" content="${escapeHtml(ogImage)}" />
+  <meta property="og:image:type" content="image/jpeg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
 
@@ -84,7 +95,6 @@ function buildPreviewHtml({ market, asinKey, imageUrl }) {
 
   <meta name="robots" content="index,follow" />
 
-  <!-- quick redirect for humans -->
   <meta http-equiv="refresh" content="0; url=${escapeHtml(redirectUrl)}" />
 </head>
 <body>
@@ -105,7 +115,7 @@ function main() {
   const archive = readJson(ARCHIVE_JSON, []);
   const all = [...active, ...archive].filter(p => p && p.market && p.asin);
 
-  // stable ordering helps keep keys stable
+  // stable ordering -> stable asinKey assignment
   all.sort((a, b) => {
     const ma = upper(a.market), mb = upper(b.market);
     if (ma !== mb) return ma.localeCompare(mb);
@@ -115,11 +125,8 @@ function main() {
   });
 
   annotateAsinKeys(all);
-
-  // clean output dir
   ensureDir(OUT_DIR);
 
-  // generate pages
   let count = 0;
   for (const p of all) {
     const market = upper(p.market);
@@ -129,12 +136,7 @@ function main() {
     const dir = path.join(OUT_DIR, market.toLowerCase(), asinKey);
     ensureDir(dir);
 
-    const html = buildPreviewHtml({
-      market,
-      asinKey,
-      imageUrl: img
-    });
-
+    const html = buildPreviewHtml({ market, asinKey, imageUrl: img });
     fs.writeFileSync(path.join(dir, "index.html"), html, "utf-8");
     count++;
   }
