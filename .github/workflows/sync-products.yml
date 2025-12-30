@@ -58,7 +58,7 @@ jobs:
         env:
           CSV_FILE: "export.csv"
         run: |
-          node scripts/sync_from_csv.mjs
+          node scripts/sync_products.mjs
 
       - name: Commit changes (only if changed)
         run: |
