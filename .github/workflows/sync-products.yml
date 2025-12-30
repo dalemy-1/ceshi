@@ -16,7 +16,7 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
-        steps:
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -40,7 +40,6 @@ jobs:
       - name: Commit changes (only if changed)
         run: |
           set -e
-          ...
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
