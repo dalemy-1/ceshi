@@ -26,14 +26,14 @@ jobs:
         with:
           node-version: "20"
 
-      # 1) Sync products.json / archive.json from CSV
+      # 1) Sync products.json & archive.json from CSV (source of truth)
       - name: Sync from CSV -> products.json + archive.json
         env:
           CSV_URL: "http://154.48.226.95:5001/admin/Product/export_csv"
         run: |
-          node scripts/sync_from_csv.mjs
+          node scripts/sync_products.mjs
 
-      # 2) Generate /p/{market}/{asinKey}/index.html pages for stable share URLs
+      # 2) Generate /p/{market}/{asinKey}/index.html pages
       - name: Generate product pages under /p
         env:
           SITE_ORIGIN: "https://ama.omino.top"
