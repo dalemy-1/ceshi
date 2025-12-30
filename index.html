@@ -661,31 +661,21 @@
       if (!Array.isArray(active.value)) throw new Error("products.json is not an array");
 
       ALL_PRODUCTS = active.value.map((p, idx) => ({
-        _updated: Number(p._updated ?? 0),
-        _idx: Number(p._idx ?? 0),
-        market: String(p.market ?? p.Market ?? p.MARKET ?? "").trim().toUpperCase(),
+      _updated: Number(p._updated ?? 0),
+market: String(p.market ?? p.Market ?? p.MARKET ?? "").trim().toUpperCase(),
         asin: String(p.asin ?? p.ASIN ?? "").trim(),
         title: String(p.title ?? p.Title ?? "").trim(),
-        keyword: String(p.keyword ?? p.Keyword ?? "").trim(),
-        store: String(p.store ?? p.Store ?? "").trim(),
-        remark: String(p.remark ?? p.Remark ?? "").trim(),
-        status: String(p.status ?? p.Status ?? "").trim(),
         link: String(p.link ?? p.Link ?? "").trim(),
         image_url: String(p.image_url ?? p.image ?? p.Image ?? "").trim(),
         __idx: idx
-      }));
+      
+    }));
 
       if (archived.status === "fulfilled" && Array.isArray(archived.value)){
         ARCHIVE_PRODUCTS = archived.value.map((p, idx) => ({
-          _updated: Number(p._updated ?? 0),
-          _idx: Number(p._idx ?? 0),
           market: String(p.market ?? p.Market ?? p.MARKET ?? "").trim().toUpperCase(),
           asin: String(p.asin ?? p.ASIN ?? "").trim(),
           title: String(p.title ?? p.Title ?? "").trim(),
-          keyword: String(p.keyword ?? p.Keyword ?? "").trim(),
-          store: String(p.store ?? p.Store ?? "").trim(),
-          remark: String(p.remark ?? p.Remark ?? "").trim(),
-          status: String(p.status ?? p.Status ?? "").trim(),
           link: String(p.link ?? p.Link ?? "").trim(),
           image_url: String(p.image_url ?? p.image ?? p.Image ?? "").trim(),
           __aidx: idx
@@ -999,16 +989,9 @@
       market: p.market || "",
       asin: p.asin || "",
       title: p.title || "",
-      keyword: p.keyword || "",
-      store: p.store || "",
-      remark: p.remark || "",
-      status: p.status || "",
       link: p.link || "",
       image_url: p.image_url || ""
     };
-    return JSON.stringify(safe)
-      .replaceAll("&","\u0026").replaceAll("<","\u003c").replaceAll(">","\u003e");
-  };
     return JSON.stringify(safe)
       .replaceAll("&","\\u0026").replaceAll("<","\\u003c").replaceAll(">","\\u003e");
   }
@@ -1089,11 +1072,7 @@
           <div class="detail-head">
             <p class="detail-title">Product Reference</p>
             <p class="detail-sub">
-              Market: <b>${escapeHtml(market)}</b> ·
-              ASIN: <b>${escapeHtml(asinBase)}</b> ·
-              Key: <b>${escapeHtml(asinKey)}</b> ·
-              Keyword: <b>${escapeHtml(p.keyword || "—")}</b> ·
-              Store: <b>${escapeHtml(p.store || "—")}</b>
+              Market: <b>${escapeHtml(market)}</b> · ASIN: <b>${escapeHtml(asinBase)}</b> · Key: <b>${escapeHtml(asinKey)}</b>
               ${isArchived ? ' · <span style="color:#b45309;font-weight:800;">Archived</span>' : ''}
             </p>
           </div>
@@ -1182,16 +1161,10 @@
   function buildCopyInfo(product){
     const market = String(product.market || "").trim().toUpperCase();
     const asin = String(product.asin || "").trim();
-    const keyword = String(product.keyword || "").trim();
-    const store = String(product.store || "").trim();
-
     const lines = [];
     if (asin) lines.push(`ASIN: ${asin}`);
     if (market) lines.push(`Market: ${market}`);
-    if (keyword) lines.push(`Keyword: ${keyword}`);
-    if (store) lines.push(`Store: ${store}`);
-    return lines.join("
-");
+    return lines.join("\n");
   }
 
   function buildContactText(product){
