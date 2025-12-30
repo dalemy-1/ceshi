@@ -411,6 +411,9 @@
   // 页面端刷新频率（仅用于重新拉取 json；GitHub Pages 发布仍有 1~3 分钟队列延迟）
   const AUTO_REFRESH_MS = 60 * 1000;
 
+  // ====== IP 自动定位（仅首次且无保存国家时生效；失败不影响使用）======
+  const ENABLE_GEO_IP_AUTO_MARKET = true;
+
   let ALL_PRODUCTS = [];   // active only
   let ARCHIVE_PRODUCTS = []; // archived/offline
   let LAST_LOADED_AT = null;
@@ -502,10 +505,28 @@
     }
   }
 
+  // ---------- ASIN 判定 ----------
+  // 你要求：沃尔玛等其它平台 asin 多为纯数字；Amazon ASIN 形如 B08GPYDN6P（10位且包含字母）
+  function isAllDigits(s){ return /^[0-9]+$/.test(String(s||"").trim()); }
+  function isAmazonLikeAsin(s){
+    const v = String(s||"").trim().toUpperCase();
+    if (!/^[A-Z0-9]{10}$/.test(v)) return false;
+    return /[A-Z]/.test(v); // 至少含一个字母
+  }
+  function shouldHideNonAmazonAsin(s){
+    // 纯数字的一律隐藏（你的需求）；同时也可作为“非 Amazon”特征
+    return isAllDigits(s);
+  }
+
   // ---------- routing ----------
   function parseRoute(){
     const path = location.pathname || "/";
-    const m = path.match(/^\/p\/([^\/]+)\/([^\/?#]+)\/?$/i);
+
+    // ✅ 兼容：
+    // /p/uk/B07RYTFHCR/
+    // /p/uk/B07RYTFHCR
+    // /p/uk/B07RYTFHCR/index.html
+    const m = path.match(/^\/p\/([^\/]+)\/([^\/?#]+)(?:\/index\.html)?\/?$/i);
     if (m){
       return { type:"product", market: decodeURIComponent(m[1] || ""), key: decodeURIComponent(m[2] || "") };
     }
@@ -526,6 +547,7 @@
 
   function buildProductPath(market, asinKey){
     const m = String(market||"").trim().toLowerCase();
+    // 保持你现在的路径风格：/p/uk/ASIN  （无强制尾斜杠）
     return `/p/${encodeURIComponent(m)}/${encodeURIComponent(String(asinKey||""))}`;
   }
   function buildProductPermalink(market, asinKey){
@@ -535,6 +557,9 @@
   function findProductByRoute(products, market, asinKey){
     const M = normalizeMarket(market);
     const { base, idx } = splitAsinKey(asinKey);
+
+    // ✅ 防止误把“纯数字（沃尔玛等）”当作 Amazon 产品页打开
+    if (shouldHideNonAmazonAsin(base)) return null;
 
     const group = products.filter(p =>
       normalizeMarket(p.market) === M &&
@@ -577,9 +602,12 @@
 
   function goToProductPage(p){
     const m = String(p.market||"").trim().toLowerCase();
-    // 这里仍使用 products.json 里原始 asin（不显示 title）
     const asinKey = normalizeAsin(p.asin || "");
     if (!m || !asinKey) return;
+
+    // ✅ 列表点击也防纯数字
+    if (shouldHideNonAmazonAsin(asinKey)) return;
+
     const path = buildProductPath(m, asinKey);
     history.pushState({type:"product", market:m, key:asinKey}, "", path);
     renderByRoute();
@@ -658,6 +686,11 @@
 
     return ALL_PRODUCTS
       .filter(p => String(p.market || "").trim().toUpperCase() === m)
+      .filter(p => {
+        // ✅ 隐藏“纯数字 ASIN”（沃尔玛等）
+        if (shouldHideNonAmazonAsin(p.asin)) return false;
+        return true;
+      })
       .filter(p => {
         if (!q) return true;
         const hay = [p.asin].map(v => String(v || "").toLowerCase()).join(" ");
@@ -940,6 +973,13 @@
     const market = normalizeMarket(marketRaw);
     const asinKey = String(keyRaw || "").trim();
     const asinBase = splitAsinKey(asinKey).base;
+
+    // ✅ 纯数字直接不展示为产品页（避免审核误会）
+    if (shouldHideNonAmazonAsin(asinBase)){
+      renderNotFound({market: marketRaw, key: keyRaw});
+      return;
+    }
+
     const link = normalizeUrl(p.link);
     const imgRaw = String(p.image_url || "").trim();
     const imgSrc = initialImageUrl(imgRaw);
@@ -1009,14 +1049,12 @@
         return;
       }
 
-      // 先从 active 找
       let prod = findProductByRoute(ALL_PRODUCTS, route.market, route.key);
       if (prod){
         renderDetail(prod, route.market, route.key, false);
         return;
       }
 
-      // 再从 archive 找（下架仍可打开）
       prod = findProductByRoute(ARCHIVE_PRODUCTS, route.market, route.key);
       if (prod){
         renderDetail(prod, route.market, route.key, true);
@@ -1113,6 +1151,51 @@
     copyText(text).then(() => alert("Copied!")).catch(() => alert("Copy failed"));
   }
 
+  // ---------- Geo IP auto market ----------
+  function mapCountryCodeToMarket(cc){
+    const c = String(cc||"").trim().toUpperCase();
+    if (!c) return "";
+    // 常用映射（可按你的业务再扩展）
+    if (c === "US") return "US";
+    if (c === "CA") return "CA";
+    if (c === "JP") return "JP";
+    if (c === "GB") return "UK";
+    if (c === "DE") return "DE";
+    if (c === "FR") return "FR";
+    if (c === "IT") return "IT";
+    if (c === "ES") return "ES";
+    return "";
+  }
+
+  async function tryGeoIpSetMarketOnce(){
+    if (!ENABLE_GEO_IP_AUTO_MARKET) return;
+    const already = localStorage.getItem("selectedCountry");
+    if (already) return; // 有保存则不覆盖用户选择
+
+    // 只有在列表页才做自动定位，避免干扰 /p 产品页
+    const route = parseRoute();
+    if (route.type !== "list") return;
+
+    try{
+      // ipapi.co 简单好用；失败则静默
+      const res = await fetch("https://ipapi.co/json/", { cache:"no-store" });
+      if (!res.ok) return;
+      const j = await res.json();
+      const market = mapCountryCodeToMarket(j && (j.country_code || j.country));
+      if (!market) return;
+
+      // 只设置你支持的市场
+      const allowed = ["US","UK","DE","FR","IT","ES","CA","JP"];
+      if (!allowed.includes(market)) return;
+
+      document.getElementById("countrySelect").value = market;
+      localStorage.setItem("selectedCountry", market);
+      renderGrid();
+    }catch(_){
+      // 静默失败
+    }
+  }
+
   // ---------- boot ----------
   window.addEventListener("popstate", () => renderByRoute());
 
@@ -1122,6 +1205,9 @@
 
     // first render (so /p/... shows loading)
     renderByRoute();
+
+    // 尝试 IP 自动定位（只在首次无保存国家时）
+    tryGeoIpSetMarketOnce();
 
     fetchAllData(false);
     setInterval(() => fetchAllData(false), AUTO_REFRESH_MS);
