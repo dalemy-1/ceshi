@@ -53,7 +53,7 @@ jobs:
 
           git commit -m "chore: sync products + generate pages"
 
+          # 先同步远端，减少 push 冲突概率
           git pull --rebase origin main
 
           git push origin HEAD:main
-
