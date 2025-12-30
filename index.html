@@ -4,7 +4,8 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Product Picks</title>
-<meta name="description" content="Independent product reference. As an Amazon Associate, we earn from qualifying purchases.">
+<meta name="description" content="Independent product picks. As an Amazon Associate, we earn from qualifying purchases.">
+
 <style>
   :root{
     --bg:#f4f4f9;
@@ -162,8 +163,6 @@
   }
   .product-image:hover{ transform:scale(1.02); }
 
-  .asin{ display:none !important; }
-
   .why{
     width:100%;
     max-width:360px;
@@ -241,7 +240,7 @@
     padding:10px 12px;
   }
   .detail-head{ display:flex; flex-direction:column; gap:4px; }
-  .detail-title{ font-weight:900; font-size:14px; margin:0; } /* 仍保留，但不会显示产品 title */
+  .detail-title{ font-weight:900; font-size:14px; margin:0; }
   .detail-sub{ font-size:12px; color:#6b7280; margin:0; }
   .detail-card{
     margin-top:12px;
@@ -278,7 +277,7 @@
 <header>
   <h1 id="headerTitle">Product Picks</h1>
   <div class="topbar" id="topbar">
-    <select class="country-select" id="countrySelect" onchange="onMarketChange(true)">
+    <select class="country-select" id="countrySelect" onchange="onMarketChange()">
       <option value="US">US</option>
       <option value="UK">UK</option>
       <option value="DE">DE</option>
@@ -288,7 +287,7 @@
       <option value="CA">CA</option>
       <option value="JP">JP</option>
     </select>
-    <input class="search-input" id="searchInput" placeholder="Search by ASIN / title…" oninput="renderGrid()"/>
+    <input class="search-input" id="searchInput" placeholder="Search by ASIN…" oninput="renderGrid()"/>
   </div>
 </header>
 
@@ -323,7 +322,7 @@
       <span class="badge" id="statusBadge">Loading…</span>
       <span class="muted" id="statusMeta"></span>
     </div>
-    <button class="btn" onclick="fetchProductData(true)">Refresh</button>
+    <button class="btn" onclick="fetchAllData(true)">Refresh</button>
   </div>
 
   <div class="howto" id="howtoBlock">
@@ -354,6 +353,7 @@
   <div class="grid" id="productGrid"></div>
   <div class="empty" id="emptyHint" style="display:none;"></div>
   <div id="detailPage" style="display:none;"></div>
+
 </div>
 
 <div class="modal" id="contactModal" onclick="closeContactModal()">
@@ -396,39 +396,29 @@
 </footer>
 
 <script>
-  /* ===================== CONFIG ===================== */
-  // Root JSON files (must be absolute paths, because /p/... must not fetch /p/.../products.json)
+  /**
+   * Data files (must be at site root)
+   * - products.json: active list (listing uses this only)
+   * - archive.json : removed/offline items (detail fallback)
+   */
   const PRODUCTS_JSON_PATH = "/products.json";
-  const ARCHIVE_JSON_PATH  = "/archive.json";   // 用于下架兜底：archive.json 里有就继续展示独立页
+  const ARCHIVE_JSON_PATH  = "/archive.json";
 
-  // “可预览链接”使用静态预览页（末尾带 / 的目录形式：/p/us/ASIN/）
-  // 你的 tools/generate_product_pages.mjs 会生成：/p/{market}/{key}/index.html
-  const USE_PREVIEW_LINK_FOR_SHARING = true;
-
-  // 联系方式（不含 Amazon link）
   const WA_PHONE = "8615778673666";
   const TG_USERNAME = "dalemyrong";
   const EMAIL_CONTACT = "info@dalemy.top";
 
-  // 自动刷新（页面端）
+  // 页面端刷新频率（仅用于重新拉取 json；GitHub Pages 发布仍有 1~3 分钟队列延迟）
   const AUTO_REFRESH_MS = 60 * 1000;
 
-  // IP 定位（首次访问默认市场）
-  const ENABLE_IP_GEO_DEFAULT_MARKET = true;
-  const IP_GEO_TIMEOUT_MS = 1600; // 超时就默认 US
-
-  // 复制/联系信息：不包含 title（你要求）
-  const COPY_INCLUDE_TITLE = false;
-
-  /* ===================== STATE ===================== */
-  let ALL_PRODUCTS = [];
-  let ARCHIVE_PRODUCTS = null; // lazy-load
+  let ALL_PRODUCTS = [];   // active only
+  let ARCHIVE_PRODUCTS = []; // archived/offline
   let LAST_LOADED_AT = null;
-  let CURRENT_CONTACT_PRODUCT = null;
   let LAST_LOAD_ERROR = "";
   let IS_LOADING = false;
 
-  /* ===================== PLACEHOLDER ===================== */
+  let CURRENT_CONTACT_PRODUCT = null;
+
   const PLACEHOLDER_SVG = `
     <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
       <defs>
@@ -447,10 +437,6 @@
   `;
   const PLACEHOLDER_DATA_URI = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(PLACEHOLDER_SVG);
 
-  /* ===================== HELPERS ===================== */
-  function currentMarket(){
-    return (document.getElementById("countrySelect").value || "US").toUpperCase();
-  }
   function normalizeUrl(u){
     const s = String(u || "").trim();
     if (!s) return "";
@@ -466,34 +452,13 @@
     document.getElementById("statusBadge").textContent = text;
     document.getElementById("statusMeta").textContent = meta;
   }
-  function setEmptyMessage(html){
-    document.getElementById("emptyHint").innerHTML = html;
-  }
-  function showEmptyByState(visibleCount){
-    const el = document.getElementById("emptyHint");
 
-    if (LAST_LOAD_ERROR){
-      setEmptyMessage(`Failed to load <code>products.json</code>. ${escapeHtml(LAST_LOAD_ERROR)}`);
-      el.style.display = "block";
-      return;
-    }
-    if (!ALL_PRODUCTS || ALL_PRODUCTS.length === 0){
-      setEmptyMessage(`No products loaded. Ensure <code>products.json</code> is available in this folder.`);
-      el.style.display = "block";
-      return;
-    }
-    if (visibleCount === 0){
-      const m = currentMarket();
-      const q = (document.getElementById("searchInput").value || "").trim();
-      if (q){
-        setEmptyMessage(`No results for <b>${escapeHtml(m)}</b> with current search.`);
-      }else{
-        setEmptyMessage(`No products for <b>${escapeHtml(m)}</b> yet.`);
-      }
-      el.style.display = "block";
-      return;
-    }
-    el.style.display = "none";
+  function currentMarket(){
+    return (document.getElementById("countrySelect").value || "US").toUpperCase();
+  }
+  function onMarketChange(){
+    localStorage.setItem("selectedCountry", currentMarket());
+    renderGrid();
   }
 
   function isHttpsPage(){ return String(location.protocol || "").toLowerCase() === "https:"; }
@@ -537,16 +502,7 @@
     }
   }
 
-  function restoreSpaPathIfAny(){
-    try{
-      const restore = sessionStorage.getItem("__spa_redirect_path__");
-      if (restore){
-        sessionStorage.removeItem("__spa_redirect_path__");
-        history.replaceState(null, "", restore);
-      }
-    }catch(e){}
-  }
-
+  // ---------- routing ----------
   function parseRoute(){
     const path = location.pathname || "/";
     const m = path.match(/^\/p\/([^\/]+)\/([^\/?#]+)\/?$/i);
@@ -567,43 +523,13 @@
     const idx = mm[2] ? Math.max(0, parseInt(mm[2], 10)) : 0;
     return { base, idx };
   }
-  function buildAsinKey(baseAsin, dupIndex){
-    const base = normalizeAsin(baseAsin);
-    if (!base) return "";
-    if (!dupIndex || dupIndex <= 0) return base;
-    return `${base}_${dupIndex}`;
-  }
 
-  // SPA 内部路由（页面渲染）
-  function buildProductSpaPath(market, asinKey){
+  function buildProductPath(market, asinKey){
     const m = String(market||"").trim().toLowerCase();
     return `/p/${encodeURIComponent(m)}/${encodeURIComponent(String(asinKey||""))}`;
   }
-
-  // 分享用“静态预览页”（末尾带 /），以便 WhatsApp/Telegram 预览抓 og:image
-  function buildProductPreviewPath(market, asinKey){
-    const m = String(market||"").trim().toLowerCase();
-    return `/p/${encodeURIComponent(m)}/${encodeURIComponent(String(asinKey||""))}/`;
-  }
-
-  function buildShareLink(market, asinKey){
-    const base = USE_PREVIEW_LINK_FOR_SHARING
-      ? buildProductPreviewPath(market, asinKey)
-      : buildProductSpaPath(market, asinKey);
-    return location.origin + base;
-  }
-
-  function annotateAsinKeys(products){
-    const counter = new Map();
-    products.forEach(p=>{
-      const M = normalizeMarket(p.market);
-      const A = normalizeAsin(p.asin);
-      const k = `${M}|${A}`;
-      const seen = (counter.get(k) || 0);
-      p.__dupIndex = seen;
-      p.__asinKey = buildAsinKey(p.asin, seen);
-      counter.set(k, seen + 1);
-    });
+  function buildProductPermalink(market, asinKey){
+    return location.origin + buildProductPath(market, asinKey);
   }
 
   function findProductByRoute(products, market, asinKey){
@@ -615,102 +541,117 @@
       normalizeAsin(p.asin) === base
     );
     if (!group.length) return null;
-
-    const picked = group[idx] || null;
-    if (!picked) return null;
-
-    picked.__dupIndex = idx;
-    picked.__asinKey = buildAsinKey(picked.asin, idx);
-    return picked;
+    return group[idx] || null;
   }
 
-  function encodeProductForOnclick(p){
-    const safe = {
-      market: p.market || "",
-      asin: p.asin || "",
-      title: p.title || "",
-      link: p.link || "",
-      image_url: p.image_url || "",
-      __idx: p.__idx ?? 0,
-      __asinKey: p.__asinKey || ""
-    };
-    return JSON.stringify(safe)
-      .replaceAll("&","\\u0026").replaceAll("<","\\u003c").replaceAll(">","\\u003e");
+  function showList(){
+    document.getElementById("topbar").style.display = "flex";
+    document.getElementById("heroBlock").style.display = "block";
+    document.getElementById("complianceBlock").style.display = "block";
+    document.getElementById("statusBar").style.display = "flex";
+    document.getElementById("howtoBlock").style.display = "block";
+    document.getElementById("productGrid").style.display = "grid";
+    document.getElementById("detailPage").style.display = "none";
+    document.getElementById("footer").style.display = "block";
+    document.getElementById("headerTitle").textContent = "Product Picks";
+    document.title = "Product Picks";
   }
 
-  /* ===================== DATA FETCH ===================== */
-  function fetchJsonNoStore(url){
-    return fetch(url, { cache:"no-store" }).then(res => {
-      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-      return res.json();
-    });
+  function showDetail(){
+    document.getElementById("topbar").style.display = "none";
+    document.getElementById("heroBlock").style.display = "none";
+    document.getElementById("complianceBlock").style.display = "none";
+    document.getElementById("statusBar").style.display = "none";
+    document.getElementById("howtoBlock").style.display = "none";
+    document.getElementById("productGrid").style.display = "none";
+    document.getElementById("emptyHint").style.display = "none";
+    document.getElementById("detailPage").style.display = "block";
+    document.getElementById("footer").style.display = "block";
   }
 
-  function fetchProductData(manual=false){
-    const url = PRODUCTS_JSON_PATH + "?ts=" + Date.now();
+  function goHome(){
+    history.pushState({type:"list"}, "", "/");
+    renderByRoute();
+    window.scrollTo({top:0, behavior:"instant"});
+  }
+
+  function goToProductPage(p){
+    const m = String(p.market||"").trim().toLowerCase();
+    // 这里仍使用 products.json 里原始 asin（不显示 title）
+    const asinKey = normalizeAsin(p.asin || "");
+    if (!m || !asinKey) return;
+    const path = buildProductPath(m, asinKey);
+    history.pushState({type:"product", market:m, key:asinKey}, "", path);
+    renderByRoute();
+    window.scrollTo({top:0, behavior:"instant"});
+  }
+
+  // ---------- data fetch ----------
+  async function fetchJsonNoCache(url){
+    const u = url + (url.includes("?") ? "&" : "?") + "ts=" + Date.now();
+    const res = await fetch(u, { cache:"no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    return await res.json();
+  }
+
+  async function fetchAllData(manual=false){
     LAST_LOAD_ERROR = "";
     IS_LOADING = true;
-    setStatus(manual ? "Refreshing…" : "Loading…", "Fetching products.json");
+    setStatus(manual ? "Refreshing…" : "Loading…", "Fetching products.json / archive.json");
 
-    fetchJsonNoStore(url)
-      .then(list => {
-        if (!Array.isArray(list)) throw new Error("products.json is not an array");
-
-        ALL_PRODUCTS = list.map((p, idx) => ({
-          market: String(p.market ?? p.Market ?? p.MARKET ?? "").trim().toUpperCase(),
-          asin: String(p.asin ?? p.ASIN ?? "").trim(),
-          title: String(p.title ?? p.Title ?? "").trim(),
-          link: String(p.link ?? p.Link ?? "").trim(),
-          image_url: String(p.image_url ?? p.image_url ?? p.image ?? p.Image ?? "").trim(),
-          __idx: idx
-        }));
-
-        annotateAsinKeys(ALL_PRODUCTS);
-        LAST_LOADED_AT = new Date();
-        IS_LOADING = false;
-
-        renderByRoute();
-
-        const route = parseRoute();
-        if (route.type === "list"){
-          const visible = getVisibleProducts().length;
-          setStatus("Loaded", `${visible}/${ALL_PRODUCTS.length} visible · ${currentMarket()} · ${LAST_LOADED_AT.toLocaleString()}`);
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        LAST_LOAD_ERROR = err.message || String(err);
-        IS_LOADING = false;
-        setStatus("Load failed", LAST_LOAD_ERROR);
-        renderByRoute();
-        if (manual) alert("Failed to load products.json.\n\n" + LAST_LOAD_ERROR);
-      });
-  }
-
-  async function ensureArchiveLoaded(){
-    if (ARCHIVE_PRODUCTS) return ARCHIVE_PRODUCTS;
     try{
-      const url = ARCHIVE_JSON_PATH + "?ts=" + Date.now();
-      const list = await fetchJsonNoStore(url);
-      if (!Array.isArray(list)) throw new Error("archive.json is not an array");
+      const [active, archived] = await Promise.allSettled([
+        fetchJsonNoCache(PRODUCTS_JSON_PATH),
+        fetchJsonNoCache(ARCHIVE_JSON_PATH)
+      ]);
 
-      ARCHIVE_PRODUCTS = list.map((p, idx) => ({
+      if (active.status !== "fulfilled") throw active.reason;
+      if (!Array.isArray(active.value)) throw new Error("products.json is not an array");
+
+      ALL_PRODUCTS = active.value.map((p, idx) => ({
         market: String(p.market ?? p.Market ?? p.MARKET ?? "").trim().toUpperCase(),
         asin: String(p.asin ?? p.ASIN ?? "").trim(),
-        title: String(p.title ?? p.Title ?? "").trim(),
+        title: String(p.title ?? p.Title ?? "").trim(),          // 仅作为内部分类用，不展示
         link: String(p.link ?? p.Link ?? "").trim(),
-        image_url: String(p.image_url ?? p.image_url ?? p.image ?? p.Image ?? "").trim(),
+        image_url: String(p.image_url ?? p.image ?? p.Image ?? "").trim(),
         __idx: idx
       }));
-      annotateAsinKeys(ARCHIVE_PRODUCTS);
-      return ARCHIVE_PRODUCTS;
-    }catch(e){
-      console.warn("[archive] load failed:", e);
-      ARCHIVE_PRODUCTS = []; // avoid repeated fetch storms
-      return ARCHIVE_PRODUCTS;
+
+      // archive 允许不存在或格式错误时降级为空
+      if (archived.status === "fulfilled" && Array.isArray(archived.value)){
+        ARCHIVE_PRODUCTS = archived.value.map((p, idx) => ({
+          market: String(p.market ?? p.Market ?? p.MARKET ?? "").trim().toUpperCase(),
+          asin: String(p.asin ?? p.ASIN ?? "").trim(),
+          title: String(p.title ?? p.Title ?? "").trim(),        // 不展示
+          link: String(p.link ?? p.Link ?? "").trim(),
+          image_url: String(p.image_url ?? p.image ?? p.Image ?? "").trim(),
+          __aidx: idx
+        }));
+      } else {
+        ARCHIVE_PRODUCTS = [];
+      }
+
+      LAST_LOADED_AT = new Date();
+      IS_LOADING = false;
+
+      renderByRoute();
+
+      const route = parseRoute();
+      if (route.type === "list"){
+        const visible = getVisibleProducts().length;
+        setStatus("Loaded", `${visible}/${ALL_PRODUCTS.length} visible · ${currentMarket()} · ${LAST_LOADED_AT.toLocaleString()}`);
+      }
+    }catch(err){
+      console.error(err);
+      LAST_LOAD_ERROR = err?.message || String(err);
+      IS_LOADING = false;
+      setStatus("Load failed", LAST_LOAD_ERROR);
+      renderByRoute();
+      if (manual) alert("Failed to load products.json.\n\n" + LAST_LOAD_ERROR);
     }
   }
 
+  // ---------- list filtering ----------
   function getVisibleProducts(){
     const m = currentMarket();
     const q = (document.getElementById("searchInput").value || "").trim().toLowerCase();
@@ -719,13 +660,40 @@
       .filter(p => String(p.market || "").trim().toUpperCase() === m)
       .filter(p => {
         if (!q) return true;
-        const hay = [p.asin, p.title].map(v => String(v || "").toLowerCase()).join(" ");
+        const hay = [p.asin].map(v => String(v || "").toLowerCase()).join(" ");
         return hay.includes(q);
       })
       .sort((a,b) => (a.__idx ?? 0) - (b.__idx ?? 0));
   }
 
-  /* ===================== ADVISOR NOTE ===================== */
+  function showEmptyByState(visibleCount){
+    const el = document.getElementById("emptyHint");
+
+    if (LAST_LOAD_ERROR){
+      el.innerHTML = `Failed to load data. ${escapeHtml(LAST_LOAD_ERROR)}`;
+      el.style.display = "block";
+      return;
+    }
+    if (!ALL_PRODUCTS || ALL_PRODUCTS.length === 0){
+      el.innerHTML = `No products loaded. Ensure <code>products.json</code> is available at site root.`;
+      el.style.display = "block";
+      return;
+    }
+    if (visibleCount === 0){
+      const m = currentMarket();
+      const q = (document.getElementById("searchInput").value || "").trim();
+      if (q){
+        el.innerHTML = `No results for <b>${escapeHtml(m)}</b> with current search.`;
+      }else{
+        el.innerHTML = `No products for <b>${escapeHtml(m)}</b> yet.`;
+      }
+      el.style.display = "block";
+      return;
+    }
+    el.style.display = "none";
+  }
+
+  // ---------- advisor note (no title displayed) ----------
   function hash32(str){
     const s = String(str || "");
     let h = 2166136261;
@@ -743,7 +711,6 @@
   function classifyProduct(p){
     const t = String(p?.title || "").toLowerCase();
     const has = (...kw) => kw.some(k => t.includes(k));
-
     if (has("birthday","anniversary","gift","present","decor","lamp","night light","plaque","acrylic","frame","sign","ornament")) return "gift_decor";
     if (has("tooth","teeth","whitening","mouth","oral","dental","brush","flosser","water flosser")) return "oral_care";
     if (has("boot","boots","shoe","shoes","sneaker","rain boot","rain boots")) return "footwear";
@@ -758,10 +725,9 @@
     return "general";
   }
   function buildWhyPickedShortAdvisor(p){
-    const title = String(p?.title || "").trim();
     const asin = String(p?.asin || "").trim();
     const market = String(p?.market || "").trim().toUpperCase();
-    const seed = (market || "US") + "|" + (asin || title || "x");
+    const seed = (market || "US") + "|" + (asin || "x");
     const bucket = classifyProduct(p);
 
     const HEADS = ["Why we picked it", "Advisor note", "Quick guidance", "Selection note"];
@@ -771,7 +737,6 @@
       "Chosen for straightforward use and clear selection steps.",
       "Included for common scenarios where details matter."
     ];
-
     const CHECKS_BY_BUCKET = {
       electronics: [
         "Check: ports/specs match your device (power, size, standards).",
@@ -834,7 +799,6 @@
         "Check: printer compatibility and material properties."
       ]
     };
-
     const FINAL_REMINDERS = [
       "Tip: verify the exact variant on Amazon before checkout.",
       "Tip: confirm seller/fulfillment and return terms on Amazon.",
@@ -860,202 +824,7 @@
     `;
   }
 
-  /* ===================== UI SHOW/HIDE ===================== */
-  function showList(){
-    document.getElementById("topbar").style.display = "flex";
-    document.getElementById("heroBlock").style.display = "block";
-    document.getElementById("complianceBlock").style.display = "block";
-    document.getElementById("statusBar").style.display = "flex";
-    document.getElementById("howtoBlock").style.display = "block";
-    document.getElementById("productGrid").style.display = "grid";
-    document.getElementById("detailPage").style.display = "none";
-    document.getElementById("footer").style.display = "block";
-    document.getElementById("headerTitle").textContent = "Product Picks";
-    document.title = "Product Picks";
-  }
-
-  function showDetail(){
-    document.getElementById("topbar").style.display = "none";
-    document.getElementById("heroBlock").style.display = "none";
-    document.getElementById("complianceBlock").style.display = "none";
-    document.getElementById("statusBar").style.display = "none";
-    document.getElementById("howtoBlock").style.display = "none";
-    document.getElementById("productGrid").style.display = "none";
-    document.getElementById("emptyHint").style.display = "none";
-    document.getElementById("detailPage").style.display = "block";
-    document.getElementById("footer").style.display = "block";
-  }
-
-  function goHome(){
-    history.pushState({type:"list"}, "", "/");
-    renderByRoute();
-    window.scrollTo({top:0, behavior:"instant"});
-  }
-
-  function goToProductPage(p){
-    const m = String(p.market||"").trim().toLowerCase();
-    const key = String(p.__asinKey || buildAsinKey(p.asin, 0) || "").trim();
-    if (!m || !key) return;
-    const path = buildProductSpaPath(m, key);
-    history.pushState({type:"product", market:m, key:key}, "", path);
-    renderByRoute();
-    window.scrollTo({top:0, behavior:"instant"});
-  }
-
-  /* ===================== ROUTE RENDER ===================== */
-  function renderProductLoading(route){
-    showDetail();
-    const box = document.getElementById("detailPage");
-    box.innerHTML = `
-      <div class="detail-wrap">
-        <div class="detail-top">
-          <div class="detail-head">
-            <p class="detail-title">Loading product…</p>
-            <p class="detail-sub">Market: <b>${escapeHtml(route.market||"")}</b> · Key: <b>${escapeHtml(route.key||"")}</b></p>
-          </div>
-          <button class="btn secondary" onclick="goHome()">← Back to list</button>
-        </div>
-        <div class="detail-card">
-          <div class="detail-note">
-            Loading data from <code>products.json</code>. Please wait…
-          </div>
-        </div>
-      </div>
-    `;
-    document.title = "Loading… • Product Picks";
-  }
-
-  async function renderByRoute(){
-    const route = parseRoute();
-    if (route.type === "product"){
-      if ((IS_LOADING || !LAST_LOADED_AT) && !LAST_LOAD_ERROR){
-        renderProductLoading(route);
-        return;
-      }
-
-      // 1) 先在当前 products.json 找
-      let prod = findProductByRoute(ALL_PRODUCTS, route.market, route.key);
-
-      // 2) 找不到则去 archive.json 兜底（下架也能打开独立页）
-      if (!prod){
-        const arch = await ensureArchiveLoaded();
-        prod = findProductByRoute(arch, route.market, route.key);
-        if (prod){
-          renderDetail(prod, route.market, route.key, true);
-          return;
-        }
-      }
-
-      if (!prod){
-        renderNotFound(route);
-        return;
-      }
-
-      renderDetail(prod, route.market, route.key, false);
-      return;
-    }
-
-    showList();
-    renderGrid();
-  }
-
-  function renderNotFound(route){
-    showDetail();
-    const box = document.getElementById("detailPage");
-    box.innerHTML = `
-      <div class="detail-wrap">
-        <div class="detail-top">
-          <div class="detail-head">
-            <p class="detail-title">Product not found</p>
-            <p class="detail-sub">Market: <b>${escapeHtml(route.market||"")}</b> · Key: <b>${escapeHtml(route.key||"")}</b></p>
-          </div>
-          <button class="btn secondary" onclick="goHome()">← Back to list</button>
-        </div>
-
-        <div class="detail-card">
-          <div class="detail-note">
-            This product reference may have been removed or moved. Please return to the list and search again.
-          </div>
-        </div>
-      </div>
-    `;
-    document.title = "Product not found • Product Picks";
-  }
-
-  function renderDetail(p, marketRaw, keyRaw, isArchived=false){
-    showDetail();
-
-    const market = normalizeMarket(marketRaw);
-    const asinKey = String(keyRaw || p.__asinKey || "").trim();
-    const asinBase = splitAsinKey(asinKey).base || normalizeAsin(p.asin);
-    const link = normalizeUrl(p.link);
-    const imgRaw = String(p.image_url || "").trim();
-    const imgSrc = initialImageUrl(imgRaw);
-
-    // 分享链接：默认复制“静态预览页链接”（末尾 /）
-    const shareLink = buildShareLink(market.toLowerCase(), asinKey);
-
-    // 独立页顶部标题：不显示产品 title（你要求）
-    const pageHeading = "Product Reference";
-
-    // 页面 <title>：不包含中文标题
-    document.title = `${asinBase || asinKey} • ${market} • Product Reference`;
-
-    const viewAmazon = link
-      ? `<a class="btn cta" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer nofollow sponsored">View on Amazon</a>`
-      : `<button class="btn cta" onclick="alert('No valid Amazon link for this item.');">View on Amazon</button>`;
-
-    const archivedBadge = isArchived
-      ? `<span class="badge" style="margin-left:6px;">Archived</span>`
-      : ``;
-
-    const box = document.getElementById("detailPage");
-    box.innerHTML = `
-      <div class="detail-wrap">
-        <div class="detail-top">
-          <div class="detail-head">
-            <p class="detail-title">${escapeHtml(pageHeading)} ${archivedBadge}</p>
-            <p class="detail-sub">Market: <b>${escapeHtml(market)}</b> · Page key: <b>${escapeHtml(asinKey)}</b></p>
-          </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn secondary" onclick="goHome()">← Back</button>
-            <button class="btn secondary" onclick="copyText('${escapeHtml(shareLink)}').then(()=>alert('Copied page link!')).catch(()=>alert('Copy failed'))">Copy page link</button>
-            <button class="btn secondary" onclick='openContactModal(${encodeProductForOnclick(p)})'>Contact / Copy</button>
-          </div>
-        </div>
-
-        <div class="detail-card">
-          <img class="detail-image"
-            src="${escapeHtml(imgSrc)}"
-            data-original="${escapeHtml(normalizeUrl(imgRaw) || "")}"
-            data-stage="0"
-            alt="${escapeHtml(asinBase || asinKey || 'Product')}"
-            loading="lazy"
-            decoding="async"
-            referrerpolicy="no-referrer"
-            onerror="onImgError(this)"
-          />
-
-          <div style="display:flex;justify-content:center;margin-top:10px;">
-            ${whyHtml(p)}
-          </div>
-
-          <div class="detail-actions">
-            ${viewAmazon}
-            <button class="btn cta secondary" onclick='openContactModal(${encodeProductForOnclick(p)})'>Contact / Copy</button>
-          </div>
-
-          <div class="detail-note">
-            <strong>Disclosure:</strong> As an Amazon Associate, we earn from qualifying purchases.
-            This is an independent site and is not endorsed by Amazon. Purchases are completed on Amazon via the product page.
-            ${isArchived ? `<br><strong>Status:</strong> This item is currently archived. The product page may be unavailable or changed on Amazon.` : ``}
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  /* ===================== GRID RENDER ===================== */
+  // ---------- render list ----------
   function renderGrid(){
     const grid = document.getElementById("productGrid");
     const items = getVisibleProducts();
@@ -1088,8 +857,6 @@
                onerror="onImgError(this)"
                onclick='goToProductPage(${encodeProductForOnclick(p)})' />
 
-          <div class="asin" title="${escapeHtml(asin)}">ASIN: ${escapeHtml(asin || "-")}</div>
-
           ${whyHtml(p)}
 
           <div class="actions">
@@ -1108,17 +875,163 @@
     }
   }
 
-  /* ===================== MARKET CHANGE ===================== */
-  function onMarketChange(userInitiated){
-    // userInitiated=true：用户手动切换，写入 localStorage，覆盖 IP 定位
-    if (userInitiated){
-      localStorage.setItem("selectedCountry", currentMarket());
-      localStorage.setItem("selectedCountry_source", "user");
+  // ---------- encode product for onclick ----------
+  function encodeProductForOnclick(p){
+    const safe = {
+      market: p.market || "",
+      asin: p.asin || "",
+      title: p.title || "",       // 内部可保留，不展示
+      link: p.link || "",
+      image_url: p.image_url || ""
+    };
+    return JSON.stringify(safe)
+      .replaceAll("&","\\u0026").replaceAll("<","\\u003c").replaceAll(">","\\u003e");
+  }
+
+  // ---------- detail render with archive fallback ----------
+  function renderProductLoading(route){
+    showDetail();
+    const box = document.getElementById("detailPage");
+    box.innerHTML = `
+      <div class="detail-wrap">
+        <div class="detail-top">
+          <div class="detail-head">
+            <p class="detail-title">Loading…</p>
+            <p class="detail-sub">Market: <b>${escapeHtml(route.market||"")}</b> · Key: <b>${escapeHtml(route.key||"")}</b></p>
+          </div>
+          <button class="btn secondary" onclick="goHome()">← Back to list</button>
+        </div>
+        <div class="detail-card">
+          <div class="detail-note">
+            Loading data from <code>products.json</code> / <code>archive.json</code>…
+          </div>
+        </div>
+      </div>
+    `;
+    document.title = "Loading… • Product Picks";
+  }
+
+  function renderNotFound(route){
+    showDetail();
+    const box = document.getElementById("detailPage");
+    box.innerHTML = `
+      <div class="detail-wrap">
+        <div class="detail-top">
+          <div class="detail-head">
+            <p class="detail-title">Product not found</p>
+            <p class="detail-sub">Market: <b>${escapeHtml(route.market||"")}</b> · Key: <b>${escapeHtml(route.key||"")}</b></p>
+          </div>
+          <button class="btn secondary" onclick="goHome()">← Back to list</button>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-note">
+            This product reference may have been removed or moved. Please return to the list and search again.
+          </div>
+        </div>
+      </div>
+    `;
+    document.title = "Product not found • Product Picks";
+  }
+
+  function renderDetail(p, marketRaw, keyRaw, isArchived=false){
+    showDetail();
+
+    const market = normalizeMarket(marketRaw);
+    const asinKey = String(keyRaw || "").trim();
+    const asinBase = splitAsinKey(asinKey).base;
+    const link = normalizeUrl(p.link);
+    const imgRaw = String(p.image_url || "").trim();
+    const imgSrc = initialImageUrl(imgRaw);
+    const pageLink = buildProductPermalink(market.toLowerCase(), asinKey);
+
+    // 不显示产品 title：只用 Market + ASIN
+    document.title = `${market} ${asinKey} • Product Reference`;
+
+    const viewAmazon = link
+      ? `<a class="btn cta" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer nofollow sponsored">View on Amazon</a>`
+      : `<button class="btn cta" onclick="alert('No valid Amazon link for this item.');">View on Amazon</button>`;
+
+    const box = document.getElementById("detailPage");
+    box.innerHTML = `
+      <div class="detail-wrap">
+        <div class="detail-top">
+          <div class="detail-head">
+            <p class="detail-title">Product Reference</p>
+            <p class="detail-sub">
+              Market: <b>${escapeHtml(market)}</b> · ASIN: <b>${escapeHtml(asinBase)}</b> · Key: <b>${escapeHtml(asinKey)}</b>
+              ${isArchived ? ' · <span style="color:#b45309;font-weight:800;">Archived</span>' : ''}
+            </p>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn secondary" onclick="goHome()">← Back</button>
+            <button class="btn secondary" onclick="copyText('${escapeHtml(pageLink)}').then(()=>alert('Copied page link!')).catch(()=>alert('Copy failed'))">Copy page link</button>
+            <button class="btn secondary" onclick='openContactModal(${encodeProductForOnclick(p)})'>Contact / Copy</button>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <img class="detail-image"
+            src="${escapeHtml(imgSrc)}"
+            data-original="${escapeHtml(normalizeUrl(imgRaw) || "")}"
+            data-stage="0"
+            alt="${escapeHtml(asinKey || 'Product')}"
+            loading="lazy"
+            decoding="async"
+            referrerpolicy="no-referrer"
+            onerror="onImgError(this)"
+          />
+
+          <div style="display:flex;justify-content:center;margin-top:10px;">
+            ${whyHtml(p)}
+          </div>
+
+          <div class="detail-actions">
+            ${viewAmazon}
+            <button class="btn cta secondary" onclick='openContactModal(${encodeProductForOnclick(p)})'>Contact / Copy</button>
+          </div>
+
+          <div class="detail-note">
+            <strong>Disclosure:</strong> As an Amazon Associate, we earn from qualifying purchases.
+            This is an independent site and is not endorsed by Amazon. Purchases are completed on Amazon via the product page.
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderByRoute(){
+    const route = parseRoute();
+
+    if (route.type === "product"){
+      if ((IS_LOADING || !LAST_LOADED_AT) && !LAST_LOAD_ERROR){
+        renderProductLoading(route);
+        return;
+      }
+
+      // 先从 active 找
+      let prod = findProductByRoute(ALL_PRODUCTS, route.market, route.key);
+      if (prod){
+        renderDetail(prod, route.market, route.key, false);
+        return;
+      }
+
+      // 再从 archive 找（下架仍可打开）
+      prod = findProductByRoute(ARCHIVE_PRODUCTS, route.market, route.key);
+      if (prod){
+        renderDetail(prod, route.market, route.key, true);
+        return;
+      }
+
+      renderNotFound(route);
+      return;
     }
+
+    showList();
     renderGrid();
   }
 
-  /* ===================== COPY / CONTACT (NO TITLE) ===================== */
+  // ---------- copy / contact ----------
   function copyText(text){
     if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
     return new Promise((resolve, reject) => {
@@ -1134,12 +1047,11 @@
     });
   }
 
+  // 只复制 ASIN + Market（不包含 title）
   function buildCopyInfo(product){
     const market = String(product.market || "").trim().toUpperCase();
     const asin = String(product.asin || "").trim();
-
     const lines = [];
-    // 按你要求：不包含 title
     if (asin) lines.push(`ASIN: ${asin}`);
     if (market) lines.push(`Market: ${market}`);
     return lines.join("\n");
@@ -1201,88 +1113,18 @@
     copyText(text).then(() => alert("Copied!")).catch(() => alert("Copy failed"));
   }
 
-  /* ===================== SUPPORT ?open=/p/... ===================== */
-  function restoreOpenParamIfAny(){
-    try{
-      const u = new URL(location.href);
-      const openPath = u.searchParams.get("open");
-      if (openPath && /^\/p\/.+/i.test(openPath)){
-        history.replaceState(null, "", openPath);
-      }
-    }catch(e){}
-  }
-
-  /* ===================== IP GEO DEFAULT MARKET ===================== */
-  function marketFromCountryCode(cc){
-    const c = String(cc || "").toUpperCase();
-    if (c === "US") return "US";
-    if (c === "GB" || c === "UK") return "UK";
-    if (c === "DE") return "DE";
-    if (c === "FR") return "FR";
-    if (c === "IT") return "IT";
-    if (c === "ES") return "ES";
-    if (c === "CA") return "CA";
-    if (c === "JP") return "JP";
-    return "US";
-  }
-
-  async function trySetDefaultMarketByIP(){
-    if (!ENABLE_IP_GEO_DEFAULT_MARKET) return;
-
-    // 用户已手动选过就不覆盖
-    const saved = localStorage.getItem("selectedCountry");
-    const source = localStorage.getItem("selectedCountry_source");
-    if (saved && source === "user"){
-      document.getElementById("countrySelect").value = saved;
-      return;
-    }
-    if (saved && !source){
-      // 兼容旧数据：有保存就用
-      document.getElementById("countrySelect").value = saved;
-      return;
-    }
-
-    // 没有保存：尝试 IP 定位
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), IP_GEO_TIMEOUT_MS);
-
-    try{
-      const res = await fetch("https://ipapi.co/json/", { cache:"no-store", signal: controller.signal });
-      if (!res.ok) throw new Error("geo http " + res.status);
-      const j = await res.json();
-      const cc = j && (j.country_code || j.country);
-      const mk = marketFromCountryCode(cc);
-      document.getElementById("countrySelect").value = mk;
-      localStorage.setItem("selectedCountry", mk);
-      localStorage.setItem("selectedCountry_source", "geo");
-    }catch(e){
-      // 失败默认 US
-      document.getElementById("countrySelect").value = "US";
-      localStorage.setItem("selectedCountry", "US");
-      localStorage.setItem("selectedCountry_source", "geo-fallback");
-    }finally{
-      clearTimeout(timer);
-    }
-  }
-
-  /* ===================== EVENTS ===================== */
+  // ---------- boot ----------
   window.addEventListener("popstate", () => renderByRoute());
 
-  window.onload = async function(){
-    restoreSpaPathIfAny();
-    restoreOpenParamIfAny();
+  window.onload = function(){
+    const saved = localStorage.getItem("selectedCountry");
+    if (saved) document.getElementById("countrySelect").value = saved;
 
-    // 先 IP 定位默认市场（只在未选择过时）
-    await trySetDefaultMarketByIP();
+    // first render (so /p/... shows loading)
+    renderByRoute();
 
-    // 先渲染（避免 /p/... 先 not found）
-    await renderByRoute();
-
-    // 拉取最新 products.json（强制绕缓存）
-    fetchProductData(false);
-
-    // 定时刷新（页面端）
-    setInterval(() => fetchProductData(false), AUTO_REFRESH_MS);
+    fetchAllData(false);
+    setInterval(() => fetchAllData(false), AUTO_REFRESH_MS);
   };
 </script>
 </body>
