@@ -2,14 +2,15 @@
 // One-shot pipeline:
 // 1) Fetch CSV from CSV_URL (source of truth)
 // 2) Rebuild products.json + archive.json
-// 3) Generate /p/{market}/{asin}/index.html pages (stable share URLs)
+// 3) Generate /p/{market}/{asin}/index.html pages (stable share URLs -> redirect to SPA)
 //
 // Required env:
 //   CSV_URL=http(s)://.../export_csv
 //
 // Optional env:
 //   SITE_ORIGIN=https://ama.omino.top
-//   OUT_DIR=./p
+//   OUT_DIR=./p (relative to site root dir)
+//   SITE_DIR=product-list   (if your GitHub Pages publishes a subfolder)
 
 import fs from "fs";
 import path from "path";
@@ -23,35 +24,48 @@ if (!CSV_URL) {
 }
 
 const SITE_ORIGIN = (process.env.SITE_ORIGIN || "https://ama.omino.top").replace(/\/+$/, "");
-const OUT_DIR = (process.env.OUT_DIR || "./p").trim();
 
-// ================== PATHS ==================
+// Auto-detect site dir (GitHub Pages root folder)
 const ROOT = process.cwd();
-const PRODUCTS_PATH = path.join(ROOT, "products.json");
-const ARCHIVE_PATH = path.join(ROOT, "archive.json");
+const SITE_DIR = (() => {
+  const explicit = (process.env.SITE_DIR || "").trim();
+  if (explicit) return explicit.replace(/^\/+|\/+$/g, "");
+  // auto: if product-list/products.json exists -> use product-list
+  if (fs.existsSync(path.join(ROOT, "product-list", "products.json")) || fs.existsSync(path.join(ROOT, "product-list", "index.html"))) {
+    return "product-list";
+  }
+  return "";
+})();
+
+function siteJoin(...segs) {
+  return path.join(ROOT, SITE_DIR ? SITE_DIR : "", ...segs);
+}
+
+const PRODUCTS_PATH = siteJoin("products.json");
+const ARCHIVE_PATH  = siteJoin("archive.json");
+
+// OUT_DIR is relative to SITE_DIR
+const OUT_DIR = (() => {
+  const explicit = (process.env.OUT_DIR || "").trim();
+  if (explicit) return explicit.replace(/^\/+/, "");
+  return "p";
+})();
 
 // ================== HELPERS ==================
-function norm(s) {
-  return String(s ?? "").trim();
-}
-function upper(s) {
-  return norm(s).toUpperCase();
-}
-function normalizeMarket(v) {
-  return upper(v);
-}
-function normalizeAsin(v) {
-  return upper(v);
-}
+function norm(s) { return String(s ?? "").trim(); }
+function upper(s) { return norm(s).toUpperCase(); }
+function normalizeMarket(v) { return upper(v); }
+function normalizeAsin(v) { return upper(v); }
+
 function normalizeUrl(v) {
   const s = norm(v);
   if (!s) return "";
   if (/^https?:\/\//i.test(s)) return s;
   return "";
 }
-function safeHttps(url) {
-  return norm(url).replace(/^http:\/\//i, "https://");
-}
+
+function safeHttps(url) { return norm(url).replace(/^http:\/\//i, "https://"); }
+
 function safeReadJson(file, fallback) {
   try {
     if (!fs.existsSync(file)) return fallback;
@@ -61,13 +75,15 @@ function safeReadJson(file, fallback) {
     return fallback;
   }
 }
+
 function writeJsonPretty(file, obj) {
   const json = JSON.stringify(obj, null, 2) + "\n";
+  fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, json, "utf8");
 }
-function ensureDir(p) {
-  fs.mkdirSync(p, { recursive: true });
-}
+
+function ensureDir(p) { fs.mkdirSync(p, { recursive: true }); }
+
 function escapeHtml(str) {
   return String(str ?? "")
     .replaceAll("&", "&amp;")
@@ -104,21 +120,9 @@ function parseCSV(text) {
       continue;
     }
 
-    if (c === '"') {
-      inQuotes = true;
-      i++;
-      continue;
-    }
-    if (c === ",") {
-      row.push(field);
-      field = "";
-      i++;
-      continue;
-    }
-    if (c === "\r") {
-      i++;
-      continue;
-    }
+    if (c === '"') { inQuotes = true; i++; continue; }
+    if (c === ",") { row.push(field); field = ""; i++; continue; }
+    if (c === "\r") { i++; continue; }
     if (c === "\n") {
       row.push(field);
       rows.push(row);
@@ -141,9 +145,7 @@ function parseCSV(text) {
 
 function mapRow(headers, cells) {
   const obj = {};
-  headers.forEach((h, idx) => {
-    obj[h] = norm(cells[idx] ?? "");
-  });
+  headers.forEach((h, idx) => { obj[h] = norm(cells[idx] ?? ""); });
   return obj;
 }
 
@@ -158,7 +160,7 @@ function isAllDigits(s) {
   return x !== "" && /^[0-9]+$/.test(x);
 }
 
-// 你的规则：纯数字 => 其它平台（Walmart 等），不展示（隐藏进 archive）
+// 纯数字 => 其它平台（Walmart 等），不展示（隐藏进 archive）
 function isNonAmazonByAsin(asin) {
   return isAllDigits(asin);
 }
@@ -171,8 +173,7 @@ function isValidHttpUrl(u) {
   return /^https?:\/\//i.test(norm(u));
 }
 
-// 简单去重：同 market+asin 只保留一个。
-// 默认保留先出现的；但如果后来的记录更“完整”，则替换（仍然算简单去重）。
+// 简单去重：同 market+asin 只保留一个；如果后来的更完整则替换
 function pickBetter(existing, incoming) {
   if (!existing) return incoming;
 
@@ -185,12 +186,10 @@ function pickBetter(existing, incoming) {
   const exTitleLen = norm(existing.title).length;
   const inTitleLen = norm(incoming.title).length;
 
-  // 规则优先级：有链接 > 有图 > 标题更长
   if (!exLink && inLink) return incoming;
   if (exLink === inLink && !exImg && inImg) return incoming;
   if (exLink === inLink && exImg === inImg && inTitleLen > exTitleLen) return incoming;
 
-  // 否则保留原来的（等于“保留第一条”）
   return existing;
 }
 
@@ -214,18 +213,20 @@ function toWeservOg(url) {
   return `https://images.weserv.nl/?url=${encodeURIComponent(cleaned)}&w=1200&h=630&fit=cover&output=jpg`;
 }
 
-// /p 页面渲染：不跳转到 product.html，而是在 /p/... 原地加载 products.json / archive.json
-function buildPreviewHtml({ market, asinKey, imageUrl }) {
+// 关键点：静态站点下，/p/... 不是 SPA rewrite，
+// 所以独立页要先跳首页，再由首页把路由切到 /p/market/asin
+function buildPreviewHtml({ market, asin, imageUrl }) {
   const mLower = String(market).toLowerCase();
+  const asinKey = String(asin).toUpperCase();
+
   const pagePath = `/p/${encodeURIComponent(mLower)}/${encodeURIComponent(asinKey)}`;
-  const spaUrl = `${SITE_ORIGIN}${pagePath}`;
+  const landing = `${SITE_ORIGIN}/?to=${encodeURIComponent(pagePath)}`;
 
   const ogTitle = `Product Reference • ${String(market).toUpperCase()} • ${asinKey}`;
   const ogDesc =
     "Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases.";
   const ogImage = toWeservOg(imageUrl) || `${SITE_ORIGIN}/og-placeholder.jpg`;
 
-  // 关键：meta refresh + JS 双保险跳转到 SPA 同一路径（由你的 index.html 渲染详情）
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -238,7 +239,7 @@ function buildPreviewHtml({ market, asinKey, imageUrl }) {
   <meta property="og:site_name" content="Product Picks" />
   <meta property="og:title" content="${escapeHtml(ogTitle)}" />
   <meta property="og:description" content="${escapeHtml(ogDesc)}" />
-  <meta property="og:url" content="${escapeHtml(spaUrl)}" />
+  <meta property="og:url" content="${escapeHtml(SITE_ORIGIN + pagePath)}" />
   <meta property="og:image" content="${escapeHtml(ogImage)}" />
   <meta property="og:image:secure_url" content="${escapeHtml(ogImage)}" />
 
@@ -247,21 +248,19 @@ function buildPreviewHtml({ market, asinKey, imageUrl }) {
   <meta name="twitter:description" content="${escapeHtml(ogDesc)}" />
   <meta name="twitter:image" content="${escapeHtml(ogImage)}" />
 
-  <meta http-equiv="refresh" content="0;url=${escapeHtml(spaUrl)}" />
-  <noscript><meta http-equiv="refresh" content="0;url=${escapeHtml(spaUrl)}" /></noscript>
+  <meta http-equiv="refresh" content="0;url=${escapeHtml(landing)}" />
+  <noscript><meta http-equiv="refresh" content="0;url=${escapeHtml(landing)}" /></noscript>
 </head>
 <body>
 <script>
-  // JS redirect (prevents some cache edge cases)
-  location.replace(${JSON.stringify(spaUrl)});
+  location.replace(${JSON.stringify(landing)});
 </script>
 </body>
 </html>`;
 }
 
-
 function generatePPages(activeList, archiveList) {
-  const outDirAbs = path.isAbsolute(OUT_DIR) ? OUT_DIR : path.join(ROOT, OUT_DIR);
+  const outDirAbs = siteJoin(OUT_DIR);
 
   // 每次全量重建 /p，避免旧页面残留
   if (fs.existsSync(outDirAbs)) {
@@ -271,8 +270,18 @@ function generatePPages(activeList, archiveList) {
 
   const all = [...(activeList || []), ...(archiveList || [])].filter((p) => p && p.market && p.asin);
 
-  // 去重后的全量列表，按 market/asin 稳定输出
-  all.sort((a, b) => {
+  // 去重：同 market+asin 只保留一个（输出稳定）
+  const seen = new Set();
+  const uniq = [];
+  for (const p of all) {
+    const k = keyOf(p);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    uniq.push(p);
+  }
+
+  // 稳定排序输出
+  uniq.sort((a, b) => {
     const ma = upper(a.market), mb = upper(b.market);
     if (ma !== mb) return ma.localeCompare(mb);
     const aa = upper(a.asin), ab = upper(b.asin);
@@ -281,7 +290,7 @@ function generatePPages(activeList, archiveList) {
   });
 
   let count = 0;
-  for (const p of all) {
+  for (const p of uniq) {
     const market = upper(p.market);
     const asin = upper(p.asin);
     const img = norm(p.image_url);
@@ -294,12 +303,16 @@ function generatePPages(activeList, archiveList) {
     count++;
   }
 
-  console.log(`[p] generated ${count} pages under ${OUT_DIR}`);
+  console.log(`[p] generated ${count} pages under ${SITE_DIR ? SITE_DIR + "/" : ""}${OUT_DIR}`);
 }
 
 // ================== MAIN ==================
 (async () => {
   console.log("[sync] CSV_URL =", CSV_URL);
+  console.log("[sync] SITE_DIR =", SITE_DIR || "(repo root)");
+  console.log("[sync] write products to =", PRODUCTS_PATH);
+  console.log("[sync] write archive  to =", ARCHIVE_PATH);
+  console.log("[sync] p out dir        =", siteJoin(OUT_DIR));
 
   const csvText = await fetchText(CSV_URL);
   console.log("[sync] CSV bytes =", csvText.length);
@@ -313,8 +326,11 @@ function generatePPages(activeList, archiveList) {
   console.log("[sync] headers =", headers.join(" | "));
   console.log("[sync] data rows =", dataRows.length);
 
-  const prevProducts = Array.isArray(safeReadJson(PRODUCTS_PATH, [])) ? safeReadJson(PRODUCTS_PATH, []) : [];
-  const prevArchive = Array.isArray(safeReadJson(ARCHIVE_PATH, [])) ? safeReadJson(ARCHIVE_PATH, []) : [];
+  const prevProductsRaw = safeReadJson(PRODUCTS_PATH, []);
+  const prevArchiveRaw = safeReadJson(ARCHIVE_PATH, []);
+
+  const prevProducts = Array.isArray(prevProductsRaw) ? prevProductsRaw : [];
+  const prevArchive = Array.isArray(prevArchiveRaw) ? prevArchiveRaw : [];
 
   const prevMap = new Map();
   prevProducts.forEach((p) => prevMap.set(keyOf(p), p));
@@ -324,7 +340,6 @@ function generatePPages(activeList, archiveList) {
 
   // Active 用 Map 去重（同 market+asin 只保留一个）
   const activeMap = new Map();
-
   let dupActive = 0;
 
   for (const r of dataRows) {
@@ -351,7 +366,6 @@ function generatePPages(activeList, archiveList) {
     if (!isActiveStatus(statusVal)) {
       const archivedItem = { market, asin, title, link, image_url, _hidden_reason: "inactive_status" };
       const k = keyOf(archivedItem);
-      // 如果 archive 里已存在同 key，就保留旧的（或你也可用 pickBetter 替换）
       if (!archiveMap.has(k)) archiveMap.set(k, archivedItem);
       continue;
     }
