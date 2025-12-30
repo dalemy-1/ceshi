@@ -488,18 +488,30 @@ function generatePPages(activeList, archiveList) {
     }
 
     const statusVal = o.status ?? o.Status ?? o.STATUS;
-    if (!isActiveStatus(statusVal)) continue;
+const link = normalizeUrl(o.link || o.Link);
+const image_url = norm(o.image_url || o.image || o.Image || o.imageUrl || "");
+const title = norm(o.title || o.Title || "");
+
+// ✅ status 下架：不进 products，但必须进 archive发现
+if (!isActiveStatus(statusVal)) {
+  const archivedItem = {
+    market,
+    asin,
+    title,
+    link,
+    image_url,
+    _hidden_reason: "inactive_status",
+  };
+  const k = keyOf(archivedItem);
+  if (!archiveMap.has(k)) archiveMap.set(k, archivedItem);
+  continue;
+}
+
 
     const link = normalizeUrl(o.link || o.Link);
     const image_url = norm(o.image_url || o.image || o.Image || o.imageUrl || "");
 
-    nextProducts.push({
-      market,
-      asin,
-      title: norm(o.title || o.Title || ""),
-      link,
-      image_url,
-    });
+    
   }
 
 
