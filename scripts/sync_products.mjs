@@ -460,32 +460,60 @@ function generatePPages(activeList, archiveList) {
   prevArchive.forEach((p) => archiveMap.set(keyOf(p), p));
 
   // Build new active list from CSV (source of truth)
-  const nextProducts = [];
-    for (const r of dataRows) {
+    const nextProducts = [];
+  for (const r of dataRows) {
     const o = mapRow(headers, r);
 
     const market = normalizeMarket(o.market || o.Market || o.MARKET);
     const asin = normalizeAsin(o.asin || o.ASIN);
     if (!market || !asin) continue;
 
-    // ✅ 规则：纯数字 ASIN => 非 Amazon（Walmart 等），直接隐藏（不进入 products.json）
+    // 统一只声明一次，避免重复 const
+    const title = norm(o.title || o.Title || "");
+    const link = normalizeUrl(o.link || o.Link);
+    const image_url = norm(o.image_url || o.image || o.Image || o.imageUrl || "");
+
+    // ✅ 规则：纯数字 ASIN => 非 Amazon（Walmart 等），隐藏：进 archive，不进 products
     if (isNonAmazonByAsin(asin)) {
-      // 可选：放进 archive.json，方便后续你想恢复展示
-      const link = normalizeUrl(o.link || o.Link);
-      const image_url = norm(o.image_url || o.image || o.Image || o.imageUrl || "");
       const nonAmazonItem = {
         market,
         asin,
-        title: norm(o.title || o.Title || ""),
+        title,
         link,
         image_url,
-        // 可选标记（前端不依赖，不影响）
         _hidden_reason: "non_amazon_numeric_asin",
       };
       const k = keyOf(nonAmazonItem);
       if (!archiveMap.has(k)) archiveMap.set(k, nonAmazonItem);
       continue;
     }
+
+    // ✅ status 下架：不进 products，但必须进 archive（确保独立页仍能展示）
+    const statusVal = o.status ?? o.Status ?? o.STATUS;
+    if (!isActiveStatus(statusVal)) {
+      const archivedItem = {
+        market,
+        asin,
+        title,
+        link,
+        image_url,
+        _hidden_reason: "inactive_status",
+      };
+      const k = keyOf(archivedItem);
+      if (!archiveMap.has(k)) archiveMap.set(k, archivedItem);
+      continue;
+    }
+
+    // ✅ 正常上架：进 products
+    nextProducts.push({
+      market,
+      asin,
+      title,
+      link,
+      image_url,
+    });
+  }
+
 
     const statusVal = o.status ?? o.Status ?? o.STATUS;
 const link = normalizeUrl(o.link || o.Link);
