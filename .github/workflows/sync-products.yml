@@ -36,17 +36,24 @@ jobs:
           echo "[workflow] CSV_URL=$CSV_URL"
           node scripts/sync_products.mjs
 
-      - name: Commit changes (only if changed)
+            - name: Commit changes (only if changed)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add -A
-
-          if git diff --cached --quiet; then
-            echo "No changes."
+          # 如果没有任何变更，直接退出
+          if git diff --quiet; then
+            echo "No changes"
             exit 0
           fi
 
-          git commit -m "chore: sync products + generate pages"
-          git push
+          git add -A
+          git commit -m "chore: sync products + generate pages" || true
+
+          # 关键：把远端最新 main 拉下来并 rebase 到本地提交之前
+          git fetch origin main
+          git pull --rebase origin main
+
+          # 再推送
+          git push origin HEAD:main
+
