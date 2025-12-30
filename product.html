@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Product Reference • Product Picks</title>
+  <meta name="description" content="Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases." />
+  <style>
+    :root{
+      --bg:#0b1220; --card:#0f172a; --soft:#111827; --text:#fff; --muted:rgba(255,255,255,.75);
+      --border:rgba(255,255,255,.12);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#0b1220,#0b1220);color:var(--text)}
+    header{padding:18px 14px;text-align:center;font-weight:900;font-size:28px;letter-spacing:.3px}
+    .wrap{max-width:980px;margin:0 auto;padding:10px 14px 40px}
+    .bar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:8px 0 12px}
+    .pill{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:999px;padding:8px 12px;color:var(--muted);font-size:13px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border-radius:12px;
+      border:1px solid var(--border);background:#fff;color:#111827;text-decoration:none;font-weight:900;cursor:pointer}
+    .btn.secondary{background:transparent;color:#fff}
+    .card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:18px;padding:14px;box-shadow:0 12px 30px rgba(0,0,0,.25)}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:860px){ .grid{grid-template-columns:1.2fr .8fr} }
+    .imgbox{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:16px;padding:12px;display:flex;align-items:center;justify-content:center;min-height:380px}
+    .imgbox img{max-width:100%;max-height:520px;object-fit:contain;border-radius:12px}
+    .note{color:var(--muted);font-size:13px;line-height:1.55}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:8px}
+    footer{margin-top:14px;color:rgba(255,255,255,.65);font-size:12px;line-height:1.5}
+    a.link{color:#9cc2ff}
+  </style>
+</head>
+<body>
+  <header>Product Picks</header>
+
+  <div class="wrap">
+    <div class="bar">
+      <div class="pill" id="meta">Loading…</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn secondary" href="/index.html">Back</a>
+        <button class="btn secondary" id="copyBtn" type="button">Contact / Copy</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div class="imgbox">
+          <img id="img" alt="Product image" />
+        </div>
+        <div>
+          <div class="note" id="status">Fetching products.json / archive.json…</div>
+
+          <div class="actions">
+            <a class="btn" id="amazonBtn" href="#" target="_blank" rel="noopener" style="display:none;">View on Amazon</a>
+            <a class="btn secondary" id="pageLinkBtn" href="#" style="display:none;">Copy page link</a>
+          </div>
+
+          <div style="margin-top:10px" class="note">
+            <b>Disclosure:</b> As an Amazon Associate, we earn from qualifying purchases.
+            This is an independent site and is not endorsed by Amazon. Purchases are completed on Amazon via the product page.
+          </div>
+
+          <footer>
+            <div><b>Affiliate disclosure:</b> As an Amazon Associate, we earn from qualifying purchases.</div>
+            <div><b>Independence:</b> This site is not an official Amazon website and is not endorsed by Amazon.</div>
+            <div><a class="link" href="/privacy.html">Privacy Policy</a> · <a class="link" href="/terms.html">Terms</a></div>
+          </footer>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function qp(k){ return new URL(location.href).searchParams.get(k) || ""; }
+    const market = (qp("market") || "").toUpperCase();
+    const asin = (qp("asin") || "").toUpperCase();
+
+    const metaEl = document.getElementById("meta");
+    const statusEl = document.getElementById("status");
+    const imgEl = document.getElementById("img");
+    const amazonBtn = document.getElementById("amazonBtn");
+    const pageLinkBtn = document.getElementById("pageLinkBtn");
+    const copyBtn = document.getElementById("copyBtn");
+
+    function fail(msg){
+      metaEl.innerHTML = `Market: <code>${market||"-"}</code> &nbsp; ASIN: <code>${asin||"-"}</code>`;
+      statusEl.textContent = msg;
+    }
+
+    if (!market || !asin){
+      fail("Missing market/asin. Please open from a valid product link.");
+    } else {
+      metaEl.innerHTML = `Market: <code>${market}</code> &nbsp; ASIN: <code>${asin}</code>`;
+    }
+
+    async function fetchJson(url){
+      const r = await fetch(url, { cache: "no-store" });
+      if(!r.ok) throw new Error(url + " -> HTTP " + r.status);
+      return await r.json();
+    }
+
+    function findItem(list){
+      if (!Array.isArray(list)) return null;
+      return list.find(p => (String(p.market||"").toUpperCase()===market && String(p.asin||"").toUpperCase()===asin)) || null;
+    }
+
+    function setWeserv(url){
+      const u = String(url||"").replace(/^http:\/\//i,"https://");
+      if(!u) return "";
+      const cleaned = u.replace(/^https?:\/\//i,"");
+      return "https://images.weserv.nl/?url=" + encodeURIComponent(cleaned) + "&w=1200&h=1200&fit=contain&output=jpg";
+    }
+
+    function render(item){
+      const img = item.image_url || "";
+      const link = item.link || "";
+
+      // 图片
+      const proxyImg = setWeserv(img);
+      imgEl.src = proxyImg || imgEl.src;
+      imgEl.onerror = () => { if (img) imgEl.src = img; };
+
+      // Amazon 跳转：交给 open.html
+      const openUrl = "/open.html?market=" + encodeURIComponent(market) + "&asin=" + encodeURIComponent(asin) + (link ? "&link=" + encodeURIComponent(link) : "");
+      amazonBtn.href = openUrl;
+      amazonBtn.style.display = "inline-flex";
+
+      // Copy page link
+      pageLinkBtn.href = location.href;
+      pageLinkBtn.style.display = "inline-flex";
+      pageLinkBtn.onclick = (e) => {
+        e.preventDefault();
+        navigator.clipboard.writeText(location.href).then(()=>{ pageLinkBtn.textContent="Copied"; setTimeout(()=>pageLinkBtn.textContent="Copy page link",900); });
+      };
+
+      // Contact/Copy：复制 market+asin（不含 title）
+      copyBtn.onclick = async () => {
+        const text = `Market: ${market}\nASIN: ${asin}\nPage: ${location.href}`;
+        try { await navigator.clipboard.writeText(text); copyBtn.textContent="Copied"; setTimeout(()=>copyBtn.textContent="Contact / Copy",900); }
+        catch { alert(text); }
+      };
+
+      statusEl.textContent = "Loaded.";
+    }
+
+    (async () => {
+      if (!market || !asin) return;
+
+      try {
+        // 你的 products.json 结构现在可能是数组，也可能是 {items:[]}
+        const pj = await fetchJson("/products.json");
+        const activeList = Array.isArray(pj) ? pj : (Array.isArray(pj.items) ? pj.items : []);
+        let item = findItem(activeList);
+
+        if (!item) {
+          const aj = await fetchJson("/archive.json");
+          const archList = Array.isArray(aj) ? aj : (Array.isArray(aj.items) ? aj.items : []);
+          item = findItem(archList);
+        }
+
+        if (!item) {
+          fail("Not found in products.json / archive.json.");
+          return;
+        }
+        render(item);
+      } catch (e) {
+        fail("Failed to load data: " + (e && e.message ? e.message : e));
+      }
+    })();
+  </script>
+</body>
+</html>
