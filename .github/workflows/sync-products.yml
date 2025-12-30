@@ -2,15 +2,13 @@ name: Sync products.json + archive.json and generate /p pages (every 5 min)
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "*/5 * * * *"
 
 permissions:
   contents: write
 
 concurrency:
   group: sync-products
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   sync:
