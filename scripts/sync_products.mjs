@@ -225,8 +225,7 @@ function buildPreviewHtml({ market, asin, imageUrl }) {
   const ogTitle = `Product Reference • ${String(market).toUpperCase()} • ${asinKey}`;
   const ogDesc =
     "Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases.";
-  const ogImage = `${SITE_ORIGIN}/og-placeholder.jpg`;
-
+  const ogImage = toWeservOg(imageUrl) || `${SITE_ORIGIN}/og-placeholder.jpg`;
   return `<!doctype html>
 <html lang="en">
 <head>
