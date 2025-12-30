@@ -4,64 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Product Picks</title>
-<meta name="description" content="Independent product picks. As an Amazon Associate, we earn from qualifying purchases.">
-
-<!-- ===== Link Preview (OG) for WhatsApp / Telegram / etc. ===== -->
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="ama.omino.top">
-<meta property="og:title" content="Product Picks • Independent product reference">
-<meta property="og:description" content="Independent product references by market (US/UK/DE/FR/IT/ES/CA/JP). As an Amazon Associate, we earn from qualifying purchases.">
-<meta property="og:url" content="https://ama.omino.top/">
-<meta property="og:image" content="https://ama.omino.top/og.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Product Picks • Independent product reference">
-<meta name="twitter:description" content="Independent product references by market (US/UK/DE/FR/IT/ES/CA/JP). As an Amazon Associate, we earn from qualifying purchases.">
-<meta name="twitter:image" content="https://ama.omino.top/og.png">
-
-<script>
-  // Early hide for real users (reduce UI impact); most preview bots don't execute JS.
-  (function(){
-    try{
-      var ua = (navigator.userAgent || "").toLowerCase();
-      var isBot =
-        ua.indexOf("whatsapp")>-1 ||
-        ua.indexOf("telegrambot")>-1 ||
-        ua.indexOf("facebookexternalhit")>-1 ||
-        ua.indexOf("facebot")>-1 ||
-        ua.indexOf("twitterbot")>-1 ||
-        ua.indexOf("discordbot")>-1 ||
-        ua.indexOf("slackbot")>-1 ||
-        ua.indexOf("linkedinbot")>-1 ||
-        ua.indexOf("pinterest")>-1 ||
-        ua.indexOf("embedly")>-1 ||
-        ua.indexOf("googlebot")>-1;
-      if (!isBot) document.documentElement.classList.add("human");
-    }catch(e){}
-  })();
-</script>
-
-<style>
-  /* Bot preview block: visible by default (for crawlers), hidden for humans very early. */
-  .bot-preview{ display:block; }
-  html.human .bot-preview{ display:none !important; }
-
-  .bot-preview{
-    margin:12px 0 0;
-    background:#ffffff;
-    border:1px solid #e5e7eb;
-    border-radius:14px;
-    padding:12px 14px;
-    line-height:1.55;
-  }
-  .bot-preview .bp-title{ font-weight:900; font-size:14px; margin:0 0 6px 0; color:#111827; }
-  .bot-preview .bp-desc{ margin:0; font-size:12px; color:#374151; }
-  .bot-preview .bp-meta{ margin-top:8px; font-size:12px; color:#6b7280; }
-  .bot-preview code{ background:#f3f4f6; padding:2px 6px; border-radius:8px; }
-</style>
-
+<meta name="description" content="Independent product reference. As an Amazon Associate, we earn from qualifying purchases.">
 <style>
   :root{
     --bg:#f4f4f9;
@@ -91,7 +34,6 @@
   .search-input{ min-width:min(420px, 90vw); }
   .wrap{ max-width:1200px; margin:14px auto 26px; padding:0 12px; }
 
-  /* ===== Homepage Hero ===== */
   .hero{
     margin-top:12px;
     background:#fff;
@@ -220,7 +162,6 @@
   }
   .product-image:hover{ transform:scale(1.02); }
 
-  /* 列表页不展示 ASIN 行（复制仍含 ASIN） */
   .asin{ display:none !important; }
 
   .why{
@@ -300,7 +241,7 @@
     padding:10px 12px;
   }
   .detail-head{ display:flex; flex-direction:column; gap:4px; }
-  .detail-title{ font-weight:900; font-size:14px; margin:0; }
+  .detail-title{ font-weight:900; font-size:14px; margin:0; } /* 仍保留，但不会显示产品 title */
   .detail-sub{ font-size:12px; color:#6b7280; margin:0; }
   .detail-card{
     margin-top:12px;
@@ -337,7 +278,7 @@
 <header>
   <h1 id="headerTitle">Product Picks</h1>
   <div class="topbar" id="topbar">
-    <select class="country-select" id="countrySelect" onchange="onMarketChange()">
+    <select class="country-select" id="countrySelect" onchange="onMarketChange(true)">
       <option value="US">US</option>
       <option value="UK">UK</option>
       <option value="DE">DE</option>
@@ -352,19 +293,6 @@
 </header>
 
 <div class="wrap" id="app">
-
-  <!-- ===== Bot-friendly preview block (static HTML for link preview crawlers) ===== -->
-  <section class="bot-preview" aria-label="Link preview">
-    <p class="bp-title">Product Picks • Independent product reference</p>
-    <p class="bp-desc">
-      This site lists product identifiers and references by market (US/UK/DE/FR/IT/ES/CA/JP).
-      Purchases are completed on Amazon.
-      <strong>Disclosure:</strong> As an Amazon Associate, we earn from qualifying purchases.
-    </p>
-    <div class="bp-meta">
-      Tip: product pages follow <code>/p/{market}/{asin}</code> (example: <code>/p/us/B0GC4CN5SZ</code>).
-    </div>
-  </section>
 
   <section class="hero" id="heroBlock" aria-label="Independent product reference">
     <div class="title">Independent product reference</div>
@@ -426,7 +354,6 @@
   <div class="grid" id="productGrid"></div>
   <div class="empty" id="emptyHint" style="display:none;"></div>
   <div id="detailPage" style="display:none;"></div>
-
 </div>
 
 <div class="modal" id="contactModal" onclick="closeContactModal()">
@@ -469,93 +396,39 @@
 </footer>
 
 <script>
-  /* IMPORTANT:
-     Use absolute path so /p/... pages do NOT fetch /p/.../products.json (404).
-     Root has products.json. */
+  /* ===================== CONFIG ===================== */
+  // Root JSON files (must be absolute paths, because /p/... must not fetch /p/.../products.json)
   const PRODUCTS_JSON_PATH = "/products.json";
+  const ARCHIVE_JSON_PATH  = "/archive.json";   // 用于下架兜底：archive.json 里有就继续展示独立页
 
-  /* Archive fallback for delisted products:
-     If a product is removed from products.json (not shown in list),
-     detail page will still work by looking up in archive.json. */
-  const ARCHIVE_JSON_PATH = "/archive.json";
+  // “可预览链接”使用静态预览页（末尾带 / 的目录形式：/p/us/ASIN/）
+  // 你的 tools/generate_product_pages.mjs 会生成：/p/{market}/{key}/index.html
+  const USE_PREVIEW_LINK_FOR_SHARING = true;
 
+  // 联系方式（不含 Amazon link）
   const WA_PHONE = "8615778673666";
   const TG_USERNAME = "dalemyrong";
   const EMAIL_CONTACT = "info@dalemy.top";
 
-  /* Faster UI refresh (front-end side).
-     Note: overall latency still depends on GitHub Actions + Pages deployment. */
-  const AUTO_REFRESH_MS = 30 * 1000;
+  // 自动刷新（页面端）
+  const AUTO_REFRESH_MS = 60 * 1000;
 
-  // === IP Geo (best-effort) ===
-  // Purpose: suggest a default Market based on user's IP country.
-  // Behavior: only runs when user has not manually selected a Market before.
-  // Fallback: US on any error/timeout/unknown country.
-  const GEO_API = "https://ipapi.co/json/";
-  const GEO_TIMEOUT_MS = 1800;
+  // IP 定位（首次访问默认市场）
+  const ENABLE_IP_GEO_DEFAULT_MARKET = true;
+  const IP_GEO_TIMEOUT_MS = 1600; // 超时就默认 US
 
-  // ISO country code -> site Market
-  // Note: United Kingdom is GB, not UK.
-  const COUNTRY_TO_MARKET = {
-    US: "US",
-    CA: "CA",
-    GB: "UK",
-    DE: "DE",
-    FR: "FR",
-    IT: "IT",
-    ES: "ES",
-    JP: "JP"
-  };
+  // 复制/联系信息：不包含 title（你要求）
+  const COPY_INCLUDE_TITLE = false;
 
-  function withTimeout(promise, ms){
-    return new Promise((resolve, reject) => {
-      const t = setTimeout(() => reject(new Error("timeout")), ms);
-      promise.then(
-        v => { clearTimeout(t); resolve(v); },
-        e => { clearTimeout(t); reject(e); }
-      );
-    });
-  }
-
-  async function detectMarketFromIP(){
-    try{
-      const res = await withTimeout(fetch(GEO_API, { cache: "no-store" }), GEO_TIMEOUT_MS);
-      if (!res.ok) throw new Error("geo http " + res.status);
-      const data = await res.json();
-      const cc = String(data.country_code || data.country || "").toUpperCase().trim();
-      return COUNTRY_TO_MARKET[cc] || "US";
-    }catch(e){
-      return "US";
-    }
-  }
-
-  function isLinkPreviewBot(){
-    const ua = (navigator.userAgent || "").toLowerCase();
-    return (
-      ua.includes("whatsapp") ||
-      ua.includes("telegrambot") ||
-      ua.includes("facebookexternalhit") ||
-      ua.includes("facebot") ||
-      ua.includes("twitterbot") ||
-      ua.includes("discordbot") ||
-      ua.includes("slackbot") ||
-      ua.includes("linkedinbot") ||
-      ua.includes("pinterest") ||
-      ua.includes("embedly") ||
-      ua.includes("googlebot")
-    );
-  }
-
+  /* ===================== STATE ===================== */
   let ALL_PRODUCTS = [];
+  let ARCHIVE_PRODUCTS = null; // lazy-load
   let LAST_LOADED_AT = null;
   let CURRENT_CONTACT_PRODUCT = null;
   let LAST_LOAD_ERROR = "";
   let IS_LOADING = false;
 
-  // Archive cache
-  let ARCHIVE_PRODUCTS = null;
-  let ARCHIVE_LOAD_ERROR = "";
-
+  /* ===================== PLACEHOLDER ===================== */
   const PLACEHOLDER_SVG = `
     <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
       <defs>
@@ -574,6 +447,7 @@
   `;
   const PLACEHOLDER_DATA_URI = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(PLACEHOLDER_SVG);
 
+  /* ===================== HELPERS ===================== */
   function currentMarket(){
     return (document.getElementById("countrySelect").value || "US").toUpperCase();
   }
@@ -693,7 +567,6 @@
     const idx = mm[2] ? Math.max(0, parseInt(mm[2], 10)) : 0;
     return { base, idx };
   }
-
   function buildAsinKey(baseAsin, dupIndex){
     const base = normalizeAsin(baseAsin);
     if (!base) return "";
@@ -701,12 +574,23 @@
     return `${base}_${dupIndex}`;
   }
 
-  function buildProductPath(market, asinKey){
+  // SPA 内部路由（页面渲染）
+  function buildProductSpaPath(market, asinKey){
     const m = String(market||"").trim().toLowerCase();
     return `/p/${encodeURIComponent(m)}/${encodeURIComponent(String(asinKey||""))}`;
   }
-  function buildProductPermalink(market, asinKey){
-    return location.origin + buildProductPath(market, asinKey);
+
+  // 分享用“静态预览页”（末尾带 /），以便 WhatsApp/Telegram 预览抓 og:image
+  function buildProductPreviewPath(market, asinKey){
+    const m = String(market||"").trim().toLowerCase();
+    return `/p/${encodeURIComponent(m)}/${encodeURIComponent(String(asinKey||""))}/`;
+  }
+
+  function buildShareLink(market, asinKey){
+    const base = USE_PREVIEW_LINK_FOR_SHARING
+      ? buildProductPreviewPath(market, asinKey)
+      : buildProductSpaPath(market, asinKey);
+    return location.origin + base;
   }
 
   function annotateAsinKeys(products){
@@ -731,6 +615,7 @@
       normalizeAsin(p.asin) === base
     );
     if (!group.length) return null;
+
     const picked = group[idx] || null;
     if (!picked) return null;
 
@@ -743,7 +628,7 @@
     const safe = {
       market: p.market || "",
       asin: p.asin || "",
-      title: "",          // 强制不透传 title（防止误显示）
+      title: p.title || "",
       link: p.link || "",
       image_url: p.image_url || "",
       __idx: p.__idx ?? 0,
@@ -753,30 +638,12 @@
       .replaceAll("&","\\u0026").replaceAll("<","\\u003c").replaceAll(">","\\u003e");
   }
 
-  async function fetchArchiveIfNeeded(){
-    if (ARCHIVE_PRODUCTS !== null) return; // already loaded (even if empty)
-    ARCHIVE_LOAD_ERROR = "";
-    try{
-      const url = ARCHIVE_JSON_PATH + "?ts=" + Date.now();
-      const res = await fetch(url, { cache:"no-store" });
+  /* ===================== DATA FETCH ===================== */
+  function fetchJsonNoStore(url){
+    return fetch(url, { cache:"no-store" }).then(res => {
       if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-      const list = await res.json();
-      if (!Array.isArray(list)) throw new Error("archive.json is not an array");
-
-      ARCHIVE_PRODUCTS = list.map((p, idx) => ({
-        market: String(p.market ?? p.Market ?? "").trim().toUpperCase(),
-        asin: String(p.asin ?? p.ASIN ?? "").trim(),
-        title: "", // archive 里也不展示 title
-        link: String(p.link ?? p.Link ?? "").trim(),
-        image_url: String(p.image_url ?? p.image ?? p.Image ?? "").trim(),
-        __idx: idx
-      }));
-      annotateAsinKeys(ARCHIVE_PRODUCTS);
-    }catch(err){
-      ARCHIVE_PRODUCTS = []; // avoid retry storm
-      ARCHIVE_LOAD_ERROR = err.message || String(err);
-      console.warn("archive load failed:", ARCHIVE_LOAD_ERROR);
-    }
+      return res.json();
+    });
   }
 
   function fetchProductData(manual=false){
@@ -785,20 +652,16 @@
     IS_LOADING = true;
     setStatus(manual ? "Refreshing…" : "Loading…", "Fetching products.json");
 
-    fetch(url, { cache:"no-store" })
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-        return res.json();
-      })
+    fetchJsonNoStore(url)
       .then(list => {
         if (!Array.isArray(list)) throw new Error("products.json is not an array");
 
         ALL_PRODUCTS = list.map((p, idx) => ({
           market: String(p.market ?? p.Market ?? p.MARKET ?? "").trim().toUpperCase(),
           asin: String(p.asin ?? p.ASIN ?? "").trim(),
-          title: String(p.title ?? p.Title ?? "").trim(), // 仅用于搜索/分类，不用于展示
+          title: String(p.title ?? p.Title ?? "").trim(),
           link: String(p.link ?? p.Link ?? "").trim(),
-          image_url: String(p.image_url ?? p.image ?? p.Image ?? "").trim(),
+          image_url: String(p.image_url ?? p.image_url ?? p.image ?? p.Image ?? "").trim(),
           __idx: idx
         }));
 
@@ -824,6 +687,30 @@
       });
   }
 
+  async function ensureArchiveLoaded(){
+    if (ARCHIVE_PRODUCTS) return ARCHIVE_PRODUCTS;
+    try{
+      const url = ARCHIVE_JSON_PATH + "?ts=" + Date.now();
+      const list = await fetchJsonNoStore(url);
+      if (!Array.isArray(list)) throw new Error("archive.json is not an array");
+
+      ARCHIVE_PRODUCTS = list.map((p, idx) => ({
+        market: String(p.market ?? p.Market ?? p.MARKET ?? "").trim().toUpperCase(),
+        asin: String(p.asin ?? p.ASIN ?? "").trim(),
+        title: String(p.title ?? p.Title ?? "").trim(),
+        link: String(p.link ?? p.Link ?? "").trim(),
+        image_url: String(p.image_url ?? p.image_url ?? p.image ?? p.Image ?? "").trim(),
+        __idx: idx
+      }));
+      annotateAsinKeys(ARCHIVE_PRODUCTS);
+      return ARCHIVE_PRODUCTS;
+    }catch(e){
+      console.warn("[archive] load failed:", e);
+      ARCHIVE_PRODUCTS = []; // avoid repeated fetch storms
+      return ARCHIVE_PRODUCTS;
+    }
+  }
+
   function getVisibleProducts(){
     const m = currentMarket();
     const q = (document.getElementById("searchInput").value || "").trim().toLowerCase();
@@ -838,6 +725,7 @@
       .sort((a,b) => (a.__idx ?? 0) - (b.__idx ?? 0));
   }
 
+  /* ===================== ADVISOR NOTE ===================== */
   function hash32(str){
     const s = String(str || "");
     let h = 2166136261;
@@ -852,7 +740,6 @@
     const h = hash32(seed + "|" + salt);
     return arr[h % arr.length];
   }
-
   function classifyProduct(p){
     const t = String(p?.title || "").toLowerCase();
     const has = (...kw) => kw.some(k => t.includes(k));
@@ -870,7 +757,6 @@
     if (has("printer","filament","pla","abs","3d")) return "3d_printing";
     return "general";
   }
-
   function buildWhyPickedShortAdvisor(p){
     const title = String(p?.title || "").trim();
     const asin = String(p?.asin || "").trim();
@@ -962,7 +848,6 @@
     const line2 = seededPick(FINAL_REMINDERS, seed, "r");
     return { head, opener, line1, line2 };
   }
-
   function whyHtml(p){
     const w = buildWhyPickedShortAdvisor(p);
     return `
@@ -975,6 +860,7 @@
     `;
   }
 
+  /* ===================== UI SHOW/HIDE ===================== */
   function showList(){
     document.getElementById("topbar").style.display = "flex";
     document.getElementById("heroBlock").style.display = "block";
@@ -1010,12 +896,13 @@
     const m = String(p.market||"").trim().toLowerCase();
     const key = String(p.__asinKey || buildAsinKey(p.asin, 0) || "").trim();
     if (!m || !key) return;
-    const path = buildProductPath(m, key);
+    const path = buildProductSpaPath(m, key);
     history.pushState({type:"product", market:m, key:key}, "", path);
     renderByRoute();
     window.scrollTo({top:0, behavior:"instant"});
   }
 
+  /* ===================== ROUTE RENDER ===================== */
   function renderProductLoading(route){
     showDetail();
     const box = document.getElementById("detailPage");
@@ -1040,21 +927,22 @@
 
   async function renderByRoute(){
     const route = parseRoute();
-
     if (route.type === "product"){
       if ((IS_LOADING || !LAST_LOADED_AT) && !LAST_LOAD_ERROR){
         renderProductLoading(route);
         return;
       }
 
-      // 1) try products.json
+      // 1) 先在当前 products.json 找
       let prod = findProductByRoute(ALL_PRODUCTS, route.market, route.key);
 
-      // 2) fallback to archive.json for delisted products
+      // 2) 找不到则去 archive.json 兜底（下架也能打开独立页）
       if (!prod){
-        await fetchArchiveIfNeeded();
-        if (ARCHIVE_PRODUCTS && ARCHIVE_PRODUCTS.length){
-          prod = findProductByRoute(ARCHIVE_PRODUCTS, route.market, route.key);
+        const arch = await ensureArchiveLoaded();
+        prod = findProductByRoute(arch, route.market, route.key);
+        if (prod){
+          renderDetail(prod, route.market, route.key, true);
+          return;
         }
       }
 
@@ -1063,7 +951,7 @@
         return;
       }
 
-      renderDetail(prod, route.market, route.key);
+      renderDetail(prod, route.market, route.key, false);
       return;
     }
 
@@ -1074,11 +962,6 @@
   function renderNotFound(route){
     showDetail();
     const box = document.getElementById("detailPage");
-    const extra = ARCHIVE_LOAD_ERROR
-      ? `<div class="detail-note" style="margin-top:10px;">
-          Archive fallback failed: <code>${escapeHtml(ARCHIVE_LOAD_ERROR)}</code>
-        </div>`
-      : "";
     box.innerHTML = `
       <div class="detail-wrap">
         <div class="detail-top">
@@ -1093,42 +976,50 @@
           <div class="detail-note">
             This product reference may have been removed or moved. Please return to the list and search again.
           </div>
-          ${extra}
         </div>
       </div>
     `;
     document.title = "Product not found • Product Picks";
   }
 
-  function renderDetail(p, marketRaw, keyRaw){
+  function renderDetail(p, marketRaw, keyRaw, isArchived=false){
     showDetail();
 
     const market = normalizeMarket(marketRaw);
     const asinKey = String(keyRaw || p.__asinKey || "").trim();
-
-    // 强制不使用 title（彻底移除独立页标题显示）
+    const asinBase = splitAsinKey(asinKey).base || normalizeAsin(p.asin);
     const link = normalizeUrl(p.link);
     const imgRaw = String(p.image_url || "").trim();
     const imgSrc = initialImageUrl(imgRaw);
-    const pageLink = buildProductPermalink(market.toLowerCase(), asinKey);
 
-    document.title = `${asinKey} • ${market} • Product Reference`;
+    // 分享链接：默认复制“静态预览页链接”（末尾 /）
+    const shareLink = buildShareLink(market.toLowerCase(), asinKey);
+
+    // 独立页顶部标题：不显示产品 title（你要求）
+    const pageHeading = "Product Reference";
+
+    // 页面 <title>：不包含中文标题
+    document.title = `${asinBase || asinKey} • ${market} • Product Reference`;
 
     const viewAmazon = link
       ? `<a class="btn cta" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer nofollow sponsored">View on Amazon</a>`
       : `<button class="btn cta" onclick="alert('No valid Amazon link for this item.');">View on Amazon</button>`;
+
+    const archivedBadge = isArchived
+      ? `<span class="badge" style="margin-left:6px;">Archived</span>`
+      : ``;
 
     const box = document.getElementById("detailPage");
     box.innerHTML = `
       <div class="detail-wrap">
         <div class="detail-top">
           <div class="detail-head">
-            <p class="detail-title">Product Reference</p>
+            <p class="detail-title">${escapeHtml(pageHeading)} ${archivedBadge}</p>
             <p class="detail-sub">Market: <b>${escapeHtml(market)}</b> · Page key: <b>${escapeHtml(asinKey)}</b></p>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button class="btn secondary" onclick="goHome()">← Back</button>
-            <button class="btn secondary" onclick="copyText('${escapeHtml(pageLink)}').then(()=>alert('Copied page link!')).catch(()=>alert('Copy failed'))">Copy page link</button>
+            <button class="btn secondary" onclick="copyText('${escapeHtml(shareLink)}').then(()=>alert('Copied page link!')).catch(()=>alert('Copy failed'))">Copy page link</button>
             <button class="btn secondary" onclick='openContactModal(${encodeProductForOnclick(p)})'>Contact / Copy</button>
           </div>
         </div>
@@ -1138,7 +1029,7 @@
             src="${escapeHtml(imgSrc)}"
             data-original="${escapeHtml(normalizeUrl(imgRaw) || "")}"
             data-stage="0"
-            alt="${escapeHtml(asinKey || 'Product')}"
+            alt="${escapeHtml(asinBase || asinKey || 'Product')}"
             loading="lazy"
             decoding="async"
             referrerpolicy="no-referrer"
@@ -1157,12 +1048,14 @@
           <div class="detail-note">
             <strong>Disclosure:</strong> As an Amazon Associate, we earn from qualifying purchases.
             This is an independent site and is not endorsed by Amazon. Purchases are completed on Amazon via the product page.
+            ${isArchived ? `<br><strong>Status:</strong> This item is currently archived. The product page may be unavailable or changed on Amazon.` : ``}
           </div>
         </div>
       </div>
     `;
   }
 
+  /* ===================== GRID RENDER ===================== */
   function renderGrid(){
     const grid = document.getElementById("productGrid");
     const items = getVisibleProducts();
@@ -1215,11 +1108,17 @@
     }
   }
 
-  function onMarketChange(){
-    try{ localStorage.setItem("selectedCountry", currentMarket()); }catch(e){}
+  /* ===================== MARKET CHANGE ===================== */
+  function onMarketChange(userInitiated){
+    // userInitiated=true：用户手动切换，写入 localStorage，覆盖 IP 定位
+    if (userInitiated){
+      localStorage.setItem("selectedCountry", currentMarket());
+      localStorage.setItem("selectedCountry_source", "user");
+    }
     renderGrid();
   }
 
+  /* ===================== COPY / CONTACT (NO TITLE) ===================== */
   function copyText(text){
     if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
     return new Promise((resolve, reject) => {
@@ -1235,11 +1134,12 @@
     });
   }
 
-  // === Copy info: ONLY ASIN + Market (NO title) ===
   function buildCopyInfo(product){
     const market = String(product.market || "").trim().toUpperCase();
     const asin = String(product.asin || "").trim();
+
     const lines = [];
+    // 按你要求：不包含 title
     if (asin) lines.push(`ASIN: ${asin}`);
     if (market) lines.push(`Market: ${market}`);
     return lines.join("\n");
@@ -1301,41 +1201,87 @@
     copyText(text).then(() => alert("Copied!")).catch(() => alert("Copy failed"));
   }
 
-  window.addEventListener("popstate", () => { renderByRoute(); });
-
-  window.onload = async function(){
-    restoreSpaPathIfAny();
-
-    // support ?open=/p/uk/B0G1Y9WTDL  (from preview redirect pages)
+  /* ===================== SUPPORT ?open=/p/... ===================== */
+  function restoreOpenParamIfAny(){
     try{
       const u = new URL(location.href);
-      const openPath = (u.searchParams.get("open") || "").trim();
-      if (openPath && /^\/p\//i.test(openPath)) {
+      const openPath = u.searchParams.get("open");
+      if (openPath && /^\/p\/.+/i.test(openPath)){
         history.replaceState(null, "", openPath);
       }
     }catch(e){}
+  }
 
-    let saved = null;
-    try { saved = localStorage.getItem("selectedCountry"); } catch(e){}
+  /* ===================== IP GEO DEFAULT MARKET ===================== */
+  function marketFromCountryCode(cc){
+    const c = String(cc || "").toUpperCase();
+    if (c === "US") return "US";
+    if (c === "GB" || c === "UK") return "UK";
+    if (c === "DE") return "DE";
+    if (c === "FR") return "FR";
+    if (c === "IT") return "IT";
+    if (c === "ES") return "ES";
+    if (c === "CA") return "CA";
+    if (c === "JP") return "JP";
+    return "US";
+  }
 
-    const bot = isLinkPreviewBot();
+  async function trySetDefaultMarketByIP(){
+    if (!ENABLE_IP_GEO_DEFAULT_MARKET) return;
 
-    if (saved){
+    // 用户已手动选过就不覆盖
+    const saved = localStorage.getItem("selectedCountry");
+    const source = localStorage.getItem("selectedCountry_source");
+    if (saved && source === "user"){
       document.getElementById("countrySelect").value = saved;
-    }else if (bot){
-      // preview bots: stable default, no geo, no localStorage writes
-      document.getElementById("countrySelect").value = "US";
-    }else{
-      // real users: best-effort IP inference once
-      const guessed = await detectMarketFromIP();
-      document.getElementById("countrySelect").value = guessed || "US";
-      try { localStorage.setItem("selectedCountry", guessed || "US"); } catch(e){}
+      return;
+    }
+    if (saved && !source){
+      // 兼容旧数据：有保存就用
+      document.getElementById("countrySelect").value = saved;
+      return;
     }
 
-    // Render immediately (so /p/... shows "Loading" instead of "Not found")
+    // 没有保存：尝试 IP 定位
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), IP_GEO_TIMEOUT_MS);
+
+    try{
+      const res = await fetch("https://ipapi.co/json/", { cache:"no-store", signal: controller.signal });
+      if (!res.ok) throw new Error("geo http " + res.status);
+      const j = await res.json();
+      const cc = j && (j.country_code || j.country);
+      const mk = marketFromCountryCode(cc);
+      document.getElementById("countrySelect").value = mk;
+      localStorage.setItem("selectedCountry", mk);
+      localStorage.setItem("selectedCountry_source", "geo");
+    }catch(e){
+      // 失败默认 US
+      document.getElementById("countrySelect").value = "US";
+      localStorage.setItem("selectedCountry", "US");
+      localStorage.setItem("selectedCountry_source", "geo-fallback");
+    }finally{
+      clearTimeout(timer);
+    }
+  }
+
+  /* ===================== EVENTS ===================== */
+  window.addEventListener("popstate", () => renderByRoute());
+
+  window.onload = async function(){
+    restoreSpaPathIfAny();
+    restoreOpenParamIfAny();
+
+    // 先 IP 定位默认市场（只在未选择过时）
+    await trySetDefaultMarketByIP();
+
+    // 先渲染（避免 /p/... 先 not found）
     await renderByRoute();
 
+    // 拉取最新 products.json（强制绕缓存）
     fetchProductData(false);
+
+    // 定时刷新（页面端）
     setInterval(() => fetchProductData(false), AUTO_REFRESH_MS);
   };
 </script>
