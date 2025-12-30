@@ -26,39 +26,12 @@ jobs:
         with:
           node-version: "20"
 
-      # 关键：先下载 CSV 成文件 + 校验是否真的是 CSV（不是 HTML/登录页）
-      - name: Download CSV (no-cache, retry) and validate
+      - name: Sync from CSV -> products.json
         env:
           CSV_URL: "http://154.48.226.95:5001/admin/Product/export_csv"
         run: |
-          set -e
-
-          echo "Downloading CSV from: $CSV_URL"
-          URL="$CSV_URL?ts=$(date +%s)"
-
-          curl -L --fail --retry 5 --retry-delay 2 --connect-timeout 10 --max-time 60 \
-            -H "Cache-Control: no-cache" -H "Pragma: no-cache" \
-            "$URL" -o export.csv
-
-          echo "==== CSV header preview ===="
-          head -n 3 export.csv || true
-          echo "============================"
-
-          # 必须包含 asin 表头，否则大概率是返回了 HTML/错误页
-          if ! head -n 1 export.csv | tr '[:upper:]' '[:lower:]' | grep -q "asin"; then
-            echo "ERROR: export.csv header does not contain 'asin'."
-            echo "Most likely the export URL returned HTML/login/error page instead of CSV."
-            echo "Dump first 50 lines:"
-            sed -n '1,50p' export.csv || true
-            exit 1
-          fi
-
-      # 关键：把本地文件路径传给脚本（你需要让脚本支持 CSV_FILE；下一步我给你脚本最终版）
-      - name: Sync from CSV -> products.json
-  env:
-    CSV_URL: "http://154.48.226.95:5001/admin/Product/export_csv"
-  run: |
-    node scripts/sync_products.mjs
+          echo "CSV_URL=$CSV_URL"
+          node scripts/sync_products.mjs
 
       - name: Commit changes (only if changed)
         run: |
