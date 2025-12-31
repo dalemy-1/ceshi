@@ -58,7 +58,6 @@ const OG_PLACEHOLDER_URL = `${SITE_ORIGIN}/${OG_PLACEHOLDER_PATH}`;
 // ================== HELPERS ==================
 function norm(s) { return String(s ?? "").trim(); }
 function upper(s) { return norm(s).toUpperCase(); }
-function lower(s) { return norm(s).toLowerCase(); }
 function normalizeMarket(v) { return upper(v); }
 function normalizeAsin(v) { return upper(v); }
 
@@ -144,30 +143,6 @@ function isNonAmazonByAsin(asin) { return isAllDigits(asin); }
 function keyOf(p) { return `${upper(p.market)}|${upper(p.asin)}`; }
 
 function isValidHttpUrl(u) { return /^https?:\/\//i.test(norm(u)); }
-
-// ========= NEW: platform detection & page id =========
-// Amazon ASIN: 10 chars alnum
-function isAmazonAsin(asin) {
-  return /^[A-Z0-9]{10}$/.test(upper(asin));
-}
-function isWalmartLink(url) {
-  const u = lower(url);
-  return u.includes("walmart.com");
-}
-function detectPlatform(p) {
-  // 只做“补充识别”，不改变你现有 active/archive 规则
-  // 规则：数字 asin 或 link 含 walmart.com => walmart
-  if (isAllDigits(p.asin) || isWalmartLink(p.link) || lower(p.store).includes("walmart")) return "walmart";
-  if (isAmazonAsin(p.asin)) return "amazon";
-  return "other";
-}
-// 生成独立页路径用的 id：Amazon 仍用 ASIN；Walmart 用 wm-<digits> 前缀
-function pageIdFor(p) {
-  const plat = detectPlatform(p);
-  if (plat === "walmart") return `wm-${norm(p.asin)}`; // 保留数字，不 upper
-  return upper(p.asin);
-}
-// ========= END NEW =========
 
 // 简单去重：同 market+asin 只保留一个；如果后来的更完整则替换
 function pickBetter(existing, incoming) {
@@ -293,42 +268,30 @@ async function downloadOgImage(imageUrl, outAbsNoExt) {
 }
 
 // ====== NEW (incremental OG reuse helpers) ======
-function findExistingOgFile(ogDirAbs, market, pageAsin) {
-  const base = path.join(ogDirAbs, market.toLowerCase(), pageAsin);
+function findExistingOgFile(ogDirAbs, market, asin) {
+  const base = path.join(ogDirAbs, market.toLowerCase(), asin);
   const jpg = base + ".jpg";
   const png = base + ".png";
   if (fs.existsSync(jpg)) return { ext: "jpg", abs: jpg };
   if (fs.existsSync(png)) return { ext: "png", abs: png };
   return null;
 }
-function ogUrlFor(market, pageAsin, ext) {
-  return `${SITE_ORIGIN}/${OG_DIR}/${market.toLowerCase()}/${pageAsin}.${ext}`;
+function ogUrlFor(market, asin, ext) {
+  return `${SITE_ORIGIN}/${OG_DIR}/${market.toLowerCase()}/${asin}.${ext}`;
 }
 // ====== END NEW ======
 
 // ================== /p PAGE GENERATOR ==================
-function buildPreviewHtml({ market, pageAsin, platform, ogImageUrl, destUrl }) {
+function buildPreviewHtml({ market, asin, ogImageUrl }) {
   const mLower = String(market).toLowerCase();
-  const pageKey = String(pageAsin);
+  const asinKey = String(asin).toUpperCase();
 
-  const pagePath = `/p/${encodeURIComponent(mLower)}/${encodeURIComponent(pageKey)}`;
-
-  // Amazon：保持你原有行为（跳回首页路由，由主页继续处理）
+  const pagePath = `/p/${encodeURIComponent(mLower)}/${encodeURIComponent(asinKey)}`;
   const landing = `${SITE_ORIGIN}/?to=${encodeURIComponent(pagePath)}`;
 
-  // Walmart/other：直接跳到外链（你要的目标）
-  const direct = isValidHttpUrl(destUrl) ? safeHttps(destUrl) : landing;
-  const redirectTo = (platform === "walmart" || platform === "other") ? direct : landing;
-
-  const ogTitle =
-    platform === "walmart"
-      ? `${String(market).toUpperCase()} • Walmart • ${pageKey}`
-      : `${String(market).toUpperCase()} • ${pageKey}`;
-
+  const ogTitle = `${String(market).toUpperCase()} • ${asinKey}`;
   const ogDesc =
-    platform === "walmart"
-      ? "Independent product reference. Purchases are completed on Walmart."
-      : "Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases.";
+    "Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases.";
 
   const ogImage = ogImageUrl || OG_PLACEHOLDER_URL;
   const ogType = ogImage.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
@@ -357,12 +320,12 @@ function buildPreviewHtml({ market, pageAsin, platform, ogImageUrl, destUrl }) {
   <meta name="twitter:description" content="${escapeHtml(ogDesc)}" />
   <meta name="twitter:image" content="${escapeHtml(ogImage)}" />
 
-  <meta http-equiv="refresh" content="0;url=${escapeHtml(redirectTo)}" />
-  <noscript><meta http-equiv="refresh" content="0;url=${escapeHtml(redirectTo)}" /></noscript>
+  <meta http-equiv="refresh" content="0;url=${escapeHtml(landing)}" />
+  <noscript><meta http-equiv="refresh" content="0;url=${escapeHtml(landing)}" /></noscript>
 </head>
 <body>
 <script>
-  location.replace(${JSON.stringify(redirectTo)});
+  location.replace(${JSON.stringify(landing)});
 </script>
 </body>
 </html>`;
@@ -379,7 +342,7 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
   // /og 不再全量重建：保留已有文件，结合 manifest 仅为新增/变更项下载（大幅缩短耗时）
   ensureDir(ogDirAbs);
 
-  // OG manifest（记录每个 market|pageAsin 对应的源图与本地文件扩展名）
+  // OG manifest（记录每个 market|asin 对应的源图与本地文件扩展名）
   const ogManifestPath = path.join(ogDirAbs, "og-manifest.json");
   const ogManifest = safeReadJson(ogManifestPath, {});
 
@@ -407,20 +370,19 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
 
   for (const p of uniq) {
     const market = upper(p.market);
-    const asin = norm(p.asin); // 原始 asin（数字/字母均保留）
+    const asin = upper(p.asin);
     const img = norm(p.image_url);
-    const link = norm(p.link);
-    const platform = detectPlatform({ asin, link, store: norm(p.store) });
 
-    const pageAsin = pageIdFor({ asin, link, store: norm(p.store) }); // NEW: 用于路径与OG文件名
-
-    // 1) OG image download -> /og/{market}/{pageAsin}.jpg|png (incremental)
+    // 1) OG image download -> /og/{market}/{asin}.jpg|png (incremental)
+    // 规则：
+    // - 如果 manifest 里记录的 src 与当前 image_url 相同，且本地文件存在 => 直接复用（跳过下载）
+    // - 若 src 变化或本地文件不存在 => 尝试下载；成功则更新 manifest；失败则如有旧文件则继续复用，否则 placeholder
     let ogImageUrl = "";
 
-    const k = `${market}|${pageAsin}`; // NEW: manifest key 绑定 pageAsin
+    const k = keyOf({ market, asin });
 
     // 先尝试复用旧文件（若存在）
-    const existing = findExistingOgFile(ogDirAbs, market, pageAsin);
+    const existing = findExistingOgFile(ogDirAbs, market, asin);
     const rec = ogManifest && typeof ogManifest === "object" ? (ogManifest[k] || null) : null;
     const desiredSrc = img ? safeHttps(img) : "";
 
@@ -431,15 +393,16 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
       String(rec.src || "") === String(desiredSrc || "");
 
     if (canReuse) {
-      ogImageUrl = ogUrlFor(market, pageAsin, existing.ext);
+      ogImageUrl = ogUrlFor(market, asin, existing.ext);
       ogOk++;
+      // console.log(`[og] reuse ${market}/${asin}.${existing.ext}`);
     } else if (img) {
       // 需要下载或刷新
       try {
-        const outNoExt = path.join(ogDirAbs, market.toLowerCase(), pageAsin);
+        const outNoExt = path.join(ogDirAbs, market.toLowerCase(), asin);
         const r = await downloadOgImage(img, outNoExt);
         if (r?.ext) {
-          ogImageUrl = ogUrlFor(market, pageAsin, r.ext);
+          ogImageUrl = ogUrlFor(market, asin, r.ext);
           ogOk++;
           ogManifest[k] = {
             src: String(desiredSrc || ""),
@@ -447,52 +410,44 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
             bytes: r.bytes,
             at: Date.now(),
           };
-          console.log(`[og] ok ${market}/${pageAsin}.${r.ext} (${r.bytes} bytes)`);
+          console.log(`[og] ok ${market}/${asin}.${r.ext} (${r.bytes} bytes)`);
         } else {
           // 下载失败：如果已有旧文件，则继续用旧文件；否则 placeholder
           if (existing) {
-            ogImageUrl = ogUrlFor(market, pageAsin, existing.ext);
+            ogImageUrl = ogUrlFor(market, asin, existing.ext);
             ogOk++;
-            console.log(`[og] keep-old ${market}/${pageAsin}.${existing.ext} (download failed)`);
+            console.log(`[og] keep-old ${market}/${asin}.${existing.ext} (download failed)`);
           } else {
             ogFail++;
-            console.log(`[og] fail ${market}/${pageAsin} -> placeholder`);
+            console.log(`[og] fail ${market}/${asin} -> placeholder`);
           }
         }
       } catch {
         if (existing) {
-          ogImageUrl = ogUrlFor(market, pageAsin, existing.ext);
+          ogImageUrl = ogUrlFor(market, asin, existing.ext);
           ogOk++;
-          console.log(`[og] keep-old ${market}/${pageAsin}.${existing.ext} (error)`);
+          console.log(`[og] keep-old ${market}/${asin}.${existing.ext} (error)`);
         } else {
           ogFail++;
-          console.log(`[og] error ${market}/${pageAsin} -> placeholder`);
+          console.log(`[og] error ${market}/${asin} -> placeholder`);
         }
       }
     } else {
       // 没有 image_url：若有旧文件仍可用；否则 placeholder
       if (existing) {
-        ogImageUrl = ogUrlFor(market, pageAsin, existing.ext);
+        ogImageUrl = ogUrlFor(market, asin, existing.ext);
         ogOk++;
-        console.log(`[og] keep-old ${market}/${pageAsin}.${existing.ext} (no image_url)`);
+        console.log(`[og] keep-old ${market}/${asin}.${existing.ext} (no image_url)`);
       } else {
         ogFail++;
-        console.log(`[og] no image_url ${market}/${pageAsin} -> placeholder`);
+        console.log(`[og] no image_url ${market}/${asin} -> placeholder`);
       }
     }
 
     // 2) /p page
-    const dir = path.join(outDirAbs, market.toLowerCase(), pageAsin);
+    const dir = path.join(outDirAbs, market.toLowerCase(), asin);
     ensureDir(dir);
-
-    const html = buildPreviewHtml({
-      market,
-      pageAsin,
-      platform,
-      ogImageUrl: ogImageUrl || OG_PLACEHOLDER_URL,
-      destUrl: link, // Walmart/other 会用它直接跳转
-    });
-
+    const html = buildPreviewHtml({ market, asin, ogImageUrl: ogImageUrl || OG_PLACEHOLDER_URL });
     fs.writeFileSync(path.join(dir, "index.html"), html, "utf-8");
     pageCount++;
   }
@@ -582,19 +537,19 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
       keyword,
       store,
       remark,
-      status: norm(statusVal),          // 保留原 status
+      status: norm(statusVal),          // 关键：保留原 status（即使为空也保留）
       link,
       image_url,
       _idx: rowIdx,                     // CSV 顺序（用于 tie-break）
       _ts: prev?._ts || nowTs,           // 首次出现时间（可选）
-      _updated: nowTs,                   // 每次同步刷新
+      _updated: nowTs,                   // 每次同步刷新（用于“新到旧”排序）
     };
 
-    // 非 Amazon（纯数字）-> archive（全量库）；并且仍会生成 /p 页（因为下面 /p 用 active+archive）
+    // 非 Amazon（纯数字）-> archive（全量库）
     if (isNonAmazonByAsin(asin)) {
       const item = { ...baseItem, _hidden_reason: "non_amazon_numeric_asin" };
       const k = keyOf(item);
-      archiveMap.set(k, item);
+      archiveMap.set(k, item);          // 关键：允许覆盖，保持最新
       rowIdx++;
       continue;
     }
@@ -603,7 +558,7 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
     if (!isActiveStatus(statusVal)) {
       const item = { ...baseItem, _hidden_reason: "inactive_status" };
       const k = keyOf(item);
-      archiveMap.set(k, item);
+      archiveMap.set(k, item);          // 关键：允许覆盖，保持最新
       rowIdx++;
       continue;
     }
@@ -619,13 +574,13 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
       activeMap.set(k, pickBetter(activeMap.get(k), item));
     }
 
-    // active 的最终版本也写入 archive（全量库始终最新完整）
+    // 关键：active 的最终版本也写入 archive（全量库始终最新完整）
     archiveMap.set(k, activeMap.get(k));
 
     rowIdx++;
   }
 
-  // products.json 按 CSV 原始顺序输出（你的 CSV：靠前=新，列表保持该顺序）
+  // products.json 按 CSV 原始顺序输出（你的 CSV：靠前=新，列表应保持该顺序）
   const nextProducts = Array.from(activeMap.values()).sort((a, b) => {
     return Number(a._idx || 0) - Number(b._idx || 0);
   });
@@ -636,6 +591,7 @@ async function generatePPagesAndOgImages(activeList, archiveList) {
   for (const [k, oldP] of prevMap.entries()) {
     if (!nextKeys.has(k)) {
       if (!archiveMap.has(k)) {
+        // 旧数据可能字段不全，但至少保留；并标记来源，便于排查
         archiveMap.set(k, { ...oldP, _hidden_reason: oldP?._hidden_reason || "removed_from_active" });
       }
       removedCount++;
