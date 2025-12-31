@@ -13,7 +13,7 @@ permissions:
 
 concurrency:
   group: sync-products
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   sync:
@@ -40,7 +40,7 @@ jobs:
           echo "[workflow] CSV_URL=$CSV_URL"
           node scripts/sync_products.mjs
 
-      - name: Commit changes (only if changed)
+      - name: Commit changes (only if changed) + push (with retry)
         run: |
           set -euo pipefail
 
@@ -56,8 +56,17 @@ jobs:
           git add -A
           git commit -m "chore: sync products + generate pages" || true
 
-          # 拉取远端并 rebase，降低 push 冲突概率
-          git fetch origin main
-          git rebase origin/main
+          # 推送重试：降低偶发冲突/网络波动导致的失败
+          for i in 1 2 3 4 5; do
+            echo "Push attempt $i..."
+            git pull --rebase origin main || true
+            if git push origin HEAD:main; then
+              echo "Push success."
+              exit 0
+            fi
+            echo "Push failed, retry in 3s..."
+            sleep 3
+          done
 
-          git push origin HEAD:main
+          echo "Push failed after retries."
+          exit 1
