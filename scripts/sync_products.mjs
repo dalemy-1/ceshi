@@ -288,7 +288,7 @@ function buildPreviewHtml({ market, asin, ogImageUrl, dstUrl }) {
 
   const pagePath = `/p/${encodeURIComponent(mLower)}/${encodeURIComponent(asinKey)}`;
   const dst = String(dstUrl || "").trim();
-  const landing = `${SITE_ORIGIN}/?to=${encodeURIComponent(pagePath)}${dst ? `&dst=${encodeURIComponent(dst)}` : ""}`;
+  const landing = `${SITE_ORIGIN}/?to=${encodeURIComponent(pagePath)}` + (dst ? `&dst=${encodeURIComponent(dst)}` : "");
 
   const ogTitle = `${String(market).toUpperCase()} • ${asinKey}`;
   const ogDesc =
