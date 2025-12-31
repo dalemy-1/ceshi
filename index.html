@@ -802,13 +802,26 @@ function getDstFromLocation(){
 
   function matchQuery(p){
     if (!q) return true;
+
     const asin = String(p.asin || "").trim();
-    if (!asin) return false;
+    const title = String(p.title || "").trim();
+    const keyword = String(p.keyword || "").trim();
+    const store = String(p.store || "").trim();
+    const remark = String(p.remark || "").trim(); // 兼容：若数据里没有 remark 也不影响
 
     // 数字ID仅允许“精确完整搜索”出现
-    if (shouldHideNonAmazonAsin(asin)){
-      return isDigitsQ && String(asin).trim() === qRaw;
+    if (asin && shouldHideNonAmazonAsin(asin)){
+      return isDigitsQ && asin === qRaw;
     }
+
+    // 统一包含匹配：支持中文标题/关键词/店铺等（中文不受 toLowerCase 影响）
+    const haystack = [asin, title, keyword, store, remark]
+      .filter(Boolean)
+      .join(" | ")
+      .toLowerCase();
+
+    return haystack.includes(q);
+  }
 
     // 你这里也可以改成严格等于：asin.toLowerCase() === q
     return String(asin).toLowerCase().includes(q);
