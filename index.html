@@ -319,13 +319,13 @@
       }
 
       // If we are on /?to=... => normalize to the "to" path (no query)
-      if (to && to.startsWith("/p/")) {
-        try { history.replaceState({}, "", to); } catch(e){}
+      if (to && normalizeInternalPath(to).startsWith(P_PREFIX)) {
+        try { history.replaceState({}, "", normalizeInternalPath(to)); } catch(e){}
         return;
       }
 
       // If we are already on /p/... with ?dst=... => strip query
-      if ((location.pathname || "").startsWith("/p/") && (sp.has("dst") || sp.has("to"))) {
+      if ((location.pathname || "").startsWith(P_PREFIX) && (sp.has("dst") || sp.has("to"))) {
         try { history.replaceState({}, "", location.pathname); } catch(e){}
       }
     } catch (e) {}
@@ -371,7 +371,7 @@
     </p>
     <div class="hint">
       Need help identifying an item? Use <strong>Contact / Copy</strong> to copy ASIN / Market and reach us for general assistance (non-purchase support).
-      See <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a> and <a href="./terms.html" target="_blank" rel="noopener">Terms</a>.
+      See <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a> and <a href="./terms.html" target="_blank" rel="noopener">Terms</a>.
     </div>
     </div>
   </section>
@@ -380,11 +380,12 @@
     <div class="row">
       <div class="pill"><strong>Disclosure</strong>: As an Amazon Associate, we earn from qualifying purchases.</div>
       <div class="pill">Independent site · Not endorsed by Amazon</div>
-    </div>
-    <div class="small">
+    <button class="fold-btn" id="complianceFoldBtn" type="button" onclick="toggleFold(\'compliance\')">Collapse</button></div>
+    <div id="complianceFoldBody"><div class="small">
       Amazon and the Amazon logo are trademarks of Amazon.com, Inc. or its affiliates. We provide independent product references and redirect you to Amazon for purchase. Product details, pricing, availability, shipping, and return terms are determined by Amazon on the destination page.
-      See <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a> and <a href="./terms.html" target="_blank" rel="noopener">Terms</a>.
+      See <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a> and <a href="./terms.html" target="_blank" rel="noopener">Terms</a>.
     </div>
+</div>
   </div>
 
   <div class="status-bar" id="statusBar">
@@ -460,7 +461,7 @@
     <div><strong>Independence:</strong> This site is not an official Amazon website and is not endorsed by Amazon.</div>
     <div><strong>Links:</strong> “View on Amazon” redirects to Amazon. Amazon may use cookies for tracking qualifying purchases.</div>
     <div style="margin-top:6px;">
-      <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a> ·
+      <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a> ·
       <a href="./terms.html" target="_blank" rel="noopener">Terms</a>
     </div>
     <div style="margin-top:6px;">© 2025 ama.omino.top</div>
@@ -497,170 +498,44 @@
         if (btn) btn.textContent = isCollapsed ? "Expand" : "Collapse";
         if (btn) btn.setAttribute("aria-expanded", String(!isCollapsed));
       }
-    } catch (e) {}
+    }catch(e){}
   }
 
-  function toggleFold(section){
-    try{
-      const key = FOLD_KEYS[section];
-      if (!key) return;
-
-      const current = (localStorage.getItem(key) || "0") === "1";
-      const next = !current;
-      localStorage.setItem(key, next ? "1" : "0");
-      applyFoldState(section, next);
-    } catch (e) {}
-  }
-
-  function restoreFoldStates(){
-    try{
-      const heroCollapsed = (localStorage.getItem(FOLD_KEYS.hero) || "0") === "1";
-      const howtoCollapsed = (localStorage.getItem(FOLD_KEYS.howto) || "0") === "1";
-      applyFoldState("hero", heroCollapsed);
-      applyFoldState("howto", howtoCollapsed);
-    } catch (e) {}
-  }
-  // ===================== END FOLD STATE (NEW) =====================
-
-  console.log("[build]", BUILD_VERSION);
-
-  // ===================== LIST SCROLL MEMORY (NEW) =====================
-  // 目标：从列表进入独立页后，返回列表仍回到原滚动位置
-  // 只影响“列表 <-> 独立页”的往返，不改你的其它功能/排序/筛选
-  const LIST_SCROLL_KEY = "plist_scroll_y_v1";
-  const LIST_RESTORE_FLAG_KEY = "plist_restore_flag_v1";
-
-  // 交给我们自己恢复滚动位置（避免浏览器默认策略与动态渲染冲突）
-  if ("scrollRestoration" in history) {
-    try { history.scrollRestoration = "manual"; } catch(e){}
-  }
-
-  function saveListScrollPos(){
-    try{
-      // 仅在列表视图下保存
-      const route = parseRoute();
-      if (route.type !== "list") return;
-      sessionStorage.setItem(LIST_SCROLL_KEY, String(window.scrollY || 0));
-      sessionStorage.setItem(LIST_RESTORE_FLAG_KEY, "1");
-    } catch (e) {}
-  }
-
-  function restoreListScrollPosIfNeeded(){
-    try{
-      // 仅在列表视图恢复
-      const route = parseRoute();
-      if (route.type !== "list") return;
-
-      const flag = sessionStorage.getItem(LIST_RESTORE_FLAG_KEY);
-      if (flag !== "1") return;
-
-      const y = Number(sessionStorage.getItem(LIST_SCROLL_KEY) || "0");
-      // 清 flag：避免用户刷新/首次打开也被强制滚动
-      sessionStorage.removeItem(LIST_RESTORE_FLAG_KEY);
-
-      if (!Number.isFinite(y) || y <= 0) return;
-
-      // 等 DOM 渲染完成再滚动（否则会被后续 render 覆盖）
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: y, behavior: "instant" });
-      });
-    } catch (e) {}
-  }
-  // ===================== END LIST SCROLL MEMORY (NEW) =====================
-
-  // ====== FIX (A): support /?to=/p/{market}/{asin} landing (generated by /p pages) ======
-  (function bridgeToParam() {
-  try {
-    var sp = new URLSearchParams(location.search || "");
-    var to = sp.get("to");
-    if (!to) return;
-
-    // Optional destination link (non-Amazon platforms) passed from generated /p pages:
-    // /?to=/p/us/123&dst=https%3A%2F%2Fwww.walmart.com%2F...
-    var dst = sp.get("dst") || "";
-
-    to = decodeURIComponent(to);
-    if (!to) return;
-
-    if (String(to).toLowerCase().indexOf("/p/") !== 0) return;
-
-    // Preserve dst by moving it onto the /p/... URL as query string.
-    // This keeps your existing routing logic intact and enables the detail CTA to use dst.
-    var newUrl = to;
-    if (dst) {
-      try { dst = decodeURIComponent(dst); } catch(e) {}
-      newUrl = to + (to.indexOf("?") >= 0 ? "&" : "?") + "dst=" + encodeURIComponent(dst);
-    }
-
-    history.replaceState(null, "", newUrl);
-  } catch (e) {}
-})();
-
-  // ====== END FIX (A) ======
-
-  /**
-   * Data files (must be at site root)
-   * - products.json: active list (listing uses this only)
-   * - archive.json : removed/offline items (detail fallback + re-listed prioritization)
-   */
-  // Auto-detect base path:
-// - Custom domain: https://ama.omino.top/  -> base "/"
-// - GitHub project pages: https://dalemy-1.github.io/ceshi/ -> base "/ceshi/"
-const SITE_BASE =
-  (location.hostname.endsWith("github.io")
-    ? ("/" + (location.pathname.split("/")[1] || "") + "/")
-    : "/");
-
-const PRODUCTS_JSON_PATH = SITE_BASE + "products.json";
-const ARCHIVE_JSON_PATH  = SITE_BASE + "archive.json"; // 如果你也有 archive.json
-
-
-  const WA_PHONE = "8615778673666";
-  const TG_USERNAME = "dalemyrong";
-  const EMAIL_CONTACT = "info@dalemy.top";
-
-  const AUTO_REFRESH_MS = 60 * 1000;
-
-  const ENABLE_GEO_IP_AUTO_MARKET = true;
-  const ALLOWED_MARKETS = ["US","UK","DE","FR","IT","ES","CA","JP"];
-
-  let ALL_PRODUCTS = [];
-  let ARCHIVE_PRODUCTS = [];
-  let LAST_LOADED_AT = null;
-  let LAST_LOAD_ERROR = "";
-  let IS_LOADING = false;
-
-  let CURRENT_CONTACT_PRODUCT = null;
-
-  const PLACEHOLDER_SVG = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
-      <defs>
-        <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0" stop-color="#f3f4f6"/>
-          <stop offset="1" stop-color="#e5e7eb"/>
-        </linearGradient>
-      </defs>
-      <rect width="800" height="800" rx="48" fill="url(#g)"/>
-      <rect x="180" y="220" width="440" height="300" rx="26" fill="#ffffff" stroke="#d1d5db" stroke-width="6"/>
-      <circle cx="280" cy="310" r="34" fill="#e5e7eb"/>
-      <path d="M210 490 L340 360 L430 450 L510 390 L590 490" fill="none" stroke="#d1d5db" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
-      <text x="400" y="590" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="#6b7280">Image unavailable</text>
-      <text x="400" y="640" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#9ca3af">Placeholder</text>
-    </svg>
-  `;
-  const PLACEHOLDER_DATA_URI = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(PLACEHOLDER_SVG);
-
-// Read destination link from current URL query (?dst=...), used for multi-platform detail pages.
-// If present and valid, it overrides product.link for the primary CTA.
-function getDstFromLocation(){
+  
+function toggleFold(key){
   try{
-    const sp = new URLSearchParams(location.search || "");
-    const dst = String(sp.get("dst") || "").trim();
-    return normalizeUrl(dst);
-  }catch(e){
-    return "";
-  }
+    var map = {
+      hero: {btn:"heroFoldBtn", body:"heroFoldBody"},
+      compliance: {btn:"complianceFoldBtn", body:"complianceFoldBody"},
+      howto: {btn:"howtoFoldBtn", body:"howtoFoldBody"}
+    };
+    var cfg = map[key];
+    if(!cfg) return;
+    var body = document.getElementById(cfg.body);
+    var btn = document.getElementById(cfg.btn);
+    if(!body || !btn) return;
+
+    var collapsed = body.classList.toggle("fold-collapsed");
+    btn.textContent = collapsed ? "Expand" : "Collapse";
+    try{ localStorage.setItem("fold:"+key, collapsed ? "1" : "0"); }catch(e){}
+  }catch(e){}
 }
+
+function initFolds(){
+  ["hero","compliance","howto"].forEach(function(k){
+    try{
+      var v = localStorage.getItem("fold:"+k);
+      if(v === "1"){
+        var cfg = {hero:["heroFoldBtn","heroFoldBody"], compliance:["complianceFoldBtn","complianceFoldBody"], howto:["howtoFoldBtn","howtoFoldBody"]}[k];
+        var btn=document.getElementById(cfg[0]);
+        var body=document.getElementById(cfg[1]);
+        if(body) body.classList.add("fold-collapsed");
+        if(btn) btn.textContent = "Expand";
+      }
+    }catch(e){}
+  });
+}
+
 
 
   function normalizeUrl(u){
@@ -739,7 +614,7 @@ function getDstFromLocation(){
       var key = "dst:" + pathname;
       var v = sessionStorage.getItem(key) || sessionStorage.getItem("dst:last") || "";
       return (v || "").trim();
-    } catch (e) {}
+    }catch(e){}
     return "";
   }
 
@@ -760,7 +635,7 @@ function parseRoute(){
           return { type:"product", market: decodeURIComponent(mm[1] || ""), key: decodeURIComponent(mm[2] || "") };
         }
       }
-    } catch (e) {}
+    }catch(e){}
 
     return { type:"list" };
   }
@@ -779,7 +654,7 @@ function parseRoute(){
 
   function buildProductPath(market, asinKey){
     const m = String(market||"").trim().toLowerCase();
-    return `${SITE_BASE}p/${encodeURIComponent(m)}/${encodeURIComponent(String(asinKey||""))}/`;
+    return `/p/${encodeURIComponent(m)}/${encodeURIComponent(String(asinKey||""))}/`;
   }
   function buildProductPermalink(market, asinKey){
     return location.origin + buildProductPath(market, asinKey);
@@ -1528,7 +1403,7 @@ function parseRoute(){
         const mk = await fn();
         if (mk && ALLOWED_MARKETS.includes(mk)) return mk;
         if (mk === "") return "";
-      } catch (e) {}
+      }catch(e){}
     }
     return "";
   }
@@ -1574,3 +1449,4 @@ function parseRoute(){
 </script>
 </body>
 </html>
+
