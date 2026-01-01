@@ -3,30 +3,55 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Opening…</title>
+  <title>Redirecting...</title>
+  <meta name="robots" content="noindex" />
+  <style>
+    body{font-family:Arial,sans-serif;background:#0b1220;color:#fff;margin:0}
+    .wrap{max-width:760px;margin:0 auto;padding:28px 14px}
+    .card{background:#111827;border:1px solid #243047;border-radius:16px;padding:16px}
+    .title{font-size:18px;font-weight:800;margin:0 0 8px}
+    .muted{color:rgba(255,255,255,.78);font-size:13px;line-height:1.55}
+    a{color:#fff}
+  </style>
 </head>
 <body>
-<script>
-(function () {
-  var p = location.pathname || "/";
-  // 去掉结尾 /
-  if (p.length > 1 && p.endsWith("/")) p = p.slice(0, -1);
+  <div class="wrap">
+    <div class="card">
+      <div class="title">Redirecting...</div>
+      <div class="muted" id="msg">Preparing...</div>
+    </div>
+  </div>
 
-  // 兼容大小写：/p/us/B07... 或 /P/US/B07...
-  var mm = p.match(/^\/p\/([a-zA-Z]{2})\/([A-Za-z0-9]{10})(?:_\d+)?$/i);
-  if (mm) {
-    var market = (mm[1] || "").toUpperCase();
-    var asin = (mm[2] || "").toUpperCase();
+  <script>
+    (function(){
+      var isProject = location.hostname.endsWith("github.io");
+      var seg0 = (location.pathname.split("/").filter(Boolean)[0] || "");
+      var SITE_BASE = isProject ? ("/" + seg0 + "/") : "/";
 
-    // 关键：把伪路由转到真正的独立页模板（展示用，不跳亚马逊）
-    // 你的独立页模板是 product.html（截图同款），它应能读取 market/asin 并渲染
-    location.replace("/product.html?market=" + encodeURIComponent(market) + "&asin=" + encodeURIComponent(asin));
-    return;
-  }
+      var p = location.pathname || "/";
+      try{
+        var baseNoSlash = SITE_BASE.replace(/\/$/, "");
+        if (baseNoSlash && baseNoSlash !== "/" && p.indexOf(baseNoSlash + "/") === 0) {
+          p = p.slice(baseNoSlash.length);
+        }
+      }catch(e){}
 
-  // 其他未知路径：回首页
-  location.replace("/index.html");
-})();
-</script>
+      if (p.length > 1 && p.endsWith("/")) p = p.slice(0, -1);
+
+      var mm = p.match(/^\/p\/([a-zA-Z]{2})\/([A-Za-z0-9]{10})$/i);
+      var target = SITE_BASE;
+
+      if (mm) {
+        var m = (mm[1] || "").toUpperCase();
+        var a = (mm[2] || "").toUpperCase();
+        target = SITE_BASE + "product.html?market=" + encodeURIComponent(m) + "&asin=" + encodeURIComponent(a);
+        document.getElementById("msg").textContent = "Opening product page...";
+      } else {
+        document.getElementById("msg").innerHTML = "Page not found. Returning to <a href=\"" + SITE_BASE + "\">home</a>...";
+      }
+
+      setTimeout(function(){ location.replace(target); }, 60);
+    })();
+  </script>
 </body>
 </html>
