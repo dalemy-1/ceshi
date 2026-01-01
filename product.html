@@ -64,7 +64,7 @@
       <p class="title" id="tTitle">Loading…</p>
       <p class="sub" id="tSub">Preparing…</p>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;"><a class="btn secondary" href="/">← Back to list</a><button class="btn secondary" id="copyBtn">Copy page link</button><button class="btn secondary" id="topContactBtn">Contact / Copy</button></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;"><a class="btn secondary" id="backBtn" href="#">← Back to list</a><button class="btn secondary" id="copyBtn">Copy page link</button><button class="btn secondary" id="topContactBtn">Contact / Copy</button></div>
   </div>
 
   <div id="content"></div>
@@ -104,10 +104,13 @@ const PRODUCTS_JSON_PATH = SITE_BASE + "products.json";
   const __DST__ = (__SP__.get("dst") || "").trim(); // 你现在的问题就是这个参数
 
   function canonicalPath(market, asin){
-    return `/p/${encodeURIComponent(String(market||"").toLowerCase())}/${encodeURIComponent(String(asin||"").toUpperCase())}`;
+    const m = encodeURIComponent(String(market||"" ).toLowerCase());
+    const a = encodeURIComponent(String(asin||"" ).toUpperCase());
+    // Keep compatible with GitHub Pages project sites (/{repo}/...)
+    return SITE_BASE + "p/" + m + "/" + a + "/";
   }
 
-  // 只要有 query，就清理；并且确保 path 规范化
+  // 只要有 query，就清理；并且确保 path 规范化（不会丢失 SITE_BASE）
   function cleanUrlNow(market, asin){
     const targetPath = canonicalPath(market, asin);
     const hash = location.hash || "";
@@ -205,6 +208,12 @@ const PRODUCTS_JSON_PATH = SITE_BASE + "products.json";
 
     // path 优先
     let p = location.pathname || "/";
+    // strip SITE_BASE prefix for GitHub Pages project sites
+    try{
+      const base = String(SITE_BASE||"/").replace(/\/$/, "");
+      if (base && base !== "/" && p.startsWith(base + "/")) p = p.slice(base.length);
+    }catch(e){}
+
     if(p.length>1 && p.endsWith("/")) p = p.slice(0,-1);
     const mm = p.match(/^\/p\/([a-zA-Z]{2})\/([A-Za-z0-9]{10})$/i);
     if(mm){
@@ -311,6 +320,12 @@ const PRODUCTS_JSON_PATH = SITE_BASE + "products.json";
 
     // 关键：一进来就净化地址栏（去掉 ?dst=...）
     cleanUrlNow(market, asin);
+
+    // Back to list must respect SITE_BASE (GitHub Pages project sites)
+    try{
+      const bb = document.getElementById("backBtn");
+      if (bb) bb.href = SITE_BASE;
+    }catch(e){}
 
     // Copy link 一律复制净化后的 canonical
     const pageLink = location.origin + canonicalPath(market, asin);
