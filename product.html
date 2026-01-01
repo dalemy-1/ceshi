@@ -85,22 +85,12 @@
 
 <script>
   
-// ===== Base path (supports GitHub Pages project sites) =====
-const SITE_BASE = (() => {
-  const isGithub = /github\.io$/i.test(location.hostname);
-  const parts = (location.pathname || '').split('/').filter(Boolean);
-  return (isGithub && parts.length) ? ('/' + parts[0] + '/') : '/';
-})();
-const P_PREFIX = SITE_BASE + 'p/';
-
-function normalizeInternalPath(p){
-  if(!p) return p;
-  if(p.startsWith(P_PREFIX) && SITE_BASE !== '/') return SITE_BASE + p.slice(1);
-  return p;
-}
-
+// Base path for GitHub Pages project sites
+const SITE_BASE = (location.hostname.endsWith("github.io") ? ("/" + (location.pathname.split("/").filter(Boolean)[0] || "") + "/") : "/");
+const P_BASE = SITE_BASE + "p/";
+const OG_BASE = SITE_BASE + "og/";
 const PRODUCTS_JSON_PATH = SITE_BASE + "products.json";
-  const ARCHIVE_JSON_PATH = SITE_BASE + "archive.json";
+  const ARCHIVE_JSON_PATH  = SITE_BASE + "archive.json";
 
   // Contact endpoints (shared across pages)
   const WA_PHONE = "8615778673666";
