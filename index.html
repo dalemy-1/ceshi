@@ -280,23 +280,21 @@
     .wrap, header, main, footer { width: 100%; max-width: 100%; }
 
 
-/* fold controls (UI-only; default expanded) */
-.fold-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
-.fold-btn{
-  border:1px solid var(--border);
-  background:#fff;
-  color:var(--text);
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:12px;
-  cursor:pointer;
-  user-select:none;
-}
-.fold-btn:hover{ background:var(--soft); }
-.fold-btn:active{ transform:translateY(1px); }
-@media (max-width:560px){
-  .fold-row{ align-items:flex-start; }
-}
+  /* ===== Fold (collapsible) controls (keep layout; default expanded; remember state) ===== */
+  .fold-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .fold-btn{
+    cursor:pointer;
+    border:1px solid var(--border);
+    background:#fff;
+    color:#111827;
+    font-weight:800;
+    font-size:12px;
+    padding:6px 10px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .fold-btn:hover{ background:#f9fafb; }
+  .fold-hidden{ display:none !important; }
 
 </style>
 </head>
@@ -341,31 +339,6 @@
     if (p === "/index.html") history.replaceState({}, "", "/");
   } catch (e) {}
 })();
-
-// ===== Fold state (default expanded; per-section memory) =====
-function setFoldUI(key, collapsed){
-  var body = document.getElementById(key + "FoldBody");
-  var btn  = document.getElementById(key + "FoldBtn");
-  if (!body || !btn) return;
-  body.style.display = collapsed ? "none" : "";
-  btn.textContent = collapsed ? "Expand" : "Collapse";
-  btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
-}
-function toggleFold(key){
-  var lsKey = "fold:" + key;
-  var now = (localStorage.getItem(lsKey) === "1");
-  var next = !now;
-  localStorage.setItem(lsKey, next ? "1" : "0");
-  setFoldUI(key, next);
-}
-function initFolds(){
-  ["hero","compliance","howto"].forEach(function(k){
-    var collapsed = (localStorage.getItem("fold:" + k) === "1");
-    setFoldUI(k, collapsed);
-  });
-}
-document.addEventListener("DOMContentLoaded", initFolds);
-
 </script>
 
 
@@ -389,8 +362,8 @@ document.addEventListener("DOMContentLoaded", initFolds);
 <div class="wrap" id="app">
 
   <section class="hero" id="heroBlock" aria-label="Independent product reference">
-    <div class="fold-row"><div class="title">Independent product reference</div><button class="fold-btn" id="heroFoldBtn" type="button" onclick="toggleFold(\'hero\')">Collapse</button></div>
-<div id="heroFoldBody">
+    <div class="fold-row"><div class="title">Independent product reference</div><button class="fold-btn" id="heroFoldBtn" type="button" onclick="toggleFold('hero')">Collapse</button></div>
+    <div id="heroFoldBody">
     <p class="desc">
       This website provides independent product identifiers and references to items available on Amazon.
       <strong>All purchases are completed on Amazon</strong> via the product pages.
@@ -400,22 +373,19 @@ document.addEventListener("DOMContentLoaded", initFolds);
       Need help identifying an item? Use <strong>Contact / Copy</strong> to copy ASIN / Market and reach us for general assistance (non-purchase support).
       See <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a> and <a href="./terms.html" target="_blank" rel="noopener">Terms</a>.
     </div>
-</div>
+    </div>
   </section>
 
   <div class="compliance" id="complianceBlock">
     <div class="row">
       <div class="pill"><strong>Disclosure</strong>: As an Amazon Associate, we earn from qualifying purchases.</div>
       <div class="pill">Independent site · Not endorsed by Amazon</div>
-      <button class="pill fold-btn" id="complianceFoldBtn" type="button" onclick="toggleFold(\'compliance\')">Collapse</button>
     </div>
-    <div id="complianceFoldBody">
     <div class="small">
       Amazon and the Amazon logo are trademarks of Amazon.com, Inc. or its affiliates. We provide independent product references and redirect you to Amazon for purchase. Product details, pricing, availability, shipping, and return terms are determined by Amazon on the destination page.
       See <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a> and <a href="./terms.html" target="_blank" rel="noopener">Terms</a>.
     </div>
   </div>
-</div>
 
   <div class="status-bar" id="statusBar">
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
@@ -426,7 +396,7 @@ document.addEventListener("DOMContentLoaded", initFolds);
   </div>
 
   <div class="howto" id="howtoBlock">
-    <div class="fold-row"><h2 style="margin:0;">How to choose</h2><button class="fold-btn" id="howtoFoldBtn" type="button" onclick="toggleFold(\'howto\')">Collapse</button></div>
+    <div class="fold-row"><h2 style="margin:0;">How to choose</h2><button class="fold-btn" id="howtoFoldBtn" type="button" onclick="toggleFold('howto')">Collapse</button></div>
     <div id="howtoFoldBody">
     <div class="cols">
       <div class="item">
@@ -500,6 +470,58 @@ document.addEventListener("DOMContentLoaded", initFolds);
 <script>
   // ===================== BUILD MARK (for cache verification) =====================
   const BUILD_VERSION = "2026-01-01-multi-platform-detail-archive-search";
+
+  // ===================== FOLD (collapsible) STATE (NEW) =====================
+  // Default: expanded. User toggle is remembered in localStorage.
+  const FOLD_KEYS = {
+    hero: "plist_fold_hero_v1",
+    howto: "plist_fold_howto_v1"
+  };
+
+  function applyFoldState(section, collapsed){
+    try{
+      const isCollapsed = !!collapsed;
+
+      if (section === "hero"){
+        const body = document.getElementById("heroFoldBody");
+        const btn = document.getElementById("heroFoldBtn");
+        if (body) body.classList.toggle("fold-hidden", isCollapsed);
+        if (btn) btn.textContent = isCollapsed ? "Expand" : "Collapse";
+        if (btn) btn.setAttribute("aria-expanded", String(!isCollapsed));
+      }
+
+      if (section === "howto"){
+        const body = document.getElementById("howtoFoldBody");
+        const btn = document.getElementById("howtoFoldBtn");
+        if (body) body.classList.toggle("fold-hidden", isCollapsed);
+        if (btn) btn.textContent = isCollapsed ? "Expand" : "Collapse";
+        if (btn) btn.setAttribute("aria-expanded", String(!isCollapsed));
+      }
+    }catch(e){}
+  }
+
+  function toggleFold(section){
+    try{
+      const key = FOLD_KEYS[section];
+      if (!key) return;
+
+      const current = (localStorage.getItem(key) || "0") === "1";
+      const next = !current;
+      localStorage.setItem(key, next ? "1" : "0");
+      applyFoldState(section, next);
+    }catch(e){}
+  }
+
+  function restoreFoldStates(){
+    try{
+      const heroCollapsed = (localStorage.getItem(FOLD_KEYS.hero) || "0") === "1";
+      const howtoCollapsed = (localStorage.getItem(FOLD_KEYS.howto) || "0") === "1";
+      applyFoldState("hero", heroCollapsed);
+      applyFoldState("howto", howtoCollapsed);
+    }catch(e){}
+  }
+  // ===================== END FOLD STATE (NEW) =====================
+
   console.log("[build]", BUILD_VERSION);
 
   // ===================== LIST SCROLL MEMORY (NEW) =====================
@@ -776,6 +798,8 @@ function parseRoute(){
     document.getElementById("footer").style.display = "block";
     document.getElementById("headerTitle").textContent = "Product Picks";
     document.title = "Product Picks";
+    // restore fold states (list view)
+    restoreFoldStates();
   }
 
   function showDetail(){
@@ -794,6 +818,9 @@ function parseRoute(){
     // NEW: 返回列表时不强制回顶部，而是恢复到进入详情前的位置
     history.pushState({type:"list"}, "", "/");
     renderByRoute();
+
+    // Ensure fold states applied after initial DOM is ready
+    restoreFoldStates();
     restoreListScrollPosIfNeeded();
   }
 
