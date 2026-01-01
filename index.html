@@ -271,6 +271,14 @@
     border-radius:12px;
     padding:10px;
   }
+
+    /* ===== Mobile overflow-x fix (no horizontal drag) ===== */
+    html, body { max-width: 100%; overflow-x: hidden; }
+    img, video, canvas, svg { max-width: 100%; height: auto; }
+    pre, code { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; }
+    /* Avoid 100vw + padding causing overflow on some mobile browsers */
+    .wrap, header, main, footer { width: 100%; max-width: 100%; }
+
 </style>
 </head>
 <body>
@@ -278,10 +286,7 @@
 (function () {
   try {
     var p = location.pathname || "/";
-    // Normalize root /index.html to /
-    if (p === "/index.html") {
-      history.replaceState({}, "", "/");
-    }
+    if (p === "/index.html") history.replaceState({}, "", "/");
   } catch (e) {}
 })();
 </script>
