@@ -64,6 +64,7 @@
   .hero .hint a{ color:#2563eb; text-decoration:none; }
 
   .compliance{
+    position:relative;
     background:#fff;
     border:1px solid var(--border);
     border-radius:14px;
@@ -296,6 +297,9 @@
   .fold-btn:hover{ background:#f9fafb; }
   .fold-hidden{ display:none !important; }
 
+
+  /* Compliance fold button (keeps original layout) */
+  .compliance-fold-btn{ position:absolute; top:10px; right:12px; }
 </style>
 </head>
 <body>
@@ -319,16 +323,13 @@
       }
 
       // If we are on /?to=... => normalize to the "to" path (no query)
-      if (to) {
-    // Support GitHub Pages project path (e.g. /ceshi) and custom-domain root
-    if (SITE_BASE && to.startsWith("/p/")) to = SITE_BASE + to;
-    if (to.startsWith(SITE_BASE + "/p/") || to.startsWith("/p/")) {
+      if (to && to.startsWith("/p/")) {
         try { history.replaceState({}, "", to); } catch(e){}
         return;
       }
 
       // If we are already on /p/... with ?dst=... => strip query
-      if ((location.pathname || "").startsWith("/p/") && (sp.has("dst") || sp.has("to"))) {
+      if (((location.pathname || "").replace(SITE_BASE, "/")).startsWith("/p/") && (sp.has("dst") || sp.has("to"))) {
         try { history.replaceState({}, "", location.pathname); } catch(e){}
       }
     } catch (e) {}
@@ -380,7 +381,10 @@
   </section>
 
   <div class="compliance" id="complianceBlock">
-    <div class="row">
+    
+    <button class="fold-btn compliance-fold-btn" id="complianceFoldBtn" type="button" onclick="toggleFold(\'compliance\')">Collapse</button>
+    <div id="complianceFoldBody">
+<div class="row">
       <div class="pill"><strong>Disclosure</strong>: As an Amazon Associate, we earn from qualifying purchases.</div>
       <div class="pill">Independent site · Not endorsed by Amazon</div>
     </div>
@@ -478,6 +482,7 @@
   // Default: expanded. User toggle is remembered in localStorage.
   const FOLD_KEYS = {
     hero: "plist_fold_hero_v1",
+    compliance: "plist_fold_compliance_v1",
     howto: "plist_fold_howto_v1"
   };
 
@@ -488,6 +493,16 @@
       if (section === "hero"){
         const body = document.getElementById("heroFoldBody");
         const btn = document.getElementById("heroFoldBtn");
+        if (body) body.classList.toggle("fold-hidden", isCollapsed);
+        if (btn) btn.textContent = isCollapsed ? "Expand" : "Collapse";
+        if (btn) btn.setAttribute("aria-expanded", String(!isCollapsed));
+      }
+
+      if (section === "howto"){
+
+      if (section === "compliance"){
+        const body = document.getElementById("complianceFoldBody");
+        const btn = document.getElementById("complianceFoldBtn");
         if (body) body.classList.toggle("fold-hidden", isCollapsed);
         if (btn) btn.textContent = isCollapsed ? "Expand" : "Collapse";
         if (btn) btn.setAttribute("aria-expanded", String(!isCollapsed));
@@ -518,8 +533,10 @@
   function restoreFoldStates(){
     try{
       const heroCollapsed = (localStorage.getItem(FOLD_KEYS.hero) || "0") === "1";
+      const complianceCollapsed = (localStorage.getItem(FOLD_KEYS.compliance) || "0") === "1";
       const howtoCollapsed = (localStorage.getItem(FOLD_KEYS.howto) || "0") === "1";
       applyFoldState("hero", heroCollapsed);
+      applyFoldState("compliance", complianceCollapsed);
       applyFoldState("howto", howtoCollapsed);
     }catch(e){}
   }
@@ -585,20 +602,14 @@
     to = decodeURIComponent(to);
     if (!to) return;
 
-    var low = String(to).toLowerCase();
-    // Accept both "/p/..." (custom domain) and "{SITE_BASE}/p/..." (project pages)
-    if (SITE_BASE && low.indexOf("/p/") === 0) {
-      to = SITE_BASE + to;
-      low = String(to).toLowerCase();
-    }
-    if (!(low.indexOf((SITE_BASE + "/p/").toLowerCase()) === 0 || low.indexOf("/p/") === 0)) return;
+    if (String(to).toLowerCase().indexOf("/p/") !== 0) return;
 
     // Preserve dst by moving it onto the /p/... URL as query string.
     // This keeps your existing routing logic intact and enables the detail CTA to use dst.
-    var newUrl = to;
+    var newUrl = (SITE_BASE.replace(/\/+$/,"") + to);
     if (dst) {
       try { dst = decodeURIComponent(dst); } catch(e) {}
-      newUrl = to + (to.indexOf("?") >= 0 ? "&" : "?") + "dst=" + encodeURIComponent(dst);
+      newUrl = newUrl + (newUrl.indexOf("?") >= 0 ? "&" : "?") + "dst=" + encodeURIComponent(dst);
     }
 
     history.replaceState(null, "", newUrl);
@@ -615,17 +626,18 @@
   // Auto-detect base path:
 // - Custom domain: https://ama.omino.top/  -> base "/"
 // - GitHub project pages: https://dalemy-1.github.io/ceshi/ -> base "/ceshi/"
-const SITE_BASE =
-  (location.hostname.endsWith("github.io")
-    ? ("/" + (location.pathname.split("/")[1] || "") + "/")
-    : "/");
+const SITE_BASE = (() => {
+  // Works for both:
+  // - Custom domain root: https://ama.omino.top/
+  // - GitHub project pages: https://dalemy-1.github.io/ceshi/
+  const seg = (location.pathname.split("/").filter(Boolean)[0] || "");
+  // If we are already under /p/... or /og/... (independent pages), the site is at root.
+  if (!seg || seg === "p" || seg === "og") return "/";
+  return "/" + seg + "/";
+})();
 
 const PRODUCTS_JSON_PATH = SITE_BASE + "products.json";
 const ARCHIVE_JSON_PATH  = SITE_BASE + "archive.json"; // 如果你也有 archive.json
-
-  // (removed duplicate ARCHIVE_JSON_PATH)
-
-
   const WA_PHONE = "8615778673666";
   const TG_USERNAME = "dalemyrong";
   const EMAIL_CONTACT = "info@dalemy.top";
@@ -756,22 +768,15 @@ function getDstFromLocation(){
 
 function parseRoute(){
     const path = location.pathname || "/";
-    let m = path.match(/^\/p\/([^\/]+)\/([^\/?#]+)(?:\/index\.html)?\/?$/i);
+    // Strip SITE_BASE for matching (so both "/" and "/ceshi/" work)
+    const base = SITE_BASE.replace(/\/+$/,"") + "/";
+    const rel = path.startsWith(base) ? ("/" + path.slice(base.length)) : path;
+
+    // Match: /p/{market}/{asinKey}/ (with optional index.html)
+    let m = rel.match(/^\/p\/([^\/]+)\/([^\/?#]+)(?:\/index\.html)?\/?$/i);
     if (m){
       return { type:"product", market: decodeURIComponent(m[1] || ""), key: decodeURIComponent(m[2] || "") };
     }
-
-    try{
-      const sp = new URLSearchParams(location.search || "");
-      const toRaw = sp.get("to");
-      if (toRaw){
-        const to = decodeURIComponent(toRaw);
-        const mm = String(to).match(/^\/p\/([^\/]+)\/([^\/?#]+)(?:\/index\.html)?\/?$/i);
-        if (mm){
-          return { type:"product", market: decodeURIComponent(mm[1] || ""), key: decodeURIComponent(mm[2] || "") };
-        }
-      }
-    }catch(e){}
 
     return { type:"list" };
   }
@@ -790,7 +795,8 @@ function parseRoute(){
 
   function buildProductPath(market, asinKey){
     const m = String(market||"").trim().toLowerCase();
-    return `${SITE_BASE}/p/${encodeURIComponent(m)}/${encodeURIComponent(String(asinKey||""))}/`;
+    // IMPORTANT: include SITE_BASE for GitHub project pages
+    return SITE_BASE + `p/${encodeURIComponent(m)}/${encodeURIComponent(String(asinKey||""))}/`;
   }
   function buildProductPermalink(market, asinKey){
     return location.origin + buildProductPath(market, asinKey);
@@ -836,7 +842,7 @@ function parseRoute(){
 
   function goHome(){
     // NEW: 返回列表时不强制回顶部，而是恢复到进入详情前的位置
-    history.pushState({type:"list"}, "", "/");
+    history.pushState({type:"list"}, "", SITE_BASE);
     renderByRoute();
 
     // Ensure fold states applied after initial DOM is ready
