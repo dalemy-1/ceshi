@@ -11,6 +11,9 @@
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+    html, body { max-width: 100%; overflow-x: hidden; }
+    img, video, canvas, svg { max-width: 100%; height: auto; }
+
     header{background:linear-gradient(135deg,#0f172a,#020617);color:#fff;text-align:center;padding:18px 12px}
     header h1{margin:0;font-size:20px;font-weight:900}
     .wrap{max-width:980px;margin:14px auto 26px;padding:0 12px}
@@ -61,10 +64,7 @@
       <p class="title" id="tTitle">Loading…</p>
       <p class="sub" id="tSub">Preparing…</p>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <a class="btn secondary" href="/">← Back to list</a>
-      <button class="btn secondary" id="copyBtn">Copy page link</button>
-    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;"><a class="btn secondary" href="/">← Back to list</a><button class="btn secondary" id="copyBtn">Copy page link</button><button class="btn secondary" id="topContactBtn">Contact / Copy</button></div>
   </div>
 
   <div id="content"></div>
@@ -86,6 +86,11 @@
 <script>
   const PRODUCTS_JSON_PATH = "/products.json";
   const ARCHIVE_JSON_PATH  = "/archive.json";
+
+  // Contact endpoints (shared across pages)
+  const WA_PHONE = "8615778673666";
+  const TG_USERNAME = "dalemyrong";
+  const EMAIL_CONTACT = "info@dalemy.top";
 
   // ============ URL 清理核心 ============
   // 先把 query 里的 dst 暂存下来（后面 View on Amazon 可用），然后立刻清理地址栏
@@ -285,7 +290,7 @@
         </div>
         <div class="note">
           <strong>Disclosure:</strong> As an Amazon Associate, we earn from qualifying purchases.
-          This is an independent site and is not endorsed by Amazon. Purchases are completed on Amazon via the product page.
+          This is an independent site and is not endorsed by Amazon. Purchases are completed on Amazon via the product page. We do not control final pricing, availability, shipping, or return terms.
         </div>
       </div>`;
   }
@@ -342,8 +347,98 @@
     }
   }
 
+
+  function buildCopyInfo(market, asin){
+    const lines = [];
+    if (asin) lines.push(`ASIN: ${asin}`);
+    if (market) lines.push(`Market: ${market}`);
+    return lines.join("\n");
+  }
+  function buildContactText(market, asin){
+    const base = buildCopyInfo(market, asin);
+    return [base, "", "Hi, I have a question about this product. Could you please help?"].join("\n");
+  }
+  function openContactModal(market, asin){
+    const m = String(market||"").toUpperCase();
+    const a = String(asin||"").toUpperCase();
+
+    const previewEl = document.getElementById("contactPreview");
+    if (previewEl) previewEl.textContent = buildCopyInfo(m, a);
+
+    const contactText = buildContactText(m, a);
+    const waUrl = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(contactText);
+    const tgUrl = "https://t.me/" + TG_USERNAME;
+
+    const subject = `Product question: ${a} [${m}]`;
+    const mailUrl = "mailto:" + encodeURIComponent(EMAIL_CONTACT)
+      + "?subject=" + encodeURIComponent(subject)
+      + "&body=" + encodeURIComponent(contactText);
+
+    const waBtn = document.getElementById("contactWA");
+    if (waBtn){
+      waBtn.href = waUrl;
+      waBtn.onclick = (e) => { e.preventDefault(); window.open(waUrl, "_blank", "noopener,noreferrer"); };
+    }
+
+    const tgBtn = document.getElementById("contactTG");
+    if (tgBtn){
+      tgBtn.href = tgUrl;
+      tgBtn.onclick = (e) => {
+        e.preventDefault();
+        copyText(contactText)
+          .then(() => window.open(tgUrl, "_blank", "noopener,noreferrer"))
+          .catch(() => window.open(tgUrl, "_blank", "noopener,noreferrer"));
+      };
+    }
+
+    const mailBtn = document.getElementById("contactMail");
+    if (mailBtn){
+      mailBtn.href = mailUrl;
+      mailBtn.onclick = (e) => { e.preventDefault(); window.open(mailUrl, "_blank", "noopener,noreferrer"); };
+    }
+
+    const modal = document.getElementById("contactModal");
+    if (modal) modal.style.display = "block";
+  }
+  function closeContactModal(){
+    const modal = document.getElementById("contactModal");
+    if (modal) modal.style.display = "none";
+  }
+  function copyContactInfo(){
+    const text = (document.getElementById("contactPreview") || {}).textContent || "";
+    if (!text) return;
+    copyText(text).then(() => alert("Copied!")).catch(() => alert("Copy failed"));
+  }
+
   window.onImgError = onImgError;
   boot();
 </script>
+
+<div id="contactModal" class="modal" onclick="closeContactModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);padding-top:60px;z-index:999;">
+  <div class="modal-inner" onclick="event.stopPropagation()" style="width:90%;max-width:560px;margin:0 auto;background:#fff;border-radius:16px;padding:14px;position:relative;box-shadow:0 10px 30px rgba(0,0,0,.18);">
+    <span onclick="closeContactModal()" style="position:absolute;right:14px;top:10px;font-size:26px;font-weight:900;cursor:pointer;user-select:none;">×</span>
+
+    <h3 style="margin:0 0 10px 0;">Contact & Copy</h3>
+    <div style="font-size:13px;color:#6b7280;margin-bottom:8px;">
+      Copy only ASIN / Market. Contact options are for general consultation; use “View on Amazon” to purchase.
+    </div>
+
+    <div id="contactPreview"
+         style="border:1px solid #e5e7eb;border-radius:14px;padding:10px;background:#f9fafb;white-space:pre-wrap;font-size:13px;line-height:1.45;text-align:left;"></div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px;">
+      <button class="btn" onclick="copyContactInfo()" style="background:#374151;">Copy info</button>
+      <a class="btn secondary" href="#" id="contactWA" rel="noopener noreferrer" target="_blank">WhatsApp</a>
+      <a class="btn secondary" href="#" id="contactTG" rel="noopener noreferrer" target="_blank">Telegram</a>
+      <a class="btn secondary" href="#" id="contactMail" rel="noopener noreferrer" target="_blank">Email</a>
+      <button class="btn secondary" onclick="closeContactModal()">Close</button>
+    </div>
+
+    <div style="margin-top:10px;font-size:12px;color:#6b7280;line-height:1.55;">
+      Final pricing, availability, shipping, and return terms are provided by Amazon on the destination page.
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
