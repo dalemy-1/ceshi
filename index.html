@@ -603,7 +603,17 @@
    * - products.json: active list (listing uses this only)
    * - archive.json : removed/offline items (detail fallback + re-listed prioritization)
    */
-  const PRODUCTS_JSON_PATH = "products.json";
+  // Auto-detect base path:
+// - Custom domain: https://ama.omino.top/  -> base "/"
+// - GitHub project pages: https://dalemy-1.github.io/ceshi/ -> base "/ceshi/"
+const SITE_BASE =
+  (location.hostname.endsWith("github.io")
+    ? ("/" + (location.pathname.split("/")[1] || "") + "/")
+    : "/");
+
+const PRODUCTS_JSON_PATH = SITE_BASE + "products.json";
+const ARCHIVE_JSON_PATH  = SITE_BASE + "archive.json"; // 如果你也有 archive.json
+
   const ARCHIVE_JSON_PATH  = "archive.json";
 
   const WA_PHONE = "8615778673666";
@@ -1565,4 +1575,5 @@ function parseRoute(){
 </script>
 </body>
 </html>
+
 
