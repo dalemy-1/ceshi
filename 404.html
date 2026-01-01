@@ -3,55 +3,45 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Redirecting...</title>
+  <title>Not found</title>
   <meta name="robots" content="noindex" />
-  <style>
-    body{font-family:Arial,sans-serif;background:#0b1220;color:#fff;margin:0}
-    .wrap{max-width:760px;margin:0 auto;padding:28px 14px}
-    .card{background:#111827;border:1px solid #243047;border-radius:16px;padding:16px}
-    .title{font-size:18px;font-weight:800;margin:0 0 8px}
-    .muted{color:rgba(255,255,255,.78);font-size:13px;line-height:1.55}
-    a{color:#fff}
-  </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="title">Redirecting...</div>
-      <div class="muted" id="msg">Preparing...</div>
-    </div>
-  </div>
+<script>
 
-  <script>
-    (function(){
-      var isProject = location.hostname.endsWith("github.io");
-      var seg0 = (location.pathname.split("/").filter(Boolean)[0] || "");
-      var SITE_BASE = isProject ? ("/" + seg0 + "/") : "/";
+  function detectSiteBase(){
+    if (location.hostname.endsWith("github.io")) {
+      var seg = (location.pathname.split("/").filter(Boolean)[0] || "");
+      return seg ? ("/" + seg + "/") : "/";
+    }
+    var baseTag = document.querySelector('base[href]');
+    if (baseTag) {
+      var href = baseTag.getAttribute('href') || "/";
+      if (!href.startsWith("/")) href = "/" + href;
+      if (!href.endsWith("/")) href += "/";
+      return href;
+    }
+    return "/";
+  }
+  const SITE_BASE = detectSiteBase();
 
-      var p = location.pathname || "/";
-      try{
-        var baseNoSlash = SITE_BASE.replace(/\/$/, "");
-        if (baseNoSlash && baseNoSlash !== "/" && p.indexOf(baseNoSlash + "/") === 0) {
-          p = p.slice(baseNoSlash.length);
-        }
-      }catch(e){}
-
-      if (p.length > 1 && p.endsWith("/")) p = p.slice(0, -1);
-
-      var mm = p.match(/^\/p\/([a-zA-Z]{2})\/([A-Za-z0-9]{10})$/i);
-      var target = SITE_BASE;
-
-      if (mm) {
-        var m = (mm[1] || "").toUpperCase();
-        var a = (mm[2] || "").toUpperCase();
-        target = SITE_BASE + "product.html?market=" + encodeURIComponent(m) + "&asin=" + encodeURIComponent(a);
-        document.getElementById("msg").textContent = "Opening product page...";
-      } else {
-        document.getElementById("msg").innerHTML = "Page not found. Returning to <a href=\"" + SITE_BASE + "\">home</a>...";
-      }
-
-      setTimeout(function(){ location.replace(target); }, 60);
-    })();
-  </script>
+(function(){
+  function stripBase(pathname){
+    if (SITE_BASE !== "/" && pathname.startsWith(SITE_BASE)) {
+      return "/" + pathname.slice(SITE_BASE.length);
+    }
+    return pathname;
+  }
+  var p = stripBase(location.pathname || "/");
+  var m = p.match(/^\/p\/([a-zA-Z]{2})\/([A-Za-z0-9]{10})\/?$/);
+  if (m) {
+    var market = (m[1]||"").toUpperCase();
+    var asin = (m[2]||"").toUpperCase();
+    location.replace(SITE_BASE + "product.html?market=" + encodeURIComponent(market) + "&asin=" + encodeURIComponent(asin));
+    return;
+  }
+  location.replace(SITE_BASE);
+})();
+</script>
 </body>
 </html>
