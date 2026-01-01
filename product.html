@@ -62,7 +62,7 @@
       <p class="sub" id="tSub">Preparing…</p>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <a class="btn secondary" href="/index.html">← Back to list</a>
+      <a class="btn secondary" href="/">← Back to list</a>
       <button class="btn secondary" id="copyBtn">Copy page link</button>
     </div>
   </div>
@@ -281,7 +281,7 @@
         </div>
         <div class="actions">
           ${viewAmazon}
-          <a class="btn secondary" href="/index.html">Back to list</a>
+          <button class="btn secondary" id="contactCopyBtn">Contact / Copy</button>
         </div>
         <div class="note">
           <strong>Disclosure:</strong> As an Amazon Associate, we earn from qualifying purchases.
@@ -307,6 +307,15 @@
     document.getElementById("copyBtn").onclick = () => {
       copyText(pageLink).then(()=>alert("Copied page link!")).catch(()=>alert("Copy failed"));
     };
+
+    const __cc = document.getElementById("contactCopyBtn");
+    if (__cc) {
+      __cc.onclick = () => {
+        const s = `Market: ${String(market).toUpperCase()} | ASIN: ${String(asin).toUpperCase()}`;
+        copyText(s).then(()=>alert("Copied: " + s)).catch(()=>alert(s));
+      };
+    }
+
 
     try{
       const [a, b] = await Promise.allSettled([
