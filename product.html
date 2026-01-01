@@ -84,24 +84,16 @@
 </footer>
 
 <script>
-  const SITE_BASE = (() => {
-  const seg = (location.pathname.split("/").filter(Boolean)[0] || "");
-  if (!seg || seg === "p" || seg === "og") return "/";
-  return "/" + seg + "/";
+  // Resolve repo base path (supports GitHub Pages project pages / subfolders)
+const ROOT_BASE = (() => {
+  const p = location.pathname || "/";
+  const i = p.indexOf("/p/");
+  if (i >= 0) return p.slice(0, i + 1); // "/{repo}/"
+  return p.endsWith("/") ? p : p.replace(/[^\/]+$/, "");
 })();
 
-const PRODUCTS_JSON_PATH = SITE_BASE + "products.json";
-  const ARCHIVE_JSON_PATH  = SITE_BASE + "archive.json";
-// Ensure internal links work on both custom domain root and GitHub project pages
-window.addEventListener('DOMContentLoaded', () => {
-  const b = document.getElementById('backLink');
-  if (b) b.href = SITE_BASE;
-  const p = document.getElementById('privacyLink');
-  if (p) p.href = SITE_BASE + 'privacy.html';
-  const t = document.getElementById('termsLink');
-  if (t) t.href = SITE_BASE + 'terms.html';
-});
-
+const PRODUCTS_JSON_PATH = ROOT_BASE + "products.json";
+  const ARCHIVE_JSON_PATH  = ROOT_BASE + "archive.json";
 
   // Contact endpoints (shared across pages)
   const WA_PHONE = "8615778673666";
@@ -115,7 +107,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const __DST__ = (__SP__.get("dst") || "").trim(); // 你现在的问题就是这个参数
 
   function canonicalPath(market, asin){
-    return `/p/${encodeURIComponent(String(market||"").toLowerCase())}/${encodeURIComponent(String(asin||"").toUpperCase())}`;
+    return `${ROOT_BASE}p/${encodeURIComponent(String(market||"").toLowerCase())}/${encodeURIComponent(String(asin||"").toUpperCase())}`;
   }
 
   // 只要有 query，就清理；并且确保 path 规范化
