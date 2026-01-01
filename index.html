@@ -279,6 +279,25 @@
     /* Avoid 100vw + padding causing overflow on some mobile browsers */
     .wrap, header, main, footer { width: 100%; max-width: 100%; }
 
+
+/* fold controls (UI-only; default expanded) */
+.fold-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.fold-btn{
+  border:1px solid var(--border);
+  background:#fff;
+  color:var(--text);
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  cursor:pointer;
+  user-select:none;
+}
+.fold-btn:hover{ background:var(--soft); }
+.fold-btn:active{ transform:translateY(1px); }
+@media (max-width:560px){
+  .fold-row{ align-items:flex-start; }
+}
+
 </style>
 </head>
 <body>
@@ -322,6 +341,31 @@
     if (p === "/index.html") history.replaceState({}, "", "/");
   } catch (e) {}
 })();
+
+// ===== Fold state (default expanded; per-section memory) =====
+function setFoldUI(key, collapsed){
+  var body = document.getElementById(key + "FoldBody");
+  var btn  = document.getElementById(key + "FoldBtn");
+  if (!body || !btn) return;
+  body.style.display = collapsed ? "none" : "";
+  btn.textContent = collapsed ? "Expand" : "Collapse";
+  btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+}
+function toggleFold(key){
+  var lsKey = "fold:" + key;
+  var now = (localStorage.getItem(lsKey) === "1");
+  var next = !now;
+  localStorage.setItem(lsKey, next ? "1" : "0");
+  setFoldUI(key, next);
+}
+function initFolds(){
+  ["hero","compliance","howto"].forEach(function(k){
+    var collapsed = (localStorage.getItem("fold:" + k) === "1");
+    setFoldUI(k, collapsed);
+  });
+}
+document.addEventListener("DOMContentLoaded", initFolds);
+
 </script>
 
 
@@ -345,7 +389,8 @@
 <div class="wrap" id="app">
 
   <section class="hero" id="heroBlock" aria-label="Independent product reference">
-    <div class="title">Independent product reference</div>
+    <div class="fold-row"><div class="title">Independent product reference</div><button class="fold-btn" id="heroFoldBtn" type="button" onclick="toggleFold(\'hero\')">Collapse</button></div>
+<div id="heroFoldBody">
     <p class="desc">
       This website provides independent product identifiers and references to items available on Amazon.
       <strong>All purchases are completed on Amazon</strong> via the product pages.
@@ -355,18 +400,22 @@
       Need help identifying an item? Use <strong>Contact / Copy</strong> to copy ASIN / Market and reach us for general assistance (non-purchase support).
       See <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a> and <a href="./terms.html" target="_blank" rel="noopener">Terms</a>.
     </div>
+</div>
   </section>
 
   <div class="compliance" id="complianceBlock">
     <div class="row">
       <div class="pill"><strong>Disclosure</strong>: As an Amazon Associate, we earn from qualifying purchases.</div>
       <div class="pill">Independent site · Not endorsed by Amazon</div>
+      <button class="pill fold-btn" id="complianceFoldBtn" type="button" onclick="toggleFold(\'compliance\')">Collapse</button>
     </div>
+    <div id="complianceFoldBody">
     <div class="small">
       Amazon and the Amazon logo are trademarks of Amazon.com, Inc. or its affiliates. We provide independent product references and redirect you to Amazon for purchase. Product details, pricing, availability, shipping, and return terms are determined by Amazon on the destination page.
       See <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a> and <a href="./terms.html" target="_blank" rel="noopener">Terms</a>.
     </div>
   </div>
+</div>
 
   <div class="status-bar" id="statusBar">
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
@@ -377,7 +426,8 @@
   </div>
 
   <div class="howto" id="howtoBlock">
-    <h2>How to choose</h2>
+    <div class="fold-row"><h2 style="margin:0;">How to choose</h2><button class="fold-btn" id="howtoFoldBtn" type="button" onclick="toggleFold(\'howto\')">Collapse</button></div>
+    <div id="howtoFoldBody">
     <div class="cols">
       <div class="item">
         <h3>1) Confirm compatibility</h3>
@@ -398,6 +448,7 @@
     </div>
     <div class="note">
       Note: We do not guarantee pricing or availability. Final product details, pricing, and purchase terms are provided by Amazon on the destination page.
+    </div>
     </div>
   </div>
 
