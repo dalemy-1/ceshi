@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Product Picks</title>
-<meta name="description" content="Independent product references. As an Amazon Associate, we earn from qualifying purchases.">
+<meta name="description" content="Independent product picks. As an Amazon Associate, we earn from qualifying purchases.">
 <link rel="canonical" href="https://ama.omino.top/">
 
 <style>
@@ -272,54 +272,42 @@
     padding:10px;
   }
 
-    /* ===== Mobile overflow-x fix (no horizontal drag) ===== */
-    html, body { max-width: 100%; overflow-x: hidden; }
-    img, video, canvas, svg { max-width: 100%; height: auto; }
-    pre, code { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; }
-    /* Avoid 100vw + padding causing overflow on some mobile browsers */
-    .wrap, header, main, footer { width: 100%; max-width: 100%; }
+/* === Collapsible sections (remember state) === */
+html, body { overflow-x: hidden; }
+.section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.section-head h2{ margin:0; }
+.collapse-toggle{
+  appearance:none;
+  border:1px solid var(--border);
+  background: var(--soft);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1;
+  cursor:pointer;
+  white-space: nowrap;
+}
+.collapse-toggle:hover{ filter: brightness(0.98); }
+.collapse-toggle:active{ transform: translateY(1px); }
+[data-collapsible].is-collapsed .collapse-body{ display:none; }
 
 </style>
 </head>
 <body>
 <script>
-
-  // ==================== CANONICAL URL CLEAN (remove ?dst / ?to) ====================
-  // Goal:
-  // 1) Direct-open /p/{market}/{asin}?dst=... should end up with address bar as /p/{market}/{asin}
-  // 2) Landing /?to=/p/{market}/{asin}&dst=... should also end up as /p/{market}/{asin}
-  // The dst value is preserved in sessionStorage for the product page to use.
-  (function canonicalClean() {
-    try {
-      var sp = new URLSearchParams(location.search || "");
-      var dst = (sp.get("dst") || "").trim();
-      var to = (sp.get("to") || "").trim();
-      // store dst for later use
-      if (dst) {
-        // keep a per-path key so different products won't overwrite each other
-        try { sessionStorage.setItem("dst:" + (to || location.pathname), dst); } catch(e){}
-        try { sessionStorage.setItem("dst:last", dst); } catch(e){}
-      }
-
-      // If we are on /?to=... => normalize to the "to" path (no query)
-      if (to && to.startsWith("/p/")) {
-        try { history.replaceState({}, "", to); } catch(e){}
-        return;
-      }
-
-      // If we are already on /p/... with ?dst=... => strip query
-      if ((location.pathname || "").startsWith("/p/") && (sp.has("dst") || sp.has("to"))) {
-        try { history.replaceState({}, "", location.pathname); } catch(e){}
-      }
-    } catch (e) {}
-  })();
-  // ==================== END CANONICAL URL CLEAN ====================
-
-
 (function () {
   try {
     var p = location.pathname || "/";
-    if (p === "/index.html") history.replaceState({}, "", "/");
+    // Normalize root /index.html to /
+    if (p === "/index.html") {
+      history.replaceState({}, "", "/");
+    }
   } catch (e) {}
 })();
 </script>
@@ -347,12 +335,12 @@
   <section class="hero" id="heroBlock" aria-label="Independent product reference">
     <div class="title">Independent product reference</div>
     <p class="desc">
-      This website provides independent product identifiers and references to items available on Amazon.
+      This website lists product identifiers and references to items available on Amazon.
       <strong>All purchases are completed on Amazon</strong> via the product pages.
-      We do not sell products directly and do not process orders, payments, warranties, or returns.
+      We do not sell products directly and do not process orders or payments.
     </p>
     <div class="hint">
-      Need help identifying an item? Use <strong>Contact / Copy</strong> to copy ASIN / Market and reach us for general assistance (non-purchase support).
+      Need help identifying an item? Use <strong>Contact / Copy</strong> to copy ASIN / Market and reach us for general assistance.
       See <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a> and <a href="./terms.html" target="_blank" rel="noopener">Terms</a>.
     </div>
   </section>
@@ -363,7 +351,7 @@
       <div class="pill">Independent site · Not endorsed by Amazon</div>
     </div>
     <div class="small">
-      Amazon and the Amazon logo are trademarks of Amazon.com, Inc. or its affiliates. We provide independent product references and redirect you to Amazon for purchase. Product details, pricing, availability, shipping, and return terms are determined by Amazon on the destination page.
+      Amazon and the Amazon logo are trademarks of Amazon.com, Inc. or its affiliates. We provide independent product references and redirect you to Amazon for purchase.
       See <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a> and <a href="./terms.html" target="_blank" rel="noopener">Terms</a>.
     </div>
   </div>
@@ -376,13 +364,18 @@
     <button class="btn" onclick="fetchAllData(true)">Refresh</button>
   </div>
 
-  <div class="howto" id="howtoBlock">
+  <div class="howto" id="howtoBlock" data-collapsible="howto" >
+  <div class="section-head">
     <h2>How to choose</h2>
-    <div class="cols">
+    <button type="button" class="collapse-toggle" data-collapsible-toggle="howtoBlock" aria-controls="howtoBlockBody" aria-expanded="true">Collapse</button>
+  </div>
+  <div class="collapse-body" id="howtoBlockBody">
+<div class="cols">
       <div class="item">
         <h3>1) Confirm compatibility</h3>
         <p>Before buying, confirm model/size/region compatibility on the Amazon product page, especially for electronics, consumables, and replacement parts.</p>
-      </div>
+  </div>
+</div>
       <div class="item">
         <h3>2) Check seller & fulfillment</h3>
         <p>Prefer reputable sellers and reliable fulfillment methods. Review shipping speed, return policy, and warranty terms on Amazon.</p>
@@ -413,7 +406,7 @@
 
     <h3 style="margin:0 0 10px 0;">Contact & Copy</h3>
     <div style="font-size:13px;color:#6b7280;margin-bottom:8px;">
-      Copy only ASIN / Market. Contact options are for general consultation and do not provide purchase support; use “View on Amazon” to purchase.
+      Copy only ASIN / Market. Contact buttons are for consultation and do not include Amazon links.
     </div>
 
     <div id="contactPreview"
@@ -651,17 +644,7 @@ function getDstFromLocation(){
     return isAllDigits(s);
   }
 
-  
-  function getDstForPath(pathname){
-    try{
-      var key = "dst:" + pathname;
-      var v = sessionStorage.getItem(key) || sessionStorage.getItem("dst:last") || "";
-      return (v || "").trim();
-    }catch(e){}
-    return "";
-  }
-
-function parseRoute(){
+  function parseRoute(){
     const path = location.pathname || "/";
     let m = path.match(/^\/p\/([^\/]+)\/([^\/?#]+)(?:\/index\.html)?\/?$/i);
     if (m){
@@ -1473,9 +1456,46 @@ function parseRoute(){
   // NEW: 浏览器返回（popstate）时，如果回到列表，渲染后会自动 restoreListScrollPosIfNeeded()
   window.addEventListener("popstate", () => renderByRoute());
 
+
+  // ================== Collapsible blocks (remember state) ==================
+  function initCollapsibles(){
+    try{
+      var blocks = [
+        { id:"heroBlock", key:"collapse_hero_v1" },
+        { id:"howtoBlock", key:"collapse_howto_v1" }
+      ];
+
+      blocks.forEach(function(b){
+        var el = document.getElementById(b.id);
+        if(!el) return;
+
+        var collapsed = (localStorage.getItem(b.key) === "1");
+        if(collapsed) el.classList.add("is-collapsed");
+
+        var btn = document.querySelector('[data-collapsible-toggle="'+b.id+'"]');
+        if(btn){
+          var isCollapsed = el.classList.contains("is-collapsed");
+          btn.textContent = isCollapsed ? "Expand" : "Collapse";
+          btn.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
+
+          btn.addEventListener("click", function(){
+            el.classList.toggle("is-collapsed");
+            var nowCollapsed = el.classList.contains("is-collapsed");
+            localStorage.setItem(b.key, nowCollapsed ? "1" : "0");
+            btn.textContent = nowCollapsed ? "Expand" : "Collapse";
+            btn.setAttribute("aria-expanded", nowCollapsed ? "false" : "true");
+          });
+        }
+      });
+    }catch(e){}
+  }
+  // ================== End Collapsible blocks ==================
+
   window.onload = function(){
     const saved = localStorage.getItem("selectedCountry");
     if (saved) document.getElementById("countrySelect").value = saved;
+
+    initCollapsibles();
 
     renderByRoute();
 
