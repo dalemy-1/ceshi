@@ -5,6 +5,52 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>US • B0G4FWMY61</title>
   <meta name="description" content="Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases." />
+  <style>
+    :root{
+      --bg:#f4f4f9; --card:#fff; --border:#e5e7eb; --text:#111827; --muted:#6b7280; --primary:#111827; --soft:#f9fafb;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+    header{background:linear-gradient(135deg,#0f172a,#020617);color:#fff;text-align:center;padding:18px 12px}
+    header h1{margin:0;font-size:20px;font-weight:900}
+    .wrap{max-width:980px;margin:14px auto 26px;padding:0 12px}
+    .top{
+      display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+      background:#fff;border:1px solid var(--border);border-radius:14px;padding:10px 12px;
+    }
+    .title{font-weight:900;margin:0;font-size:14px}
+    .sub{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
+    .btn{
+      cursor:pointer;border-radius:12px;border:1px solid var(--border);
+      padding:9px 12px;font-weight:900;font-size:13px;background:var(--primary);color:#fff;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
+    }
+    .btn.secondary{background:#fff;color:#111827}
+    .card{
+      margin-top:12px;background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px;
+      box-shadow:0 10px 24px rgba(0,0,0,.04);
+    }
+    .img{
+      width:100%;max-width:520px;aspect-ratio:1/1;object-fit:contain;border-radius:16px;border:1px solid var(--border);
+      background:#fff;display:block;margin:0 auto;
+    }
+    .why{
+      max-width:520px;margin:10px auto 0;padding:10px 12px;background:var(--soft);border:1px solid var(--border);border-radius:12px;
+      font-size:12px;color:#374151;line-height:1.55;
+    }
+    .why strong{font-weight:900}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+    .note{
+      margin-top:10px;font-size:12px;color:#4b5563;line-height:1.55;background:var(--soft);border:1px solid var(--border);border-radius:12px;padding:10px;
+    }
+    .empty{
+      margin-top:12px;padding:14px;border:1px solid var(--border);border-radius:14px;background:#fff;color:var(--muted);text-align:center;font-size:14px;
+    }
+    footer{margin-top:18px;background:#fff;border-top:1px solid var(--border);padding:14px 12px}
+    footer .inner{max-width:980px;margin:0 auto;font-size:12px;color:#374151;line-height:1.7}
+    footer a{color:#2563eb;text-decoration:none}
+  </style>
+
+  <link rel="canonical" href="https://ama.omino.top/p/us/B0G4FWMY61" />
 
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Product Picks" />
@@ -22,12 +68,309 @@
   <meta name="twitter:description" content="Independent product reference. Purchases are completed on Amazon. As an Amazon Associate, we earn from qualifying purchases." />
   <meta name="twitter:image" content="https://ama.omino.top/og/us/B0G4FWMY61.jpg" />
 
-  <meta http-equiv="refresh" content="0;url=https://ama.omino.top/?to=%2Fp%2Fus%2FB0G4FWMY61&amp;dst=https%3A%2F%2Famzn.to%2F4jcWz6m" />
-  <noscript><meta http-equiv="refresh" content="0;url=https://ama.omino.top/?to=%2Fp%2Fus%2FB0G4FWMY61&amp;dst=https%3A%2F%2Famzn.to%2F4jcWz6m" /></noscript>
 </head>
 <body>
+<header>
+  <h1>Product Reference</h1>
+</header>
+
+<div class="wrap">
+  <div class="top" id="topBar">
+    <div>
+      <p class="title" id="tTitle">Loading…</p>
+      <p class="sub" id="tSub">Preparing…</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a class="btn secondary" href="/index.html">← Back to list</a>
+      <button class="btn secondary" id="copyBtn">Copy page link</button>
+    </div>
+  </div>
+
+  <div id="content"></div>
+</div>
+
+<footer>
+  <div class="inner">
+    <div><strong>Affiliate disclosure:</strong> As an Amazon Associate, we earn from qualifying purchases.</div>
+    <div><strong>Independence:</strong> This site is not an official Amazon website and is not endorsed by Amazon.</div>
+    <div><strong>Links:</strong> “View on Amazon” redirects to Amazon. Amazon may use cookies for tracking qualifying purchases.</div>
+    <div style="margin-top:6px;">
+      <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a> ·
+      <a href="./terms.html" target="_blank" rel="noopener">Terms</a>
+    </div>
+    <div style="margin-top:6px;">© 2025 ama.omino.top</div>
+  </div>
+</footer>
+
 <script>
-  location.replace("https://ama.omino.top/?to=%2Fp%2Fus%2FB0G4FWMY61&dst=https%3A%2F%2Famzn.to%2F4jcWz6m");
+  const PRODUCTS_JSON_PATH = "/products.json";
+  const ARCHIVE_JSON_PATH  = "/archive.json";
+
+  // ============ URL 清理核心 ============
+  // 先把 query 里的 dst 暂存下来（后面 View on Amazon 可用），然后立刻清理地址栏
+  const __ORIGINAL_SEARCH__ = location.search || "";
+  const __SP__ = new URLSearchParams(__ORIGINAL_SEARCH__);
+  const __DST__ = (__SP__.get("dst") || "").trim(); // 你现在的问题就是这个参数
+
+  function canonicalPath(market, asin){
+    return `/p/${encodeURIComponent(String(market||"").toLowerCase())}/${encodeURIComponent(String(asin||"").toUpperCase())}`;
+  }
+
+  // 只要有 query，就清理；并且确保 path 规范化
+  function cleanUrlNow(market, asin){
+    const targetPath = canonicalPath(market, asin);
+    const hash = location.hash || "";
+    if ((location.pathname || "") !== targetPath || (__ORIGINAL_SEARCH__ && __ORIGINAL_SEARCH__.length > 1)){
+      history.replaceState(null, "", targetPath + hash);
+    }
+  }
+  // ====================================
+
+  const PLACEHOLDER_SVG = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+      <defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0" stop-color="#f3f4f6"/><stop offset="1" stop-color="#e5e7eb"/></linearGradient></defs>
+      <rect width="800" height="800" rx="48" fill="url(#g)"/>
+      <text x="400" y="420" text-anchor="middle" font-family="Arial" font-size="34" fill="#6b7280">Image unavailable</text>
+    </svg>`;
+  const PLACEHOLDER = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(PLACEHOLDER_SVG);
+
+  function esc(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;")}
+  function normalizeMarket(m){return String(m||"").trim().toUpperCase()}
+  function normalizeAsin(a){return String(a||"").trim().toUpperCase()}
+  function isAllDigits(s){return /^[0-9]+$/.test(String(s||"").trim())}
+  function isAmazonLikeAsin(s){
+    const v = normalizeAsin(s);
+    return /^[A-Z0-9]{10}$/.test(v) && /[A-Z]/.test(v);
+  }
+  function normalizeUrl(u){const s=String(u||"").trim(); return /^https?:\/\//i.test(s)?s:"";}
+  function isHttps(){return String(location.protocol||"").toLowerCase()==="https:";}
+  function toWeserv(url){
+    const cleaned = String(url||"").replace(/^https?:\/\//i,"");
+    return "https://images.weserv.nl/?url=" + encodeURIComponent(cleaned);
+  }
+  function onImgError(img){
+    try{
+      const stage = Number(img.dataset.stage||"0");
+      const original = String(img.dataset.original||"");
+      if(!original){img.src=PLACEHOLDER;return;}
+      if(stage===0){
+        img.dataset.stage="1";
+        if(isHttps() && /^http:\/\//i.test(original)){ img.src = original.replace(/^http:\/\//i,"https://"); return; }
+        img.src = toWeserv(original); img.dataset.stage="2"; return;
+      }
+      if(stage===1){ img.dataset.stage="2"; img.src=toWeserv(original); return; }
+      img.dataset.stage="3"; img.src=PLACEHOLDER; img.removeAttribute("srcset");
+    }catch(_){ try{img.src=PLACEHOLDER}catch(e){} }
+  }
+
+  function copyText(text){
+    if(navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+    return new Promise((resolve,reject)=>{
+      try{
+        const ta=document.createElement("textarea"); ta.value=text; document.body.appendChild(ta);
+        ta.select(); document.execCommand("copy"); document.body.removeChild(ta); resolve();
+      }catch(e){reject(e)}
+    });
+  }
+
+  function hash32(str){
+    let h=2166136261; const s=String(str||"");
+    for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); }
+    return (h>>>0);
+  }
+  function pick(arr, seed, salt){
+    if(!arr||!arr.length) return "";
+    const h=hash32(seed+"|"+salt);
+    return arr[h%arr.length];
+  }
+  function buildWhy(seed){
+    const HEADS=["Why we picked it","Advisor note","Quick guidance","Selection note"];
+    const OPENERS=[
+      "Picked for a practical fit rather than hype.",
+      "Selected as a sensible baseline option.",
+      "Chosen for straightforward use and clear selection steps.",
+      "Included for common scenarios where details matter."
+    ];
+    const LINES=[
+      "Check: seller/fulfillment and return policy details on Amazon.",
+      "Check: key specs and the exact variant at checkout.",
+      "Tip: verify the exact variant on Amazon before checkout.",
+      "Tip: confirm seller/fulfillment and return terms on Amazon."
+    ];
+    return {
+      h: pick(HEADS,seed,"h"),
+      o: pick(OPENERS,seed,"o"),
+      a: pick(LINES,seed,"a"),
+      b: pick(LINES,seed,"b")
+    };
+  }
+
+  // 同时支持：
+  // 1) /p/us/B0XXXXXXX
+  // 2) ?market=US&asin=B0XXXXXXX（兼容旧链接）
+  function getParams(){
+    let market="", asin="";
+
+    // path 优先
+    let p = location.pathname || "/";
+    if(p.length>1 && p.endsWith("/")) p = p.slice(0,-1);
+    const mm = p.match(/^\/p\/([a-zA-Z]{2})\/([A-Za-z0-9]{10})$/i);
+    if(mm){
+      market = normalizeMarket(mm[1]||"");
+      asin   = normalizeAsin(mm[2]||"");
+    } else {
+      const sp = new URLSearchParams(__ORIGINAL_SEARCH__ || "");
+      market = normalizeMarket(sp.get("market")||"");
+      asin   = normalizeAsin(sp.get("asin")||"");
+    }
+    return { market, asin };
+  }
+
+  async function fetchJsonNoCache(url){
+    const u = url + (url.includes("?") ? "&" : "?") + "ts=" + Date.now();
+    const res = await fetch(u,{cache:"no-store"});
+    if(!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    return await res.json();
+  }
+
+  function normalizeList(arr){
+    if(!Array.isArray(arr)) return [];
+    return arr.map((p)=>({
+      market: normalizeMarket(p.market ?? p.Market ?? p.MARKET ?? ""),
+      asin: normalizeAsin(p.asin ?? p.ASIN ?? ""),
+      link: String(p.link ?? p.Link ?? "").trim(),
+      image_url: String(p.image_url ?? p.image ?? p.Image ?? "").trim()
+    }));
+  }
+
+  function findOne(list, market, asin){
+    return list.find(p => p.market===market && p.asin===asin) || null;
+  }
+
+  function renderNotFound(market, asin){
+    document.getElementById("tTitle").textContent = "Product not found";
+    document.getElementById("tSub").innerHTML = `Market: <b>${esc(market||"-")}</b> · ASIN: <b>${esc(asin||"-")}</b>`;
+    document.title = `${market||""} ${asin||""} • Not Found`;
+    document.getElementById("content").innerHTML = `
+      <div class="empty">
+        This product reference may have been removed or moved.<br/>
+        Please return to the list and search again.
+      </div>`;
+  }
+
+  function renderDetail(p, market, asin, isArchived){
+    // link 优先：products.json 里的 link
+    // fallback：如果 link 为空，则用 URL query 里暂存的 dst
+    const link = normalizeUrl(p.link) || normalizeUrl(__DST__);
+
+    const imgRaw = String(p.image_url||"").trim();
+    const imgSrc = normalizeUrl(imgRaw) || PLACEHOLDER;
+    const seed = market+"|"+asin;
+    const why = buildWhy(seed);
+
+    document.getElementById("tTitle").textContent = "Product Reference";
+    document.getElementById("tSub").innerHTML =
+      `Market: <b>${esc(market)}</b> · ASIN: <b>${esc(asin)}</b>` +
+      (isArchived ? ` · <span style="color:#b45309;font-weight:900;">Archived</span>` : "");
+
+    document.title = `${market} ${asin} • Product Reference`;
+
+    const viewAmazon = link
+      ? `<a class="btn" href="${esc(link)}" target="_blank" rel="noopener noreferrer nofollow sponsored">View on Amazon</a>`
+      : `<button class="btn" onclick="alert('No valid Amazon link for this item.')">View on Amazon</button>`;
+
+    document.getElementById("content").innerHTML = `
+      <div class="card">
+        <img class="img"
+          src="${esc(imgSrc)}"
+          data-original="${esc(normalizeUrl(imgRaw)||"")}"
+          data-stage="0"
+          alt="${esc(asin)}"
+          loading="lazy"
+          decoding="async"
+          referrerpolicy="no-referrer"
+          onerror="onImgError(this)"
+        />
+        <div class="why">
+          <strong>${esc(why.h)}</strong><br/>
+          ${esc(why.o)}<br/>
+          • ${esc(why.a)}<br/>
+          • ${esc(why.b)}
+        </div>
+        <div class="actions">
+          ${viewAmazon}
+          <a class="btn secondary" href="/index.html">Back to list</a>
+        </div>
+        <div class="note">
+          <strong>Disclosure:</strong> As an Amazon Associate, we earn from qualifying purchases.
+          This is an independent site and is not endorsed by Amazon. Purchases are completed on Amazon via the product page.
+        </div>
+      </div>`;
+  }
+
+  async function boot(){
+    const { market, asin } = getParams();
+
+    // 防“纯数字 / 非Amazon”
+    if(!market || !asin || isAllDigits(asin) || !isAmazonLikeAsin(asin)){
+      renderNotFound(market, asin);
+      return;
+    }
+
+    // 关键：一进来就净化地址栏（去掉 ?dst=...）
+    cleanUrlNow(market, asin);
+
+    // Copy link 一律复制净化后的 canonical
+    const pageLink = location.origin + canonicalPath(market, asin);
+    document.getElementById("copyBtn").onclick = () => {
+      copyText(pageLink).then(()=>alert("Copied page link!")).catch(()=>alert("Copy failed"));
+    };
+
+    try{
+      const [a, b] = await Promise.allSettled([
+        fetchJsonNoCache(PRODUCTS_JSON_PATH),
+        fetchJsonNoCache(ARCHIVE_JSON_PATH)
+      ]);
+
+      if(a.status!=="fulfilled") throw a.reason;
+
+      const active = normalizeList(a.value);
+      const archived = (b.status==="fulfilled") ? normalizeList(b.value) : [];
+
+      let prod = findOne(active, market, asin);
+      if(prod){ renderDetail(prod, market, asin, false); return; }
+
+      prod = findOne(archived, market, asin);
+      if(prod){ renderDetail(prod, market, asin, true); return; }
+
+      renderNotFound(market, asin);
+    }catch(e){
+      document.getElementById("tTitle").textContent = "Load failed";
+      document.getElementById("tSub").textContent = (e && e.message) ? e.message : String(e);
+      document.getElementById("content").innerHTML = `<div class="empty">Failed to load products.json / archive.json.</div>`;
+    }
+  }
+
+  window.onImgError = onImgError;
+  boot();
 </script>
+
+<script>
+(function(){
+  try {
+    // Expose a page-scoped fallback destination derived from CSV.
+    // Your product.html can read: window.__DST_FALLBACK__
+    window.__DST_FALLBACK__ = "https://amzn.to/4jcWz6m";
+  } catch(e) {}
+  try {
+    // Ensure canonical path (strip any ?dst=... if present).
+    if (location.search && location.search.length > 1) {
+      history.replaceState(null, "", "/p/us/B0G4FWMY61" + (location.hash || ""));
+    }
+  } catch(e) {}
+})();
+</script>
+
 </body>
 </html>
