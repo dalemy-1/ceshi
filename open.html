@@ -3,63 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Opening Product…</title>
-  <style>
-    body{font-family:Arial,sans-serif;background:#0b1220;color:#fff;margin:0;padding:0}
-    .wrap{max-width:720px;margin:0 auto;padding:28px 14px}
-    .card{background:#111827;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px;box-shadow:0 12px 30px rgba(0,0,0,.25)}
-    .title{font-size:20px;font-weight:800;margin:0 0 8px}
-    .muted{color:rgba(255,255,255,.75);font-size:13px;line-height:1.5}
-    .btn{display:inline-flex;margin-top:12px;background:#fff;color:#111827;text-decoration:none;padding:10px 14px;border-radius:12px;font-weight:800}
-    .btn:hover{opacity:.92}
-    code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:8px}
-  </style>
+  <title>Opening…</title>
+  <meta name="robots" content="noindex,nofollow" />
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="title">Opening Product Page…</div>
-      <div class="muted" id="info">Preparing…</div>
-      <a class="btn" id="openBtn" href="#" target="_blank" rel="noopener" style="display:none;">Open Now</a>
-    </div>
-  </div>
-
-  <script>
-    function getParam(name){
-      const u = new URL(location.href);
-      return u.searchParams.get(name) || "";
-    }
-    const market = (getParam("market") || "").toUpperCase();
-    const asin = getParam("asin") || "";
-    const link = getParam("link") || "";
-
-    const info = document.getElementById("info");
-    const openBtn = document.getElementById("openBtn");
-
-    // 优先使用传入的 link（最准确）
-    let target = link.trim();
-
-    // 若 link 没有，才尝试用 asin 兜底（Amazon域名按market猜测）
-    const domainByMarket = {
-      US:"amazon.com", UK:"amazon.co.uk", DE:"amazon.de", FR:"amazon.fr", IT:"amazon.it",
-      ES:"amazon.es", CA:"amazon.ca", JP:"amazon.co.jp"
-    };
-    if (!target && asin) {
-      const d = domainByMarket[market] || "amazon.com";
-      target = "https://www." + d + "/dp/" + encodeURIComponent(asin);
-    }
-
-    if (!target) {
-      info.textContent = "Missing product link. Please go back and try again.";
-    } else {
-      info.innerHTML = `Market: <code>${market || "-"}</code> &nbsp; ASIN: <code>${asin || "-"}</code><br/>If you are not redirected automatically, click the button below.`;
-      openBtn.href = target;
-      openBtn.style.display = "inline-flex";
-
-      // 自动跳转（保持在本页打开）
-      // 如果你希望“自动新窗口”，浏览器会拦截，所以这里用当前页跳转最稳定。
-      setTimeout(() => { location.replace(target); }, 350);
-    }
-  </script>
+<script>
+(function(){
+  function getParam(k){
+    try { return new URL(location.href).searchParams.get(k) || ""; } catch(e){ return ""; }
+  }
+  var dst = getParam("dst");
+  if (!dst) { document.body.textContent = "Missing dst."; return; }
+  try {
+    var url = dst.includes("%") ? decodeURIComponent(dst) : dst;
+    if (!/^https?:\/\//i.test(url)) { document.body.textContent = "Invalid URL."; return; }
+    location.replace(url);
+  } catch(e){
+    document.body.textContent = "Invalid dst.";
+  }
+})();
+</script>
 </body>
 </html>
