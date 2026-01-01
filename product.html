@@ -84,16 +84,23 @@
 </footer>
 
 <script>
-  // Resolve repo base path (supports GitHub Pages project pages / subfolders)
-const ROOT_BASE = (() => {
-  const p = location.pathname || "/";
-  const i = p.indexOf("/p/");
-  if (i >= 0) return p.slice(0, i + 1); // "/{repo}/"
-  return p.endsWith("/") ? p : p.replace(/[^\/]+$/, "");
+  
+// ===== Base path (supports GitHub Pages project sites) =====
+const SITE_BASE = (() => {
+  const isGithub = /github\.io$/i.test(location.hostname);
+  const parts = (location.pathname || '').split('/').filter(Boolean);
+  return (isGithub && parts.length) ? ('/' + parts[0] + '/') : '/';
 })();
+const P_PREFIX = SITE_BASE + 'p/';
 
-const PRODUCTS_JSON_PATH = ROOT_BASE + "products.json";
-  const ARCHIVE_JSON_PATH  = ROOT_BASE + "archive.json";
+function normalizeInternalPath(p){
+  if(!p) return p;
+  if(p.startsWith(P_PREFIX) && SITE_BASE !== '/') return SITE_BASE + p.slice(1);
+  return p;
+}
+
+const PRODUCTS_JSON_PATH = SITE_BASE + "products.json";
+  const ARCHIVE_JSON_PATH = SITE_BASE + "archive.json";
 
   // Contact endpoints (shared across pages)
   const WA_PHONE = "8615778673666";
@@ -107,7 +114,7 @@ const PRODUCTS_JSON_PATH = ROOT_BASE + "products.json";
   const __DST__ = (__SP__.get("dst") || "").trim(); // 你现在的问题就是这个参数
 
   function canonicalPath(market, asin){
-    return `${ROOT_BASE}p/${encodeURIComponent(String(market||"").toLowerCase())}/${encodeURIComponent(String(asin||"").toUpperCase())}`;
+    return `/p/${encodeURIComponent(String(market||"").toLowerCase())}/${encodeURIComponent(String(asin||"").toUpperCase())}`;
   }
 
   // 只要有 query，就清理；并且确保 path 规范化
