@@ -64,7 +64,6 @@
   .hero .hint a{ color:#2563eb; text-decoration:none; }
 
   .compliance{
-    position:relative;
     background:#fff;
     border:1px solid var(--border);
     border-radius:14px;
@@ -297,9 +296,6 @@
   .fold-btn:hover{ background:#f9fafb; }
   .fold-hidden{ display:none !important; }
 
-
-  /* Compliance fold button (keeps original layout) */
-  .compliance-fold-btn{ position:absolute; top:10px; right:12px; }
 </style>
 </head>
 <body>
@@ -329,7 +325,7 @@
       }
 
       // If we are already on /p/... with ?dst=... => strip query
-      if (((location.pathname || "").replace(SITE_BASE, "/")).startsWith("/p/") && (sp.has("dst") || sp.has("to"))) {
+      if ((location.pathname || "").startsWith("/p/") && (sp.has("dst") || sp.has("to"))) {
         try { history.replaceState({}, "", location.pathname); } catch(e){}
       }
     } catch (e) {}
@@ -381,10 +377,7 @@
   </section>
 
   <div class="compliance" id="complianceBlock">
-    
-    <button class="fold-btn compliance-fold-btn" id="complianceFoldBtn" type="button" onclick="toggleFold(\'compliance\')">Collapse</button>
-    <div id="complianceFoldBody">
-<div class="row">
+    <div class="row">
       <div class="pill"><strong>Disclosure</strong>: As an Amazon Associate, we earn from qualifying purchases.</div>
       <div class="pill">Independent site · Not endorsed by Amazon</div>
     </div>
@@ -482,7 +475,6 @@
   // Default: expanded. User toggle is remembered in localStorage.
   const FOLD_KEYS = {
     hero: "plist_fold_hero_v1",
-    compliance: "plist_fold_compliance_v1",
     howto: "plist_fold_howto_v1"
   };
 
@@ -499,23 +491,13 @@
       }
 
       if (section === "howto"){
-
-      if (section === "compliance"){
-        const body = document.getElementById("complianceFoldBody");
-        const btn = document.getElementById("complianceFoldBtn");
-        if (body) body.classList.toggle("fold-hidden", isCollapsed);
-        if (btn) btn.textContent = isCollapsed ? "Expand" : "Collapse";
-        if (btn) btn.setAttribute("aria-expanded", String(!isCollapsed));
-      }
-
-      if (section === "howto"){
         const body = document.getElementById("howtoFoldBody");
         const btn = document.getElementById("howtoFoldBtn");
         if (body) body.classList.toggle("fold-hidden", isCollapsed);
         if (btn) btn.textContent = isCollapsed ? "Expand" : "Collapse";
         if (btn) btn.setAttribute("aria-expanded", String(!isCollapsed));
       }
-    }catch(e){}
+    } catch (e) {}
   }
 
   function toggleFold(section){
@@ -527,18 +509,16 @@
       const next = !current;
       localStorage.setItem(key, next ? "1" : "0");
       applyFoldState(section, next);
-    }catch(e){}
+    } catch (e) {}
   }
 
   function restoreFoldStates(){
     try{
       const heroCollapsed = (localStorage.getItem(FOLD_KEYS.hero) || "0") === "1";
-      const complianceCollapsed = (localStorage.getItem(FOLD_KEYS.compliance) || "0") === "1";
       const howtoCollapsed = (localStorage.getItem(FOLD_KEYS.howto) || "0") === "1";
       applyFoldState("hero", heroCollapsed);
-      applyFoldState("compliance", complianceCollapsed);
       applyFoldState("howto", howtoCollapsed);
-    }catch(e){}
+    } catch (e) {}
   }
   // ===================== END FOLD STATE (NEW) =====================
 
@@ -562,7 +542,7 @@
       if (route.type !== "list") return;
       sessionStorage.setItem(LIST_SCROLL_KEY, String(window.scrollY || 0));
       sessionStorage.setItem(LIST_RESTORE_FLAG_KEY, "1");
-    }catch(e){}
+    } catch (e) {}
   }
 
   function restoreListScrollPosIfNeeded(){
@@ -584,7 +564,7 @@
       requestAnimationFrame(() => {
         window.scrollTo({ top: y, behavior: "instant" });
       });
-    }catch(e){}
+    } catch (e) {}
   }
   // ===================== END LIST SCROLL MEMORY (NEW) =====================
 
@@ -606,10 +586,10 @@
 
     // Preserve dst by moving it onto the /p/... URL as query string.
     // This keeps your existing routing logic intact and enables the detail CTA to use dst.
-    var newUrl = (SITE_BASE.replace(/\/+$/,"") + to);
+    var newUrl = to;
     if (dst) {
       try { dst = decodeURIComponent(dst); } catch(e) {}
-      newUrl = newUrl + (newUrl.indexOf("?") >= 0 ? "&" : "?") + "dst=" + encodeURIComponent(dst);
+      newUrl = to + (to.indexOf("?") >= 0 ? "&" : "?") + "dst=" + encodeURIComponent(dst);
     }
 
     history.replaceState(null, "", newUrl);
@@ -626,18 +606,15 @@
   // Auto-detect base path:
 // - Custom domain: https://ama.omino.top/  -> base "/"
 // - GitHub project pages: https://dalemy-1.github.io/ceshi/ -> base "/ceshi/"
-const SITE_BASE = (() => {
-  // Works for both:
-  // - Custom domain root: https://ama.omino.top/
-  // - GitHub project pages: https://dalemy-1.github.io/ceshi/
-  const seg = (location.pathname.split("/").filter(Boolean)[0] || "");
-  // If we are already under /p/... or /og/... (independent pages), the site is at root.
-  if (!seg || seg === "p" || seg === "og") return "/";
-  return "/" + seg + "/";
-})();
+const SITE_BASE =
+  (location.hostname.endsWith("github.io")
+    ? ("/" + (location.pathname.split("/")[1] || "") + "/")
+    : "/");
 
 const PRODUCTS_JSON_PATH = SITE_BASE + "products.json";
 const ARCHIVE_JSON_PATH  = SITE_BASE + "archive.json"; // 如果你也有 archive.json
+
+
   const WA_PHONE = "8615778673666";
   const TG_USERNAME = "dalemyrong";
   const EMAIL_CONTACT = "info@dalemy.top";
@@ -762,21 +739,28 @@ function getDstFromLocation(){
       var key = "dst:" + pathname;
       var v = sessionStorage.getItem(key) || sessionStorage.getItem("dst:last") || "";
       return (v || "").trim();
-    }catch(e){}
+    } catch (e) {}
     return "";
   }
 
 function parseRoute(){
     const path = location.pathname || "/";
-    // Strip SITE_BASE for matching (so both "/" and "/ceshi/" work)
-    const base = SITE_BASE.replace(/\/+$/,"") + "/";
-    const rel = path.startsWith(base) ? ("/" + path.slice(base.length)) : path;
-
-    // Match: /p/{market}/{asinKey}/ (with optional index.html)
-    let m = rel.match(/^\/p\/([^\/]+)\/([^\/?#]+)(?:\/index\.html)?\/?$/i);
+    let m = path.match(/^\/p\/([^\/]+)\/([^\/?#]+)(?:\/index\.html)?\/?$/i);
     if (m){
       return { type:"product", market: decodeURIComponent(m[1] || ""), key: decodeURIComponent(m[2] || "") };
     }
+
+    try{
+      const sp = new URLSearchParams(location.search || "");
+      const toRaw = sp.get("to");
+      if (toRaw){
+        const to = decodeURIComponent(toRaw);
+        const mm = String(to).match(/^\/p\/([^\/]+)\/([^\/?#]+)(?:\/index\.html)?\/?$/i);
+        if (mm){
+          return { type:"product", market: decodeURIComponent(mm[1] || ""), key: decodeURIComponent(mm[2] || "") };
+        }
+      }
+    } catch (e) {}
 
     return { type:"list" };
   }
@@ -795,8 +779,7 @@ function parseRoute(){
 
   function buildProductPath(market, asinKey){
     const m = String(market||"").trim().toLowerCase();
-    // IMPORTANT: include SITE_BASE for GitHub project pages
-    return SITE_BASE + `p/${encodeURIComponent(m)}/${encodeURIComponent(String(asinKey||""))}/`;
+    return `${SITE_BASE}p/${encodeURIComponent(m)}/${encodeURIComponent(String(asinKey||""))}/`;
   }
   function buildProductPermalink(market, asinKey){
     return location.origin + buildProductPath(market, asinKey);
@@ -842,7 +825,7 @@ function parseRoute(){
 
   function goHome(){
     // NEW: 返回列表时不强制回顶部，而是恢复到进入详情前的位置
-    history.pushState({type:"list"}, "", SITE_BASE);
+    history.pushState({type:"list"}, "", "/");
     renderByRoute();
 
     // Ensure fold states applied after initial DOM is ready
@@ -1545,7 +1528,7 @@ function parseRoute(){
         const mk = await fn();
         if (mk && ALLOWED_MARKETS.includes(mk)) return mk;
         if (mk === "") return "";
-      }catch(e){}
+      } catch (e) {}
     }
     return "";
   }
@@ -1591,4 +1574,3 @@ function parseRoute(){
 </script>
 </body>
 </html>
-
