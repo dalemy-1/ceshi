@@ -3,462 +3,213 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Product Reference</title>
+  <title>Product</title>
   <meta name="description" content="Independent product reference. As an Amazon Associate, we earn from qualifying purchases." />
   <style>
-    :root{
-      --bg:#f4f4f9; --card:#fff; --border:#e5e7eb; --text:#111827; --muted:#6b7280; --primary:#111827; --soft:#f9fafb;
-    }
+    :root{--bg:#f4f4f9;--card:#fff;--border:#e5e7eb;--text:#111827;--muted:#6b7280;--primary:#111827;--soft:#f9fafb;}
     *{box-sizing:border-box}
     body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
-    html, body { max-width: 100%; overflow-x: hidden; }
-    img, video, canvas, svg { max-width: 100%; height: auto; }
-
-    header{background:linear-gradient(135deg,#0f172a,#020617);color:#fff;text-align:center;padding:18px 12px}
-    header h1{margin:0;font-size:20px;font-weight:900}
-    .wrap{max-width:980px;margin:14px auto 26px;padding:0 12px}
-    .top{
-      display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
-      background:#fff;border:1px solid var(--border);border-radius:14px;padding:10px 12px;
-    }
-    .title{font-weight:900;margin:0;font-size:14px}
-    .sub{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
-    .btn{
-      cursor:pointer;border-radius:12px;border:1px solid var(--border);
-      padding:9px 12px;font-weight:900;font-size:13px;background:var(--primary);color:#fff;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
-    }
-    .btn.secondary{background:#fff;color:#111827}
-    .card{
-      margin-top:12px;background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px;
-      box-shadow:0 10px 24px rgba(0,0,0,.04);
-    }
-    .img{
-      width:100%;max-width:520px;aspect-ratio:1/1;object-fit:contain;border-radius:16px;border:1px solid var(--border);
-      background:#fff;display:block;margin:0 auto;
-    }
-    .why{
-      max-width:520px;margin:10px auto 0;padding:10px 12px;background:var(--soft);border:1px solid var(--border);border-radius:12px;
-      font-size:12px;color:#374151;line-height:1.55;
-    }
-    .why strong{font-weight:900}
-    .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px}
-    .note{
-      margin-top:10px;font-size:12px;color:#4b5563;line-height:1.55;background:var(--soft);border:1px solid var(--border);border-radius:12px;padding:10px;
-    }
-    .empty{
-      margin-top:12px;padding:14px;border:1px solid var(--border);border-radius:14px;background:#fff;color:var(--muted);text-align:center;font-size:14px;
-    }
-    footer{margin-top:18px;background:#fff;border-top:1px solid var(--border);padding:14px 12px}
-    footer .inner{max-width:980px;margin:0 auto;font-size:12px;color:#374151;line-height:1.7}
-    footer a{color:#2563eb;text-decoration:none}
+    header{background:linear-gradient(90deg,#0f172a,#111827);color:#fff;padding:18px 16px;text-align:center}
+    header h1{margin:0;font-size:28px;letter-spacing:.3px}
+    .wrap{max-width:1100px;margin:16px auto;padding:0 12px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 22px rgba(0,0,0,.06);padding:14px}
+    .row{display:grid;grid-template-columns:360px 1fr;gap:14px}
+    @media(max-width:920px){.row{grid-template-columns:1fr}}
+    .imgbox{background:var(--soft);border:1px solid var(--border);border-radius:14px;display:flex;align-items:center;justify-content:center;min-height:320px;overflow:hidden}
+    .imgbox img{max-width:100%;max-height:520px;object-fit:contain}
+    .meta h2{margin:0 0 8px 0;font-size:20px}
+    .kv{color:var(--muted);font-size:13px;line-height:1.6}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .btn{border:1px solid var(--border);background:#fff;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700}
+    .btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .note{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5}
+    a{color:#2563eb;text-decoration:none}
   </style>
 </head>
 <body>
 <header>
-  <h1>Product Reference</h1>
+  <h1>Product Picks</h1>
 </header>
 
 <div class="wrap">
-  <div class="top" id="topBar">
-    <div>
-      <p class="title" id="tTitle">Loading…</p>
-      <p class="sub" id="tSub">Preparing…</p>
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;"><a class="btn secondary" id="backBtn" href="#">← Back to list</a><button class="btn secondary" id="copyBtn">Copy page link</button><button class="btn secondary" id="topContactBtn">Contact / Copy</button></div>
-  </div>
+  <div class="card">
+    <div class="row">
+      <div class="imgbox"><img id="img" alt="Product image" /></div>
+      <div class="meta">
+        <h2 id="title">Loading…</h2>
+        <div class="kv" id="kv"></div>
 
-  <div id="content"></div>
+        <div class="actions">
+          <button class="btn primary" id="btnAmazon">View on Amazon</button>
+          <button class="btn" id="btnBack">Back to list</button>
+          <button class="btn" id="btnCopy">Copy ASIN / Market</button>
+        </div>
+
+        <div class="note">
+          Affiliate disclosure: As an Amazon Associate, we earn from qualifying purchases.
+          Independence: This site is not an official Amazon website and is not endorsed by Amazon.
+          Purchases are completed on Amazon via the product page.
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<footer>
-  <div class="inner">
-    <div><strong>Affiliate disclosure:</strong> As an Amazon Associate, we earn from qualifying purchases.</div>
-    <div><strong>Independence:</strong> This site is not an official Amazon website and is not endorsed by Amazon.</div>
-    <div><strong>Links:</strong> “View on Amazon” redirects to Amazon. Amazon may use cookies for tracking qualifying purchases.</div>
-    <div style="margin-top:6px;">
-      <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a> ·
-      <a href="./terms.html" target="_blank" rel="noopener">Terms</a>
-    </div>
-    <div style="margin-top:6px;">© 2025 ama.omino.top</div>
-  </div>
-</footer>
-
 <script>
-  
-// Base path for GitHub Pages project sites
-const SITE_BASE = (location.hostname.endsWith("github.io") ? ("/" + (location.pathname.split("/").filter(Boolean)[0] || "") + "/") : "/");
-const P_BASE = SITE_BASE + "p/";
-const OG_BASE = SITE_BASE + "og/";
-const PRODUCTS_JSON_PATH = SITE_BASE + "products.json";
+
+  function detectSiteBase(){
+    if (location.hostname.endsWith("github.io")) {
+      var seg = (location.pathname.split("/").filter(Boolean)[0] || "");
+      return seg ? ("/" + seg + "/") : "/";
+    }
+    var baseTag = document.querySelector('base[href]');
+    if (baseTag) {
+      var href = baseTag.getAttribute('href') || "/";
+      if (!href.startsWith("/")) href = "/" + href;
+      if (!href.endsWith("/")) href += "/";
+      return href;
+    }
+    return "/";
+  }
+  const SITE_BASE = detectSiteBase();
+
+
+  function qs(name){
+    var u = new URL(location.href);
+    return u.searchParams.get(name) || "";
+  }
+
+  function stripBase(pathname){
+    if (SITE_BASE !== "/" && pathname.startsWith(SITE_BASE)) {
+      return "/" + pathname.slice(SITE_BASE.length);
+    }
+    return pathname;
+  }
+
+  function parseFromPath(){
+    var p = stripBase(location.pathname || "/");
+    if (p.length > 1 && p.endsWith("/")) p = p.slice(0,-1);
+    var m = p.match(/^\/p\/([a-zA-Z]{2})\/([A-Za-z0-9]{10})$/);
+    if (!m) return null;
+    return { market: m[1].toUpperCase(), asin: m[2].toUpperCase() };
+  }
+
+  function getIdentity(){
+    var market = (qs("market") || qs("m") || "").toUpperCase();
+    var asin = (qs("asin") || qs("a") || "").toUpperCase();
+    if (market && asin) return {market, asin};
+    var fromPath = parseFromPath();
+    if (fromPath) return fromPath;
+    return null;
+  }
+
+  const PRODUCTS_JSON_PATH = SITE_BASE + "products.json";
   const ARCHIVE_JSON_PATH  = SITE_BASE + "archive.json";
 
-  // Contact endpoints (shared across pages)
-  const WA_PHONE = "8615778673666";
-  const TG_USERNAME = "dalemyrong";
-  const EMAIL_CONTACT = "info@dalemy.top";
+  function normalizeMarket(x){ return (x||"").toString().trim().toUpperCase(); }
+  function normalizeAsin(x){ return (x||"").toString().trim().toUpperCase(); }
 
-  // ============ URL 清理核心 ============
-  // 先把 query 里的 dst 暂存下来（后面 View on Amazon 可用），然后立刻清理地址栏
-  const __ORIGINAL_SEARCH__ = location.search || "";
-  const __SP__ = new URLSearchParams(__ORIGINAL_SEARCH__);
-  const __DST__ = (__SP__.get("dst") || "").trim(); // 你现在的问题就是这个参数
-
-  function canonicalPath(market, asin){
-    const m = encodeURIComponent(String(market||"" ).toLowerCase());
-    const a = encodeURIComponent(String(asin||"" ).toUpperCase());
-    // Keep compatible with GitHub Pages project sites (/{repo}/...)
-    return SITE_BASE + "p/" + m + "/" + a + "/";
+  async function fetchJson(url){
+    const r = await fetch(url, {cache:"no-store"});
+    if (!r.ok) throw new Error(url + " -> " + r.status);
+    return await r.json();
   }
 
-  // 只要有 query，就清理；并且确保 path 规范化（不会丢失 SITE_BASE）
-  function cleanUrlNow(market, asin){
-    const targetPath = canonicalPath(market, asin);
-    const hash = location.hash || "";
-    if ((location.pathname || "") !== targetPath || (__ORIGINAL_SEARCH__ && __ORIGINAL_SEARCH__.length > 1)){
-      history.replaceState(null, "", targetPath + hash);
+  function pickLink(item){
+    return item.link || item.url || item.amazon_link || item.href || "";
+  }
+
+  function pickImage(item){
+    return item.image_url || item.image || item.img || item.og_image || "";
+  }
+
+  function pickTitle(item){
+    return item.title || item.name || item.product_title || item.asin || "Product";
+  }
+
+  function render(item, id){
+    document.title = pickTitle(item) + " • Product Picks";
+    document.getElementById("title").textContent = pickTitle(item);
+
+    const kv = document.getElementById("kv");
+    const lines = [];
+    lines.push("Market: " + id.market);
+    lines.push("ASIN: " + id.asin);
+    if (item.keyword) lines.push("Keyword: " + item.keyword);
+    if (item.store) lines.push("Store: " + item.store);
+    if (item.remark) lines.push("Remark: " + item.remark);
+    kv.innerHTML = lines.map(x => "<div>"+x+"</div>").join("");
+
+    const img = document.getElementById("img");
+    const src = pickImage(item);
+    if (src) {
+      img.src = src;
+      img.referrerPolicy = "no-referrer";
+      img.loading = "lazy";
+    } else {
+      img.alt = "No image";
     }
-  }
-  // ====================================
 
-  const PLACEHOLDER_SVG = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
-      <defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-        <stop offset="0" stop-color="#f3f4f6"/><stop offset="1" stop-color="#e5e7eb"/></linearGradient></defs>
-      <rect width="800" height="800" rx="48" fill="url(#g)"/>
-      <text x="400" y="420" text-anchor="middle" font-family="Arial" font-size="34" fill="#6b7280">Image unavailable</text>
-    </svg>`;
-  const PLACEHOLDER = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(PLACEHOLDER_SVG);
+    const link = pickLink(item);
+    document.getElementById("btnAmazon").onclick = function(){
+      if (!link) return alert("No link found for this item.");
+      const dst = encodeURIComponent(link);
+      location.href = SITE_BASE + "open.html?dst=" + dst + "&market=" + encodeURIComponent(id.market) + "&asin=" + encodeURIComponent(id.asin);
+    };
 
-  function esc(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;")}
-  function normalizeMarket(m){return String(m||"").trim().toUpperCase()}
-  function normalizeAsin(a){return String(a||"").trim().toUpperCase()}
-  function isAllDigits(s){return /^[0-9]+$/.test(String(s||"").trim())}
-  function isAmazonLikeAsin(s){
-    const v = normalizeAsin(s);
-    return /^[A-Z0-9]{10}$/.test(v) && /[A-Z]/.test(v);
-  }
-  function normalizeUrl(u){const s=String(u||"").trim(); return /^https?:\/\//i.test(s)?s:"";}
-  function isHttps(){return String(location.protocol||"").toLowerCase()==="https:";}
-  function toWeserv(url){
-    const cleaned = String(url||"").replace(/^https?:\/\//i,"");
-    return "https://images.weserv.nl/?url=" + encodeURIComponent(cleaned);
-  }
-  function onImgError(img){
-    try{
-      const stage = Number(img.dataset.stage||"0");
-      const original = String(img.dataset.original||"");
-      if(!original){img.src=PLACEHOLDER;return;}
-      if(stage===0){
-        img.dataset.stage="1";
-        if(isHttps() && /^http:\/\//i.test(original)){ img.src = original.replace(/^http:\/\//i,"https://"); return; }
-        img.src = toWeserv(original); img.dataset.stage="2"; return;
+    document.getElementById("btnBack").onclick = function(){
+      location.href = SITE_BASE;
+    };
+
+    document.getElementById("btnCopy").onclick = async function(){
+      const text = id.market + " " + id.asin;
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch(e) {
+        const ta = document.createElement("textarea");
+        ta.value = text; document.body.appendChild(ta);
+        ta.select(); document.execCommand("copy");
+        ta.remove();
       }
-      if(stage===1){ img.dataset.stage="2"; img.src=toWeserv(original); return; }
-      img.dataset.stage="3"; img.src=PLACEHOLDER; img.removeAttribute("srcset");
-    }catch(_){ try{img.src=PLACEHOLDER}catch(e){} }
-  }
-
-  function copyText(text){
-    if(navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
-    return new Promise((resolve,reject)=>{
-      try{
-        const ta=document.createElement("textarea"); ta.value=text; document.body.appendChild(ta);
-        ta.select(); document.execCommand("copy"); document.body.removeChild(ta); resolve();
-      }catch(e){reject(e)}
-    });
-  }
-
-  function hash32(str){
-    let h=2166136261; const s=String(str||"");
-    for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); }
-    return (h>>>0);
-  }
-  function pick(arr, seed, salt){
-    if(!arr||!arr.length) return "";
-    const h=hash32(seed+"|"+salt);
-    return arr[h%arr.length];
-  }
-  function buildWhy(seed){
-    const HEADS=["Why we picked it","Advisor note","Quick guidance","Selection note"];
-    const OPENERS=[
-      "Picked for a practical fit rather than hype.",
-      "Selected as a sensible baseline option.",
-      "Chosen for straightforward use and clear selection steps.",
-      "Included for common scenarios where details matter."
-    ];
-    const LINES=[
-      "Check: seller/fulfillment and return policy details on Amazon.",
-      "Check: key specs and the exact variant at checkout.",
-      "Tip: verify the exact variant on Amazon before checkout.",
-      "Tip: confirm seller/fulfillment and return terms on Amazon."
-    ];
-    return {
-      h: pick(HEADS,seed,"h"),
-      o: pick(OPENERS,seed,"o"),
-      a: pick(LINES,seed,"a"),
-      b: pick(LINES,seed,"b")
+      alert("Copied: " + text);
     };
   }
 
-  // 同时支持：
-  // 1) /p/us/B0XXXXXXX
-  // 2) ?market=US&asin=B0XXXXXXX（兼容旧链接）
-  function getParams(){
-    let market="", asin="";
-
-    // path 优先
-    let p = location.pathname || "/";
-    // strip SITE_BASE prefix for GitHub Pages project sites
-    try{
-      const base = String(SITE_BASE||"/").replace(/\/$/, "");
-      if (base && base !== "/" && p.startsWith(base + "/")) p = p.slice(base.length);
-    }catch(e){}
-
-    if(p.length>1 && p.endsWith("/")) p = p.slice(0,-1);
-    const mm = p.match(/^\/p\/([a-zA-Z]{2})\/([A-Za-z0-9]{10})$/i);
-    if(mm){
-      market = normalizeMarket(mm[1]||"");
-      asin   = normalizeAsin(mm[2]||"");
-    } else {
-      const sp = new URLSearchParams(__ORIGINAL_SEARCH__ || "");
-      market = normalizeMarket(sp.get("market")||"");
-      asin   = normalizeAsin(sp.get("asin")||"");
-    }
-    return { market, asin };
-  }
-
-  async function fetchJsonNoCache(url){
-    const u = url + (url.includes("?") ? "&" : "?") + "ts=" + Date.now();
-    const res = await fetch(u,{cache:"no-store"});
-    if(!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-    return await res.json();
-  }
-
-  function normalizeList(arr){
-    if(!Array.isArray(arr)) return [];
-    return arr.map((p)=>({
-      market: normalizeMarket(p.market ?? p.Market ?? p.MARKET ?? ""),
-      asin: normalizeAsin(p.asin ?? p.ASIN ?? ""),
-      link: String(p.link ?? p.Link ?? "").trim(),
-      image_url: String(p.image_url ?? p.image ?? p.Image ?? "").trim()
-    }));
-  }
-
-  function findOne(list, market, asin){
-    return list.find(p => p.market===market && p.asin===asin) || null;
-  }
-
-  function renderNotFound(market, asin){
-    document.getElementById("tTitle").textContent = "Product not found";
-    document.getElementById("tSub").innerHTML = `Market: <b>${esc(market||"-")}</b> · ASIN: <b>${esc(asin||"-")}</b>`;
-    document.title = `${market||""} ${asin||""} • Not Found`;
-    document.getElementById("content").innerHTML = `
-      <div class="empty">
-        This product reference may have been removed or moved.<br/>
-        Please return to the list and search again.
-      </div>`;
-  }
-
-  function renderDetail(p, market, asin, isArchived){
-    // link 优先：products.json 里的 link
-    // fallback：如果 link 为空，则用 URL query 里暂存的 dst
-    const link = normalizeUrl(p.link) || normalizeUrl(__DST__);
-
-    const imgRaw = String(p.image_url||"").trim();
-    const imgSrc = normalizeUrl(imgRaw) || PLACEHOLDER;
-    const seed = market+"|"+asin;
-    const why = buildWhy(seed);
-
-    document.getElementById("tTitle").textContent = "Product Reference";
-    document.getElementById("tSub").innerHTML =
-      `Market: <b>${esc(market)}</b> · ASIN: <b>${esc(asin)}</b>` +
-      (isArchived ? ` · <span style="color:#b45309;font-weight:900;">Archived</span>` : "");
-
-    document.title = `${market} ${asin} • Product Reference`;
-
-    const viewAmazon = link
-      ? `<a class="btn" href="${esc(link)}" target="_blank" rel="noopener noreferrer nofollow sponsored">View on Amazon</a>`
-      : `<button class="btn" onclick="alert('No valid Amazon link for this item.')">View on Amazon</button>`;
-
-    document.getElementById("content").innerHTML = `
-      <div class="card">
-        <img class="img"
-          src="${esc(imgSrc)}"
-          data-original="${esc(normalizeUrl(imgRaw)||"")}"
-          data-stage="0"
-          alt="${esc(asin)}"
-          loading="lazy"
-          decoding="async"
-          referrerpolicy="no-referrer"
-          onerror="onImgError(this)"
-        />
-        <div class="why">
-          <strong>${esc(why.h)}</strong><br/>
-          ${esc(why.o)}<br/>
-          • ${esc(why.a)}<br/>
-          • ${esc(why.b)}
-        </div>
-        <div class="actions">
-          ${viewAmazon}
-          <button class="btn secondary" id="contactCopyBtn">Contact / Copy</button>
-        </div>
-        <div class="note">
-          <strong>Disclosure:</strong> As an Amazon Associate, we earn from qualifying purchases.
-          This is an independent site and is not endorsed by Amazon. Purchases are completed on Amazon via the product page. We do not control final pricing, availability, shipping, or return terms.
-        </div>
-      </div>`;
-  }
-
-  async function boot(){
-    const { market, asin } = getParams();
-
-    // 防“纯数字 / 非Amazon”
-    if(!market || !asin || isAllDigits(asin) || !isAmazonLikeAsin(asin)){
-      renderNotFound(market, asin);
+  async function main(){
+    const id = getIdentity();
+    if (!id) {
+      document.getElementById("title").textContent = "Invalid product URL";
+      document.getElementById("kv").textContent = "Missing market/asin.";
       return;
     }
 
-    // 关键：一进来就净化地址栏（去掉 ?dst=...）
-    cleanUrlNow(market, asin);
+    const wantMarket = normalizeMarket(id.market);
+    const wantAsin = normalizeAsin(id.asin);
 
-    // Back to list must respect SITE_BASE (GitHub Pages project sites)
-    try{
-      const bb = document.getElementById("backBtn");
-      if (bb) bb.href = SITE_BASE;
-    }catch(e){}
+    let list = [];
+    try {
+      list = await fetchJson(PRODUCTS_JSON_PATH);
+      if (!Array.isArray(list)) list = list.products || list.items || [];
+    } catch(e) {}
 
-    // Copy link 一律复制净化后的 canonical
-    const pageLink = location.origin + canonicalPath(market, asin);
-    document.getElementById("copyBtn").onclick = () => {
-      copyText(pageLink).then(()=>alert("Copied page link!")).catch(()=>alert("Copy failed"));
-    };
-
-    const __cc = document.getElementById("contactCopyBtn");
-    if (__cc) {
-      __cc.onclick = () => {
-        const s = `Market: ${String(market).toUpperCase()} | ASIN: ${String(asin).toUpperCase()}`;
-        copyText(s).then(()=>alert("Copied: " + s)).catch(()=>alert(s));
-      };
+    if (!list || !list.length) {
+      try {
+        const ar = await fetchJson(ARCHIVE_JSON_PATH);
+        list = Array.isArray(ar) ? ar : (ar.archive || ar.items || []);
+      } catch(e) {}
     }
 
-
-    try{
-      const [a, b] = await Promise.allSettled([
-        fetchJsonNoCache(PRODUCTS_JSON_PATH),
-        fetchJsonNoCache(ARCHIVE_JSON_PATH)
-      ]);
-
-      if(a.status!=="fulfilled") throw a.reason;
-
-      const active = normalizeList(a.value);
-      const archived = (b.status==="fulfilled") ? normalizeList(b.value) : [];
-
-      let prod = findOne(active, market, asin);
-      if(prod){ renderDetail(prod, market, asin, false); return; }
-
-      prod = findOne(archived, market, asin);
-      if(prod){ renderDetail(prod, market, asin, true); return; }
-
-      renderNotFound(market, asin);
-    }catch(e){
-      document.getElementById("tTitle").textContent = "Load failed";
-      document.getElementById("tSub").textContent = (e && e.message) ? e.message : String(e);
-      document.getElementById("content").innerHTML = `<div class="empty">Failed to load products.json / archive.json.</div>`;
+    const item = (list || []).find(x => normalizeMarket(x.market)===wantMarket && normalizeAsin(x.asin)===wantAsin);
+    if (!item) {
+      document.getElementById("title").textContent = "Product not found";
+      document.getElementById("kv").innerHTML = "<div>Market: "+wantMarket+"</div><div>ASIN: "+wantAsin+"</div><div style='margin-top:6px'>No matching item in products.json / archive.json.</div>";
+      document.getElementById("btnAmazon").disabled = true;
+      return;
     }
+    render(item, {market: wantMarket, asin: wantAsin});
   }
 
-
-  function buildCopyInfo(market, asin){
-    const lines = [];
-    if (asin) lines.push(`ASIN: ${asin}`);
-    if (market) lines.push(`Market: ${market}`);
-    return lines.join("\n");
-  }
-  function buildContactText(market, asin){
-    const base = buildCopyInfo(market, asin);
-    return [base, "", "Hi, I have a question about this product. Could you please help?"].join("\n");
-  }
-  function openContactModal(market, asin){
-    const m = String(market||"").toUpperCase();
-    const a = String(asin||"").toUpperCase();
-
-    const previewEl = document.getElementById("contactPreview");
-    if (previewEl) previewEl.textContent = buildCopyInfo(m, a);
-
-    const contactText = buildContactText(m, a);
-    const waUrl = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(contactText);
-    const tgUrl = "https://t.me/" + TG_USERNAME;
-
-    const subject = `Product question: ${a} [${m}]`;
-    const mailUrl = "mailto:" + encodeURIComponent(EMAIL_CONTACT)
-      + "?subject=" + encodeURIComponent(subject)
-      + "&body=" + encodeURIComponent(contactText);
-
-    const waBtn = document.getElementById("contactWA");
-    if (waBtn){
-      waBtn.href = waUrl;
-      waBtn.onclick = (e) => { e.preventDefault(); window.open(waUrl, "_blank", "noopener,noreferrer"); };
-    }
-
-    const tgBtn = document.getElementById("contactTG");
-    if (tgBtn){
-      tgBtn.href = tgUrl;
-      tgBtn.onclick = (e) => {
-        e.preventDefault();
-        copyText(contactText)
-          .then(() => window.open(tgUrl, "_blank", "noopener,noreferrer"))
-          .catch(() => window.open(tgUrl, "_blank", "noopener,noreferrer"));
-      };
-    }
-
-    const mailBtn = document.getElementById("contactMail");
-    if (mailBtn){
-      mailBtn.href = mailUrl;
-      mailBtn.onclick = (e) => { e.preventDefault(); window.open(mailUrl, "_blank", "noopener,noreferrer"); };
-    }
-
-    const modal = document.getElementById("contactModal");
-    if (modal) modal.style.display = "block";
-  }
-  function closeContactModal(){
-    const modal = document.getElementById("contactModal");
-    if (modal) modal.style.display = "none";
-  }
-  function copyContactInfo(){
-    const text = (document.getElementById("contactPreview") || {}).textContent || "";
-    if (!text) return;
-    copyText(text).then(() => alert("Copied!")).catch(() => alert("Copy failed"));
-  }
-
-  window.onImgError = onImgError;
-  boot();
+  main();
 </script>
-
-<div id="contactModal" class="modal" onclick="closeContactModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);padding-top:60px;z-index:999;">
-  <div class="modal-inner" onclick="event.stopPropagation()" style="width:90%;max-width:560px;margin:0 auto;background:#fff;border-radius:16px;padding:14px;position:relative;box-shadow:0 10px 30px rgba(0,0,0,.18);">
-    <span onclick="closeContactModal()" style="position:absolute;right:14px;top:10px;font-size:26px;font-weight:900;cursor:pointer;user-select:none;">×</span>
-
-    <h3 style="margin:0 0 10px 0;">Contact & Copy</h3>
-    <div style="font-size:13px;color:#6b7280;margin-bottom:8px;">
-      Copy only ASIN / Market. Contact options are for general consultation; use “View on Amazon” to purchase.
-    </div>
-
-    <div id="contactPreview"
-         style="border:1px solid #e5e7eb;border-radius:14px;padding:10px;background:#f9fafb;white-space:pre-wrap;font-size:13px;line-height:1.45;text-align:left;"></div>
-
-    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px;">
-      <button class="btn" onclick="copyContactInfo()" style="background:#374151;">Copy info</button>
-      <a class="btn secondary" href="#" id="contactWA" rel="noopener noreferrer" target="_blank">WhatsApp</a>
-      <a class="btn secondary" href="#" id="contactTG" rel="noopener noreferrer" target="_blank">Telegram</a>
-      <a class="btn secondary" href="#" id="contactMail" rel="noopener noreferrer" target="_blank">Email</a>
-      <button class="btn secondary" onclick="closeContactModal()">Close</button>
-    </div>
-
-    <div style="margin-top:10px;font-size:12px;color:#6b7280;line-height:1.55;">
-      Final pricing, availability, shipping, and return terms are provided by Amazon on the destination page.
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
